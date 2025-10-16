@@ -14,45 +14,31 @@ app.use(
 );
 app.use(express.json());
 
-/**
- * GET: 사용자 조회 → CALL TR_GET_USERS()
- * (프로시저는 SELECT id,name,email FROM users; 반환한다고 가정)
- */
-app.get("/api/users", async (req, res) => {
+// api test
+app.post("/api/test", async (req, res) => {
   try {
-    const [rowsSets] = await pool.query("CALL TR_GET_USERS()");
-    const rows = rowsSets?.[0] ?? [];
-    res.json(rows);
-  } catch (err) {
-    console.error("[TR_GET_USERS]", err);
-    res.status(500).json({ message: err.sqlMessage || "DB 조회 오류" });
-  }
-});
+    const { sendData } = req.body;
 
-/**
- * POST: 사용자 추가 → CALL TR_ADD_USER(?, ?)
- * (프로시저 내부에서 INSERT 처리한다고 가정)
- */
-app.post("/api/users", async (req, res) => {
-  try {
-    const { name, email } = req.body;
-    if (!name || !email) {
-      return res.status(400).json({ ok: false, message: "이름/이메일은 필수" });
-    }
+    const parts = sendData.split(";");
 
-    const [rowsSets] = await pool.query("CALL TR_ADD_USER(?, ?)", [
-      name,
-      email,
+    const i_SDATE = parts[0];
+    const i_EDATE = parts[1];
+    const i_CMCD = parts[2];
+    const i_CSTCD = parts[3];
+    const i_LANG = parts[4];
+
+    const [rows] = await pool.query("CALL TR25031(?, ?, ?, ?, ?)", [
+      i_SDATE,
+      i_EDATE,
+      i_CMCD,
+      i_CSTCD,
+      i_LANG,
     ]);
 
-    // 프로시저에서 SELECT LAST_INSERT_ID() AS id; 반환한다고 가정
-    const result = rowsSets?.[0]?.[0] || {};
-    res.json({ ok: true, id: result.id });
+    res.json(rows); // 프로시저 결과 반환
   } catch (err) {
-    console.error("[TR_ADD_USER]", err);
-    res
-      .status(500)
-      .json({ ok: false, message: err.sqlMessage || "DB 입력 오류" });
+    console.error(err);
+    res.status(500).json({ message: "DB 호출 오류" });
   }
 });
 
