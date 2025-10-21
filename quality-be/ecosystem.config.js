@@ -32,7 +32,7 @@ module.exports = {
         // .env 사용 중이면 DB_HOST/USER/PASS/NAME 등은 index.js에서 dotenv로 로드됨
       },
 
-      // PM2가 종료 신호 보낼 때 우아한 종료를 기다리도록(선택)
+      // PM2가 종료 신호 보낼 때 종료를 기다리도록(선택)
       kill_timeout: 10000,
     },
   ],
