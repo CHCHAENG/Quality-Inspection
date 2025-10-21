@@ -34,6 +34,7 @@ module.exports = {
 
       // PM2가 종료 신호 보낼 때 종료를 기다리도록(선택)
       kill_timeout: 10000,
+      
     },
   ],
 };
