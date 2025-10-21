@@ -1,13 +1,13 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const pool = require("./server/db");
+const pool = require("./src/db");
 
 const app = express();
 
 app.use(
   cors({
-    origin: "*", // 운영에서는 특정 도메인만 허용하세요
+    origin: "*",
     methods: ["GET", "POST", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
