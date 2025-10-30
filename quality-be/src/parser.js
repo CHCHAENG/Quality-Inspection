@@ -18,3 +18,4 @@ function parseDelimited(sendData, keys, delimiter = ";") {
 }
 
 module.exports = { parseDelimited };
+ 

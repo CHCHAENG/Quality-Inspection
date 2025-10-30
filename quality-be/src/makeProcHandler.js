@@ -1,4 +1,4 @@
-const { parseDelimited } = require("./parse");
+const { parseDelimited } = require("./parser");
 const { callProcedure } = require("./db");
 
 function makeProcHandler(config) {
