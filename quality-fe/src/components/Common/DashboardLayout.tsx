@@ -4,7 +4,7 @@ import { Box, Grid } from "@mui/material";
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { Outlet } from "react-router-dom";
-import { dataTest } from "../../api/api";
+import { prcsSub } from "../../api/api";
 import Sidebar from "./Sidebar";
 
 interface DashboardLayoutProps {
@@ -17,8 +17,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   useEffect(() => {
     (async () => {
-      const result = await dataTest();
-      console.log("결과 : ", result);
+      const result = await prcsSub();
+      console.log("52122: ", result);
     })();
   }, []);
 
