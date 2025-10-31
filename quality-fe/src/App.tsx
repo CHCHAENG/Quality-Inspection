@@ -8,7 +8,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/quality" element={<Dashboard />} />
         <Route path="/quality/mtr-insp/st" element={<MtrInspST />} />
       </Routes>
     </BrowserRouter>

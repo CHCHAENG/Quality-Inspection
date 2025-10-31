@@ -1,103 +1,5 @@
-// import { useNavigate, useLocation } from "react-router-dom";
-
-// import {
-//   Box,
-//   Toolbar,
-//   IconButton,
-//   List,
-//   ListItem,
-//   ListItemButton,
-//   ListItemIcon,
-// } from "@mui/material";
-// import { FiAlignJustify } from "react-icons/fi";
-// import { RiDashboardHorizontalFill } from "react-icons/ri";
-
-// interface SidebarProps {
-//   collapsed: boolean;
-//   toggleSidebar: () => void;
-// }
-
-// export default function Sidebar({ collapsed, toggleSidebar }: SidebarProps) {
-//   const menuItems = [
-//     { label: "품질검사성적서", icon: RiDashboardHorizontalFill, path: "/" },
-//   ];
-
-//   const navigate = useNavigate();
-//   const location = useLocation();
-
-//   return (
-//     <Box
-//       sx={{
-//         width: collapsed ? 60 : 260,
-//         height: "100vh",
-//         minHeight: "100vh",
-//         display: "flex",
-//         flexDirection: "column",
-//         bgcolor: "#f4f6f8",
-//         overflowY: "auto",
-//         borderRight: "1px solid #e0e0e0",
-//       }}
-//     >
-//       <Toolbar
-//         sx={{
-//           display: "flex",
-//           justifyContent: collapsed ? "center" : "flex-end",
-//         }}
-//       >
-//         <IconButton onClick={toggleSidebar}>
-//           <FiAlignJustify />
-//         </IconButton>
-//       </Toolbar>
-
-//       <List>
-//         {menuItems.map((item, index) => {
-//           const IconComponent = item.icon;
-//           const isActive = location.pathname === item.path;
-
-//           return (
-//             <ListItem disablePadding key={index}>
-//               <ListItemButton
-//                 onClick={() => navigate(item.path)}
-//                 sx={{
-//                   px: 2,
-//                   justifyContent: collapsed ? "center" : "flex-start",
-//                   bgcolor: isActive ? "#e0f2ff" : "transparent",
-//                   "&:hover": {
-//                     bgcolor: isActive ? "#b3e5fc" : "#f5f5f5",
-//                   },
-//                 }}
-//               >
-//                 <ListItemIcon
-//                   sx={{
-//                     minWidth: 0,
-//                     mr: collapsed ? 0 : 2,
-//                     display: "flex",
-//                     justifyContent: "center",
-//                     color: isActive ? "#0288d1" : "#757575",
-//                   }}
-//                 >
-//                   <IconComponent size={collapsed ? 28 : 20} />
-//                 </ListItemIcon>
-//                 {!collapsed && (
-//                   <span
-//                     style={{
-//                       color: isActive ? "#0288d1" : "#424242",
-//                       fontWeight: isActive ? 600 : 400,
-//                     }}
-//                   >
-//                     {item.label}
-//                   </span>
-//                 )}
-//               </ListItemButton>
-//             </ListItem>
-//           );
-//         })}
-//       </List>
-//     </Box>
-//   );
-// }
-
-import { useMemo, useState, useCallback } from "react";
+// Sidebar.tsx
+import { useMemo, useState, useCallback, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
@@ -129,45 +31,33 @@ export interface MenuNode {
   children?: MenuNode[];
 }
 
-// --- Menu Data (예시) ---
+// 메뉴 데이터
 const MENU: MenuNode[] = [
   {
     id: "quality",
     label: "품질검사성적서",
     icon: RiDashboardHorizontalFill,
-    path: "/",
+    path: "/quality",
     children: [
       {
         id: "mtr-insp",
         label: "원자재 수입검사 일지",
         children: [
-          {
-            id: "ST",
-            label: "연선",
-            path: "/quality/mtr-insp/st",
-          },
-          {
-            id: "PVC",
-            label: "PVC",
-            path: "/quality/mtr-insp/pvc",
-          },
-          {
-            id: "SCR",
-            label: "SCR",
-            path: "/quality/mtr-insp/scr",
-          },
+          { id: "ST", label: "연선", path: "/quality/mtr-insp/st" },
+          { id: "PVC", label: "PVC", path: "/quality/mtr-insp/pvc" },
+          { id: "SCR", label: "SCR", path: "/quality/mtr-insp/scr" },
         ],
       },
       {
-        id: "mtr-insp-daliy",
+        id: "mtr-daily",
         label: "수입검사일지",
-        path: "/quality/mtr-daliy",
+        path: "/quality/mtr-daily",
       },
     ],
   },
 ];
 
-// Helper: 경로가 활성인지 (하위 경로 포함)
+// 활성 경로 판별
 const isPathActive = (currentPath: string, nodePath?: string) => {
   if (!nodePath) return false;
   if (nodePath === "/") return currentPath === "/";
@@ -178,10 +68,12 @@ export default function Sidebar({ collapsed, toggleSidebar }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 열림 상태를 노드 id 기준으로 관리
   const [openMap, setOpenMap] = useState<Record<string, boolean>>({});
 
-  // 현재 경로에 해당하는 부모 체인은 자동으로 열어두기
+  useEffect(() => {
+    console.log(collapsed);
+  }, []);
+  // 현재 경로에 해당하는 체인 자동 펼침
   const autoOpenIds = useMemo(() => {
     const ids = new Set<string>();
     const dfs = (nodes: MenuNode[], chain: string[]) => {
@@ -198,14 +90,12 @@ export default function Sidebar({ collapsed, toggleSidebar }: SidebarProps) {
   }, [location.pathname]);
 
   const isOpen = useCallback(
-    (id: string) => openMap[id] ?? autoOpenIds.has(id),
+    (id: string) => (id in openMap ? openMap[id] : autoOpenIds.has(id)),
     [openMap, autoOpenIds]
   );
 
   const toggleOpen = useCallback(
-    (id: string) => {
-      setOpenMap((prev) => ({ ...prev, [id]: !isOpen(id) }));
-    },
+    (id: string) => setOpenMap((prev) => ({ ...prev, [id]: !isOpen(id) })),
     [isOpen]
   );
 
@@ -217,68 +107,95 @@ export default function Sidebar({ collapsed, toggleSidebar }: SidebarProps) {
           const active = isPathActive(location.pathname, node.path);
           const hasChildren = !!node.children?.length;
 
-          const button = (
-            <ListItemButton
-              onClick={() => {
-                if (hasChildren) {
-                  toggleOpen(node.id);
-                } else if (node.path) {
-                  navigate(node.path);
-                }
-              }}
-              sx={{
-                pl: collapsed ? 0 : 2 + depth * 2,
-                justifyContent: collapsed ? "center" : "flex-start",
-                bgcolor: active ? "#e0f2ff" : "transparent",
-                borderRadius: 1,
-                mx: collapsed ? 1 : 1,
-                my: 0.5,
-                "&:hover": { bgcolor: active ? "#b3e5fc" : "#f5f5f5" },
-              }}
-            >
-              {IconComp ? (
-                <ListItemIcon
-                  sx={{
-                    minWidth: 0,
-                    mr: collapsed ? 0 : 1.5,
-                    color: active ? "#0288d1" : "#757575",
-                    justifyContent: "center",
-                  }}
-                >
-                  <IconComp size={collapsed ? 22 : 18} />
-                </ListItemIcon>
-              ) : null}
-
-              {!collapsed && (
-                <ListItemText
-                  primary={node.label}
-                  primaryTypographyProps={{
-                    noWrap: true,
-                    fontWeight: active ? 600 : 400,
-                    color: active ? "#0288d1" : "#424242",
-                    fontSize: 14,
-                  }}
-                />
-              )}
-
-              {hasChildren &&
-                !collapsed &&
-                (isOpen(node.id) ? <MdExpandMore /> : <MdChevronRight />)}
-            </ListItemButton>
-          );
-
           return (
             <ListItem key={node.id} disablePadding sx={{ display: "block" }}>
-              {collapsed ? (
-                <Tooltip title={node.label} placement="right">
-                  <Box>{button}</Box>
-                </Tooltip>
-              ) : (
-                button
-              )}
+              <ListItemButton
+                selected={active && !collapsed}
+                disableRipple
+                disableTouchRipple
+                onClick={() => {
+                  if (hasChildren) {
+                    toggleOpen(node.id);
+                  } else if (node.path) {
+                    navigate(node.path);
+                  }
+                }}
+                sx={{
+                  px: collapsed ? 0 : 2,
+                  pl: collapsed ? 0 : 1 + depth * 2,
+                  pr: collapsed ? 0 : 2,
+                  minHeight: 44,
+                  justifyContent: collapsed ? "center" : "flex-start",
+                  borderRadius: 1,
+                  mx: 1,
+                  my: 0.5,
+                  transition: "background-color .15s ease",
 
+                  "&.Mui-selected": { bgcolor: "#e0f2ff" },
+                  "&.Mui-selected:hover": { bgcolor: "#e0f2ff" },
+                  "&:hover": { bgcolor: "#cbe7ff" },
+                }}
+              >
+                {IconComp ? (
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 0,
+                      mr: collapsed ? 0 : 1.5,
+                      width: collapsed ? "100%" : "auto",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      color: active ? "#0288d1" : "#757575",
+                    }}
+                  >
+                    {collapsed ? (
+                      <Tooltip title={node.label} placement="right">
+                        <Box sx={{ display: "flex" }}>
+                          <IconComp size={collapsed ? 22 : 18} />
+                        </Box>
+                      </Tooltip>
+                    ) : (
+                      <IconComp size={collapsed ? 22 : 18} />
+                    )}
+                  </ListItemIcon>
+                ) : null}
+
+                <Box
+                  sx={{
+                    display: collapsed ? "none" : "block",
+                    flex: 1,
+                    minWidth: 0,
+                  }}
+                >
+                  <ListItemText
+                    primary={node.label}
+                    primaryTypographyProps={{
+                      noWrap: true,
+                      fontWeight: active ? 600 : 400,
+                      color: active ? "#0288d1" : "#424242",
+                      fontSize: 14,
+                    }}
+                  />
+                </Box>
+
+                {/* 우측 화살표: 폴더일 때만, 접힘일 때는 숨김(언마운트 아님) */}
+                <Box
+                  sx={{
+                    display: hasChildren && !collapsed ? "flex" : "none",
+                    alignItems: "center",
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (hasChildren) toggleOpen(node.id);
+                  }}
+                >
+                  {isOpen(node.id) ? <MdExpandMore /> : <MdChevronRight />}
+                </Box>
+              </ListItemButton>
+
+              {/* Collapse: unmount 하지 않음 → 상태 유지 */}
               {hasChildren && (
-                <Collapse in={isOpen(node.id)} timeout="auto" unmountOnExit>
+                <Collapse in={isOpen(node.id)} timeout="auto">
                   {renderNodes(node.children!, depth + 1)}
                 </Collapse>
               )}
@@ -292,8 +209,11 @@ export default function Sidebar({ collapsed, toggleSidebar }: SidebarProps) {
 
   return (
     <Box
+      component="nav"
+      aria-label="sidebar"
       sx={{
-        width: collapsed ? 60 : 260,
+        width: collapsed ? 60 : 260, // 폭만 변경
+        transition: "width .2s ease",
         height: "100vh",
         minHeight: "100vh",
         display: "flex",

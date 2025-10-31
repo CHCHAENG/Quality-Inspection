@@ -1,10 +1,9 @@
 // components/Common/DashboardLayout.tsx
 
 import { Box, Grid } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { ReactNode } from "react";
 import { Outlet } from "react-router-dom";
-import { prcsSub } from "../../api/api";
 import Sidebar from "./Sidebar";
 
 interface DashboardLayoutProps {
@@ -15,12 +14,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
   const toggleSidebar = () => setCollapsed(!collapsed);
 
-  useEffect(() => {
-    (async () => {
-      const result = await prcsSub();
-      console.log("52122: ", result);
-    })();
-  }, []);
+  // useEffect(() => {
+  //   (async () => {
+  //     const result = await mtrInsp();
+  //     console.log("52122: ", result);
+  //   })();
+  // }, []);
 
   return (
     <Box sx={{ display: "flex", width: "100%", height: "100vh" }}>
@@ -38,12 +37,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         }}
       >
         <Grid container spacing={2}>
-          {/* ✅ Grid container의 자식은 item 이어야 함 */}
-
-          <Box sx={{ width: "100%" }}>
-            {/* ✅ children이 없으면 <Outlet /> 대체 렌더 */}
-            {children ?? <Outlet />}
-          </Box>
+          <Box sx={{ width: "100%" }}>{children ?? <Outlet />}</Box>
         </Grid>
       </Box>
     </Box>
