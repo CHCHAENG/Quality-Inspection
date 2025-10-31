@@ -1,5 +1,5 @@
 // Sidebar.tsx
-import { useMemo, useState, useCallback, useEffect } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
@@ -70,9 +70,6 @@ export default function Sidebar({ collapsed, toggleSidebar }: SidebarProps) {
 
   const [openMap, setOpenMap] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    console.log(collapsed);
-  }, []);
   // 현재 경로에 해당하는 체인 자동 펼침
   const autoOpenIds = useMemo(() => {
     const ids = new Set<string>();

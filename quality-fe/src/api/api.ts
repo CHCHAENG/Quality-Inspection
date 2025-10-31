@@ -26,8 +26,7 @@ export async function mtrDailyDetail() {
 // 순회검사일지 (신선, 연선)
 export async function prcsSub() {
   const sendData =
-    "2025-10-28;2025-10-30;24;0;ST-00-01:1!ST-01-01:1!ST-03-01:1!ST-03-02:1!ST-04-01:1!ST-05-01:1!ST-05-01:2!ST-05-01:3!ST-05-01:4!;";
-
+    "2025-10-28;2025-10-30;23;0;DR-01-01:1!DR-02-01:1!DR-03-01:1!DR-03-01:2!DR-03-01:3!DR-03-01:4!;";
   const res = await axios.post("/api/prcsSub", { sendData });
   return res.data;
 }

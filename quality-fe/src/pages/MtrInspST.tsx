@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import Sidebar from "../components/Common/Sidebar";
 import { Outlet } from "react-router-dom";
 import DataGridSelectAndExport from "../components/Common/DataGridSelectAndExport";

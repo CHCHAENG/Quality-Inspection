@@ -1,4 +1,3 @@
-import * as React from "react";
 import { useMemo, useState } from "react";
 import { Box, Stack, Button, Typography } from "@mui/material";
 import {
@@ -8,7 +7,6 @@ import {
   type GridPaginationModel,
 } from "@mui/x-data-grid";
 import * as XLSX from "xlsx";
-import { mtrInsp } from "../../api/api";
 
 // v8: RowSelectionModel 타입
 type RowSelectionModelV8 = {
@@ -17,13 +15,6 @@ type RowSelectionModelV8 = {
 };
 
 export default function DataGridSelectAndExport() {
-  React.useEffect(() => {
-    (async () => {
-      const result = await mtrInsp();
-      console.log("52010: ", result);
-    })();
-  }, []);
-
   // 1) 컬럼
   const columns: GridColDef[] = useMemo(
     () => [
@@ -132,10 +123,11 @@ export default function DataGridSelectAndExport() {
       sx={{
         display: "flex",
         flexDirection: "column",
+        marginLeft: "50px",
         gap: 2,
         minHeight: 0,
-        flex: 1, // ✅ Flex 레이아웃 안에서 유동폭
-        minWidth: 0, // ✅ 부모 폭보다 넓어지지 않도록
+        flex: 1,
+        width: "90%",
       }}
     >
       {/* 상단 액션 */}
@@ -157,11 +149,8 @@ export default function DataGridSelectAndExport() {
           선택된 행: {selectedRows.length}개
         </Typography>
       </Stack>
-
       {/* 메인 그리드 */}
       <Box sx={{ flex: 1, minWidth: 0, minHeight: 0 }}>
-        {" "}
-        {/* ✅ width 대신 flex/minWidth */}
         <DataGrid
           rows={rows}
           columns={columns}
@@ -173,13 +162,11 @@ export default function DataGridSelectAndExport() {
           onPaginationModelChange={setPaginationModel}
           rowSelectionModel={rowSelectionModel}
           onRowSelectionModelChange={setRowSelectionModel}
+          sx={{ width: 1, height: 1, minWidth: 0, minHeight: 0 }}
         />
       </Box>
-
       {/* 선택 행 미리보기 */}
       <Box sx={{ flex: 1, minWidth: 0, overflow: "auto" }}>
-        {" "}
-        {/* ✅ */}
         <Typography variant="subtitle2" sx={{ mb: 1 }}>
           선택한 행 미리보기
         </Typography>
