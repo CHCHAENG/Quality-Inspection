@@ -1,9 +1,9 @@
 import axios from "axios";
 
-// 수입검사 (원자재, PVC, SCR)
-export async function mtrInsp() {
-  const sendData =
-    "2025-10-22;2025-10-30;24;0;ST-00-01:1!ST-01-01:1!ST-03-01:1!ST-03-02:1!ST-04-01:1!ST-05-01:1!ST-05-01:2!ST-05-01:3!ST-05-01:4!;";
+// 수입검사 (연선, PVC, SCR)
+export async function mtrInsp(sendData: string) {
+  // const sendData =
+  //   "2025-10-22;2025-10-30;24;0;ST-00-01:1!ST-01-01:1!ST-03-01:1!ST-03-02:1!ST-04-01:1!ST-05-01:1!ST-05-01:2!ST-05-01:3!ST-05-01:4!;";
 
   const res = await axios.post("/api/mtr", { sendData });
   return res.data;

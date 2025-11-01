@@ -22,7 +22,11 @@ export default function MtrInspST({ children }: MtrInspSTProps) {
         component="main"
         sx={{
           flexGrow: 1,
-          width: "100%",
+          flexBasis: 0,
+          minWidth: 0,
+          // width: "100%",
+          height: "100dvh",
+          minHeight: 0,
           p: 3,
           transition: "margin 0.3s",
         }}

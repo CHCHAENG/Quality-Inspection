@@ -211,8 +211,10 @@ export default function Sidebar({ collapsed, toggleSidebar }: SidebarProps) {
       sx={{
         width: collapsed ? 60 : 260, // 폭만 변경
         transition: "width .2s ease",
-        height: "100vh",
-        minHeight: "100vh",
+        // height: "100vh",
+        // minHeight: "100vh",
+        height: "100%",
+        alignSelf: "stretch",
         display: "flex",
         flexDirection: "column",
         bgcolor: "#f4f6f8",
