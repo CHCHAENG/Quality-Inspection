@@ -1,11 +1,11 @@
 // components/Common/DashboardLayout.tsx
 
 import { Box, Grid } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { ReactNode } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
-import { mtrDailyDetail, mtrDailyInfo, prcsSub } from "../../api/api";
+// import { mtrDailyDetail, mtrDailyInfo, prcsSub } from "../../api/api";
 
 interface DashboardLayoutProps {
   children?: ReactNode;
