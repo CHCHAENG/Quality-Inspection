@@ -5,6 +5,7 @@ import {
   Button,
   Typography,
   CircularProgress,
+  Alert,
 } from "@mui/material";
 import {
   DataGrid,
@@ -25,6 +26,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { mtrInsp } from "../../api/api";
+import { extractErrorMessage } from "../../utils/extractError";
 
 dayjs.locale("ko");
 dayjs.extend(minMax);
@@ -73,196 +75,8 @@ export default function DataGridSelectAndExport() {
     []
   );
 
-  // 2) 데이터 (초기값은 기존 더미를 그대로 사용하고, 이후 조회 시 서버 응답으로 교체)
-  // const initialData: ServerRow[] = useMemo(
-  //   () => [
-  //     {
-  //       BRCD: "PC19/0190-BQ426S2510230001M",
-  //       "DATE_FORMAT(MAX(A.REGDT),'%Y-%m-%d %H:%i')": "2025-10-23 16:07",
-  //       "GET_CMNCD(MAX(C.UNIT),'0')": "Kg",
-  //       "MAX(A.INSPNO)": "G251023037",
-  //       "MAX(A.ITMCD)": "C19/0190-B",
-  //       "MAX(C.ITMNM)": "연선선재 19/0.190",
-  //       "MAX(D.RMK)": " ",
-  //       "MAX(D.RST)": "OK",
-  //       "MAX(E.QTY)": "426.00000",
-  //       "MAX(F.USRNM)": "전승근",
-  //       "MAX(I.CSTNM)": "코앤전자산업(주)",
-  //       "MAX(J.RMK)": " ",
-  //       "ST-00-01": "OK",
-  //       "ST-01-01": "18",
-  //       "ST-03-01": "19",
-  //       "ST-03-02": "OK",
-  //       "ST-04-01": "0.924",
-  //       "ST-05-01": "0.187",
-  //     },
-  //     {
-  //       BRCD: "PC19/0190-BQ408S2510230002M",
-  //       "DATE_FORMAT(MAX(A.REGDT),'%Y-%m-%d %H:%i')": "2025-10-23 16:08",
-  //       "GET_CMNCD(MAX(C.UNIT),'0')": "Kg",
-  //       "MAX(A.INSPNO)": "G251023037",
-  //       "MAX(A.ITMCD)": "C19/0190-B",
-  //       "MAX(C.ITMNM)": "연선선재 19/0.190",
-  //       "MAX(D.RMK)": " ",
-  //       "MAX(D.RST)": "OK",
-  //       "MAX(E.QTY)": "408.00000",
-  //       "MAX(F.USRNM)": "전승근",
-  //       "MAX(I.CSTNM)": "코앤전자산업(주)",
-  //       "MAX(J.RMK)": " ",
-  //       "ST-00-01": "OK",
-  //       "ST-01-01": "19",
-  //       "ST-03-01": "19",
-  //       "ST-03-02": "OK",
-  //       "ST-04-01": "0.931",
-  //       "ST-05-01": "0.186",
-  //     },
-  //     {
-  //       BRCD: "PC19/0190-BQ419S4510230003M",
-  //       "DATE_FORMAT(MAX(A.REGDT),'%Y-%m-%d %H:%i')": "2025-10-23 16:09",
-  //       "GET_CMNCD(MAX(C.UNIT),'0')": "Kg",
-  //       "MAX(A.INSPNO)": "G251023037",
-  //       "MAX(A.ITMCD)": "C19/0190-B",
-  //       "MAX(C.ITMNM)": "연선선재 19/0.190",
-  //       "MAX(D.RMK)": " ",
-  //       "MAX(D.RST)": "OK",
-  //       "MAX(E.QTY)": "419.00000",
-  //       "MAX(F.USRNM)": "전승근",
-  //       "MAX(I.CSTNM)": "코앤전자산업(주)",
-  //       "MAX(J.RMK)": " ",
-  //       "ST-00-01": "OK",
-  //       "ST-01-01": "19",
-  //       "ST-03-01": "19",
-  //       "ST-03-02": "OK",
-  //       "ST-04-01": "0.935",
-  //       "ST-05-01": "0.187",
-  //     },
-  //     {
-  //       BRCD: "PC19/0190-BQ426S2510239001M",
-  //       "DATE_FORMAT(MAX(A.REGDT),'%Y-%m-%d %H:%i')": "2025-10-23 16:07",
-  //       "GET_CMNCD(MAX(C.UNIT),'0')": "Kg",
-  //       "MAX(A.INSPNO)": "G251023037",
-  //       "MAX(A.ITMCD)": "C19/0190-B",
-  //       "MAX(C.ITMNM)": "연선선재 19/0.190",
-  //       "MAX(D.RMK)": " ",
-  //       "MAX(D.RST)": "OK",
-  //       "MAX(E.QTY)": "426.00000",
-  //       "MAX(F.USRNM)": "전승근",
-  //       "MAX(I.CSTNM)": "코앤전자산업(주)",
-  //       "MAX(J.RMK)": " ",
-  //       "ST-00-01": "OK",
-  //       "ST-01-01": "18",
-  //       "ST-03-01": "19",
-  //       "ST-03-02": "OK",
-  //       "ST-04-01": "0.924",
-  //       "ST-05-01": "0.187",
-  //     },
-  //     {
-  //       BRCD: "PC19/0190-BQ408S2510230802M",
-  //       "DATE_FORMAT(MAX(A.REGDT),'%Y-%m-%d %H:%i')": "2025-10-23 16:08",
-  //       "GET_CMNCD(MAX(C.UNIT),'0')": "Kg",
-  //       "MAX(A.INSPNO)": "G251023037",
-  //       "MAX(A.ITMCD)": "C19/0190-B",
-  //       "MAX(C.ITMNM)": "연선선재 19/0.190",
-  //       "MAX(D.RMK)": " ",
-  //       "MAX(D.RST)": "OK",
-  //       "MAX(E.QTY)": "408.00000",
-  //       "MAX(F.USRNM)": "전승근",
-  //       "MAX(I.CSTNM)": "코앤전자산업(주)",
-  //       "MAX(J.RMK)": " ",
-  //       "ST-00-01": "OK",
-  //       "ST-01-01": "19",
-  //       "ST-03-01": "19",
-  //       "ST-03-02": "OK",
-  //       "ST-04-01": "0.931",
-  //       "ST-05-01": "0.186",
-  //     },
-  //     {
-  //       BRCD: "PC19/0190-BQ419S2520230003M",
-  //       "DATE_FORMAT(MAX(A.REGDT),'%Y-%m-%d %H:%i')": "2025-10-23 16:09",
-  //       "GET_CMNCD(MAX(C.UNIT),'0')": "Kg",
-  //       "MAX(A.INSPNO)": "G251023037",
-  //       "MAX(A.ITMCD)": "C19/0190-B",
-  //       "MAX(C.ITMNM)": "연선선재 19/0.190",
-  //       "MAX(D.RMK)": " ",
-  //       "MAX(D.RST)": "OK",
-  //       "MAX(E.QTY)": "419.00000",
-  //       "MAX(F.USRNM)": "전승근",
-  //       "MAX(I.CSTNM)": "코앤전자산업(주)",
-  //       "MAX(J.RMK)": " ",
-  //       "ST-00-01": "OK",
-  //       "ST-01-01": "19",
-  //       "ST-03-01": "19",
-  //       "ST-03-02": "OK",
-  //       "ST-04-01": "0.935",
-  //       "ST-05-01": "0.187",
-  //     },
-  //     {
-  //       BRCD: "PC19/0190-BQ426S2510230091M",
-  //       "DATE_FORMAT(MAX(A.REGDT),'%Y-%m-%d %H:%i')": "2025-10-23 16:07",
-  //       "GET_CMNCD(MAX(C.UNIT),'0')": "Kg",
-  //       "MAX(A.INSPNO)": "G251023037",
-  //       "MAX(A.ITMCD)": "C19/0190-B",
-  //       "MAX(C.ITMNM)": "연선선재 19/0.190",
-  //       "MAX(D.RMK)": " ",
-  //       "MAX(D.RST)": "OK",
-  //       "MAX(E.QTY)": "426.00000",
-  //       "MAX(F.USRNM)": "전승근",
-  //       "MAX(I.CSTNM)": "코앤전자산업(주)",
-  //       "MAX(J.RMK)": " ",
-  //       "ST-00-01": "OK",
-  //       "ST-01-01": "18",
-  //       "ST-03-01": "19",
-  //       "ST-03-02": "OK",
-  //       "ST-04-01": "0.924",
-  //       "ST-05-01": "0.187",
-  //     },
-  //     {
-  //       BRCD: "PC19/0190-BQ408S2510239002M",
-  //       "DATE_FORMAT(MAX(A.REGDT),'%Y-%m-%d %H:%i')": "2025-10-23 16:08",
-  //       "GET_CMNCD(MAX(C.UNIT),'0')": "Kg",
-  //       "MAX(A.INSPNO)": "G251023037",
-  //       "MAX(A.ITMCD)": "C19/0190-B",
-  //       "MAX(C.ITMNM)": "연선선재 19/0.190",
-  //       "MAX(D.RMK)": " ",
-  //       "MAX(D.RST)": "OK",
-  //       "MAX(E.QTY)": "408.00000",
-  //       "MAX(F.USRNM)": "전승근",
-  //       "MAX(I.CSTNM)": "코앤전자산업(주)",
-  //       "MAX(J.RMK)": " ",
-  //       "ST-00-01": "OK",
-  //       "ST-01-01": "19",
-  //       "ST-03-01": "19",
-  //       "ST-03-02": "OK",
-  //       "ST-04-01": "0.931",
-  //       "ST-05-01": "0.186",
-  //     },
-  //     {
-  //       BRCD: "PC19/0190-BQ419S2510230003M",
-  //       "DATE_FORMAT(MAX(A.REGDT),'%Y-%m-%d %H:%i')": "2025-10-23 16:09",
-  //       "GET_CMNCD(MAX(C.UNIT),'0')": "Kg",
-  //       "MAX(A.INSPNO)": "G251023037",
-  //       "MAX(A.ITMCD)": "C19/0190-B",
-  //       "MAX(C.ITMNM)": "연선선재 19/0.190",
-  //       "MAX(D.RMK)": " ",
-  //       "MAX(D.RST)": "OK",
-  //       "MAX(E.QTY)": "419.00000",
-  //       "MAX(F.USRNM)": "전승근",
-  //       "MAX(I.CSTNM)": "코앤전자산업(주)",
-  //       "MAX(J.RMK)": " ",
-  //       "ST-00-01": "OK",
-  //       "ST-01-01": "19",
-  //       "ST-03-01": "19",
-  //       "ST-03-02": "OK",
-  //       "ST-04-01": "0.935",
-  //       "ST-05-01": "0.187",
-  //     },
-  //   ],
-  //   []
-  // );
-
-  const [rawServerData, setRawServerData] = useState<ServerRow[]>([]);
-
   // 2) 데이터
+  const [rawServerData, setRawServerData] = useState<ServerRow[]>([]);
   const rows = useMemo<FrontRow[]>(
     () => transformServerData(rawServerData),
     [rawServerData]
@@ -274,7 +88,7 @@ export default function DataGridSelectAndExport() {
     pageSize: 5,
   });
 
-  // 4) 선택 모델
+  // 4) 선택 행
   const [rowSelectionModel, setRowSelectionModel] =
     useState<RowSelectionModelV8>({
       type: "include",
@@ -328,7 +142,9 @@ export default function DataGridSelectAndExport() {
       setRowSelectionModel({ type: "include", ids: new Set() });
       setPaginationModel((prev) => ({ ...prev, page: 0 }));
     } catch (err: any) {
-      console.error(err);
+      const msg = extractErrorMessage(err);
+      <Alert severity="error">{msg}</Alert>;
+      // console.error(err);
       setRawServerData([]);
     } finally {
       setLoading(false);
@@ -447,7 +263,13 @@ export default function DataGridSelectAndExport() {
           rowSelectionModel={rowSelectionModel}
           onRowSelectionModelChange={setRowSelectionModel}
           loading={loading}
-          sx={{ width: 1, height: 1, minWidth: 0, minHeight: 0 }}
+          sx={{
+            width: 1,
+            height: 1,
+            minWidth: 0,
+            minHeight: 0,
+            marginBottom: "20px",
+          }}
         />
       </Box>
 
