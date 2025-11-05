@@ -1,11 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Stack,
   Button,
   Typography,
   CircularProgress,
-  Alert,
 } from "@mui/material";
 import {
   DataGrid,
@@ -17,6 +16,7 @@ import {
   transformServerData,
   type ServerRow,
   type FrontRow,
+  type ItemKind,
 } from "../../utils/mtrInspTrans";
 import * as XLSX from "xlsx";
 import dayjs, { Dayjs } from "dayjs";
@@ -27,6 +27,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { mtrInsp } from "../../api/api";
 import { extractErrorMessage } from "../../utils/extractError";
+import { useLocation } from "react-router-dom";
 
 dayjs.locale("ko");
 dayjs.extend(minMax);
@@ -36,9 +37,72 @@ type RowSelectionModelV8 = {
   ids: Set<GridRowId>;
 };
 
-export default function DataGridSelectAndExport() {
-  // 1) 컬럼
-  const columns: GridColDef[] = useMemo(
+// -------------------- 경로 기반 kind 판별 --------------------
+function kindFromPath(pathname: string): ItemKind {
+  const p = pathname.toLowerCase();
+  if (p.includes("pvc")) return "pvc";
+  if (p.includes("scr")) return "scr";
+  if (p.includes("st") || p.includes("wire")) return "wire";
+  return "wire"; // 기본
+}
+
+// -------------------- sendData 빌더 --------------------
+function buildSendDataForWire(s: string, e: string) {
+  // ITM_GRP=24 (연선)
+  return `${s};${e};24;0;ST-00-01:1!ST-01-01:1!ST-03-01:1!ST-03-02:1!ST-04-01:1!ST-05-01:1!ST-05-01:2!ST-05-01:3!ST-05-01:4!;`;
+}
+function buildSendDataForPVC(s: string, e: string) {
+  // ITM_GRP=22 (PVC)
+  return `${s};${e};22;0;PVC-01-01:1!PVC-02-01:1!PVC-03-01:1!;`;
+}
+function buildSendDataForSCR(s: string, e: string) {
+  // ITM_GRP=21 (SCR)
+  return `${s};${e};21;0;CU-00-01:1!CU-01-01:1!CU-01-01:2!CU-01-01:3!CU-01-01:4!;`;
+}
+
+function buildSendDataString(kind: ItemKind, s: string, e: string) {
+  if (kind === "pvc") return buildSendDataForPVC(s, e);
+  if (kind === "scr") return buildSendDataForSCR(s, e);
+  return buildSendDataForWire(s, e);
+}
+
+export default function MtrInspDataGrid() {
+  const location = useLocation();
+  const effectiveKind = useMemo<ItemKind>(
+    () => kindFromPath(location.pathname),
+    [location.pathname]
+  );
+
+  // 원본
+  const [rawServerData, setRawServerData] = useState<ServerRow[]>([]);
+  const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
+    page: 0,
+    pageSize: 5,
+  });
+  const [rowSelectionModel, setRowSelectionModel] =
+    useState<RowSelectionModelV8>({
+      type: "include",
+      ids: new Set(),
+    });
+  const [startDate, setStartDate] = useState<Dayjs | null>(
+    dayjs().startOf("month")
+  );
+  const [endDate, setEndDate] = useState<Dayjs | null>(dayjs());
+  const [loading, setLoading] = useState(false);
+
+  const reqSeq = useRef(0);
+
+  // ---- kind 바뀔 때 모든 상태 초기화 + 이전 요청 무시
+  useEffect(() => {
+    reqSeq.current += 1; // 이전 요청 결과는 전부 무시
+    setRawServerData([]); // rows 초기화
+    setRowSelectionModel({ type: "include", ids: new Set() });
+    setPaginationModel({ page: 0, pageSize: 5 });
+    setLoading(false);
+  }, [effectiveKind]);
+
+  // -------------------- 공통 컬럼 --------------------
+  const commonColumns: GridColDef[] = useMemo(
     () => [
       { field: "reqNo", headerName: "의뢰번호", width: 140 },
       { field: "vendor", headerName: "구매업체", width: 160 },
@@ -51,14 +115,16 @@ export default function DataGridSelectAndExport() {
       { field: "inspector", headerName: "검사자", width: 100 },
       { field: "inspectedAt", headerName: "검사일자", width: 160 },
       { field: "remark", headerName: "비고", width: 140 },
+    ],
+    []
+  );
+
+  // -------------------- 연선 전용 컬럼 --------------------
+  const wireExtraColumns: GridColDef[] = useMemo(
+    () => [
       { field: "appearance", headerName: "외관상태", width: 80 },
       { field: "pitch", headerName: "피치", width: 80, type: "number" },
-      {
-        field: "strandCount",
-        headerName: "가닥수",
-        width: 80,
-        type: "number",
-      },
+      { field: "strandCount", headerName: "가닥수", width: 80, type: "number" },
       { field: "twistDirection", headerName: "꼬임방향", width: 80 },
       {
         field: "outerDiameter",
@@ -75,27 +141,50 @@ export default function DataGridSelectAndExport() {
     []
   );
 
-  // 2) 데이터
-  const [rawServerData, setRawServerData] = useState<ServerRow[]>([]);
-  const rows = useMemo<FrontRow[]>(
-    () => transformServerData(rawServerData),
-    [rawServerData]
+  // -------------------- PVC 전용 컬럼 --------------------
+  const pvcExtraColumns: GridColDef[] = useMemo(
+    () => [
+      { field: "pvcCheck1", headerName: "외관상태", width: 100 },
+      { field: "pvcCheck2", headerName: "색상상태", width: 100 },
+      { field: "pvcCheck3", headerName: "포장상태", width: 100 },
+      { field: "vendorRemark", headerName: "비고(업체로트)", width: 160 },
+    ],
+    []
   );
 
-  // 3) 페이징
-  const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
-    page: 0,
-    pageSize: 5,
-  });
+  // -------------------- SCR 전용 컬럼 --------------------
+  const scrExtraColumns: GridColDef[] = useMemo(
+    () => [
+      { field: "appearance", headerName: "외관상태", width: 80 }, // CU-00-01
+      { field: "cond1", headerName: "소선경1", width: 90, type: "number" }, // CU-01-01
+      { field: "cond2", headerName: "소선경2", width: 90, type: "number" }, // CU-01-02
+      { field: "cond3", headerName: "소선경3", width: 90, type: "number" }, // CU-01-03
+      { field: "cond4", headerName: "소선경4", width: 90, type: "number" }, // CU-01-04
+      { field: "vendorRemark", headerName: "비고(업체로트)", width: 160 },
+    ],
+    []
+  );
 
-  // 4) 선택 행
-  const [rowSelectionModel, setRowSelectionModel] =
-    useState<RowSelectionModelV8>({
-      type: "include",
-      ids: new Set(),
-    });
+  // -------------------- 최종 컬럼 --------------------
+  const columns: GridColDef[] = useMemo(() => {
+    if (effectiveKind === "pvc") return [...commonColumns, ...pvcExtraColumns];
+    if (effectiveKind === "scr") return [...commonColumns, ...scrExtraColumns];
+    return [...commonColumns, ...wireExtraColumns];
+  }, [
+    commonColumns,
+    wireExtraColumns,
+    pvcExtraColumns,
+    scrExtraColumns,
+    effectiveKind,
+  ]);
 
-  // 5) 선택 행 추출
+  // -------------------- rows 변환 --------------------
+  const rows = useMemo<FrontRow[]>(
+    () => transformServerData(rawServerData, effectiveKind),
+    [rawServerData, effectiveKind]
+  );
+
+  // -------------------- 선택 행 계산 --------------------
   const selectedRows = useMemo(() => {
     if (rowSelectionModel.type === "include") {
       return rows.filter((r) =>
@@ -107,51 +196,34 @@ export default function DataGridSelectAndExport() {
     );
   }, [rows, rowSelectionModel]);
 
-  // 조회 조건 (시작/종료일)
-  const [startDate, setStartDate] = useState<Dayjs | null>(
-    dayjs().startOf("month")
-  );
-  const [endDate, setEndDate] = useState<Dayjs | null>(dayjs());
-  const [loading, setLoading] = useState(false);
-
-  // sendData 빌더 (프로시저 규격 맞춰 필요 시 수정)
-  function buildSendData(s: string, e: string) {
-    return `${s};${e};24;0;ST-00-01:1!ST-01-01:1!ST-03-01:1!ST-03-02:1!ST-04-01:1!ST-05-01:1!ST-05-01:2!ST-05-01:3!ST-05-01:4!;`;
-  }
-
-  // 조회 버튼 핸들러
+  // -------------------- 조회 버튼 --------------------
   async function handleSearch() {
     if (!startDate || !endDate) return;
 
     const s = dayjs.min(startDate, endDate).format("YYYY-MM-DD");
     const e = dayjs.max(startDate, endDate).format("YYYY-MM-DD");
+    const sendData = buildSendDataString(effectiveKind, s, e);
 
-    const sendData = buildSendData(s, e);
+    const mySeq = reqSeq.current;
 
-    // console.log("data : ", sendData);
     setLoading(true);
-
     try {
-      // 더미데이터 표시
-      // setRawServerData(initialData);
-
       const data = await mtrInsp(sendData);
-      setRawServerData(data ?? []);
+      if (reqSeq.current !== mySeq) return;
 
-      // 선택/페이지 초기화
+      setRawServerData(data ?? []);
       setRowSelectionModel({ type: "include", ids: new Set() });
       setPaginationModel((prev) => ({ ...prev, page: 0 }));
     } catch (err: any) {
-      const msg = extractErrorMessage(err);
-      <Alert severity="error">{msg}</Alert>;
-      // console.error(err);
+      if (reqSeq.current !== mySeq) return;
+      console.error(extractErrorMessage(err));
       setRawServerData([]);
     } finally {
-      setLoading(false);
+      if (reqSeq.current === mySeq) setLoading(false);
     }
   }
 
-  // 6) 엑셀 내보내기
+  // -------------------- 엑셀 내보내기 --------------------
   function exportToXlsx(data: any[], filename: string) {
     const ordered = data.map((r) => {
       const o: Record<string, any> = {};
@@ -200,7 +272,7 @@ export default function DataGridSelectAndExport() {
           justifyContent="space-between"
           sx={{ gap: 1, flexWrap: "wrap", width: 1 }}
         >
-          {/* 시작/종료일 + 조회 */}
+          {/* 날짜 + 조회 버튼 */}
           <Stack
             direction="row"
             alignItems="center"
@@ -239,7 +311,14 @@ export default function DataGridSelectAndExport() {
             <Button
               variant="contained"
               onClick={() =>
-                exportToXlsx(selectedRows, "수입검사(원자재)_연선.xlsx")
+                exportToXlsx(
+                  selectedRows,
+                  effectiveKind === "pvc"
+                    ? "수입검사(원자재)_PVC.xlsx"
+                    : effectiveKind === "scr"
+                    ? "수입검사(원자재)_SCR.xlsx"
+                    : "수입검사(원자재)_연선.xlsx"
+                )
               }
               disabled={selectedRows.length === 0}
             >

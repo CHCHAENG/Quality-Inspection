@@ -48,11 +48,11 @@ const MENU: MenuNode[] = [
           { id: "SCR", label: "SCR", path: "/quality/mtr-insp/scr" },
         ],
       },
-      {
-        id: "mtr-daily",
-        label: "수입검사일지",
-        path: "/quality/mtr-daily",
-      },
+      // {
+      //   id: "mtr-daily",
+      //   label: "수입검사일지",
+      //   path: "/quality/mtr-daily",
+      // },
     ],
   },
 ];

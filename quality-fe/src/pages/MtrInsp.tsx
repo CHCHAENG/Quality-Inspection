@@ -2,13 +2,12 @@ import { Box } from "@mui/material";
 import { useState, type ReactNode } from "react";
 import Sidebar from "../components/Common/Sidebar";
 import { Outlet } from "react-router-dom";
-import DataGridSelectAndExport from "../components/Common/DataGridSelectAndExport";
 
-interface MtrInspSTProps {
+interface MtrInspProps {
   children?: ReactNode;
 }
 
-export default function MtrInspST({ children }: MtrInspSTProps) {
+export default function MtrInsp({ children }: MtrInspProps) {
   const [collapsed, setCollapsed] = useState(false);
   const toggleSidebar = () => setCollapsed(!collapsed);
 
@@ -24,15 +23,13 @@ export default function MtrInspST({ children }: MtrInspSTProps) {
           flexGrow: 1,
           flexBasis: 0,
           minWidth: 0,
-          // width: "100%",
-          height: "100dvh",
+          height: "100%",
           minHeight: 0,
-          p: 3,
+          p: 2,
           transition: "margin 0.3s",
         }}
       >
         {children ?? <Outlet />}
-        <DataGridSelectAndExport />
       </Box>
     </Box>
   );
