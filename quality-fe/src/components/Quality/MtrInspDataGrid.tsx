@@ -42,12 +42,12 @@ function kindFromPath(pathname: string): ItemKind {
   const p = pathname.toLowerCase();
   if (p.includes("pvc")) return "pvc";
   if (p.includes("scr")) return "scr";
-  if (p.includes("st")) return "wire";
-  return "wire"; // 기본
+  if (p.includes("st")) return "st";
+  return "st"; // 기본
 }
 
 // -------------------- sendData --------------------
-function buildSendDataForWire(s: string, e: string) {
+function buildSendDataForST(s: string, e: string) {
   // ITM_GRP=24 (연선)
   return `${s};${e};24;0;ST-00-01:1!ST-01-01:1!ST-03-01:1!ST-03-02:1!ST-04-01:1!ST-05-01:1!ST-05-01:2!ST-05-01:3!ST-05-01:4!;`;
 }
@@ -63,7 +63,7 @@ function buildSendDataForSCR(s: string, e: string) {
 function buildSendDataString(kind: ItemKind, s: string, e: string) {
   if (kind === "pvc") return buildSendDataForPVC(s, e);
   if (kind === "scr") return buildSendDataForSCR(s, e);
-  return buildSendDataForWire(s, e);
+  return buildSendDataForST(s, e);
 }
 
 export default function MtrInspDataGrid() {
@@ -120,7 +120,7 @@ export default function MtrInspDataGrid() {
   );
 
   // -------------------- 연선 전용 컬럼 --------------------
-  const wireExtraColumns: GridColDef[] = useMemo(
+  const stExtraColumns: GridColDef[] = useMemo(
     () => [
       { field: "appearance", headerName: "외관상태", width: 80 },
       { field: "pitch", headerName: "피치", width: 80, type: "number" },
@@ -169,10 +169,10 @@ export default function MtrInspDataGrid() {
   const columns: GridColDef[] = useMemo(() => {
     if (effectiveKind === "pvc") return [...commonColumns, ...pvcExtraColumns];
     if (effectiveKind === "scr") return [...commonColumns, ...scrExtraColumns];
-    return [...commonColumns, ...wireExtraColumns];
+    return [...commonColumns, ...stExtraColumns];
   }, [
     commonColumns,
-    wireExtraColumns,
+    stExtraColumns,
     pvcExtraColumns,
     scrExtraColumns,
     effectiveKind,

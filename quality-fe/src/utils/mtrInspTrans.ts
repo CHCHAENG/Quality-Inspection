@@ -19,7 +19,7 @@ export type BaseRow = {
 };
 
 // 연선
-export type WireFields = {
+export type STFields = {
   appearance?: string; // ST-03-02
   pitch?: number; // ST-01-01
   strandCount?: number; // ST-03-01
@@ -32,14 +32,14 @@ export type WireFields = {
 };
 
 // PVC
-export type PvcFields = {
+export type PVCFields = {
   pvcCheck1?: string; // PVC-01-01 → 외관상태
   pvcCheck2?: string; // PVC-02-01 → 색상상태
   pvcCheck3?: string; // PVC-03-01 → 포장상태
 };
 
 // SCR
-export type ScrFields = {
+export type SCRFields = {
   appearance?: string; // CU-00-01
   cond1?: number; // CU-01-01
   cond2?: number; // CU-01-02
@@ -47,9 +47,9 @@ export type ScrFields = {
   cond4?: number; // CU-01-04
 };
 
-export type FrontRow = BaseRow & WireFields & PvcFields & ScrFields;
+export type FrontRow = BaseRow & STFields & PVCFields & SCRFields;
 
-export type ItemKind = "wire" | "pvc" | "scr";
+export type ItemKind = "st" | "pvc" | "scr";
 
 // ===== 공통 유틸 =====
 export const toNumber = (v: unknown): number | undefined => {
@@ -64,7 +64,7 @@ export const toStringClean = (v: unknown): string => {
 };
 
 // ===== 스키마(필드 매핑) =====
-const WIRE_FIELD_KEYS = {
+const ST_FIELD_KEYS = {
   appearance: "ST-00-01-1",
   pitch: "ST-01-01-1",
   strandCount: "ST-03-01-1",
@@ -131,13 +131,13 @@ export function normalizeServerRow(
   };
 
   // ---- 연선 ----
-  if (kind === "wire") {
-    const appearance = toStringClean(s[WIRE_FIELD_KEYS.appearance]);
-    const pitch = toNumber(s[WIRE_FIELD_KEYS.pitch]);
-    const strandCount = toNumber(s[WIRE_FIELD_KEYS.strandCount]);
-    const twistDirection = toStringClean(s[WIRE_FIELD_KEYS.twistDirection]);
-    const outerDiameter = toNumber(s[WIRE_FIELD_KEYS.outerDiameter]);
-    const [c1, c2, c3, c4] = WIRE_FIELD_KEYS.conductorDiameters.map((k) =>
+  if (kind === "st") {
+    const appearance = toStringClean(s[ST_FIELD_KEYS.appearance]);
+    const pitch = toNumber(s[ST_FIELD_KEYS.pitch]);
+    const strandCount = toNumber(s[ST_FIELD_KEYS.strandCount]);
+    const twistDirection = toStringClean(s[ST_FIELD_KEYS.twistDirection]);
+    const outerDiameter = toNumber(s[ST_FIELD_KEYS.outerDiameter]);
+    const [c1, c2, c3, c4] = ST_FIELD_KEYS.conductorDiameters.map((k) =>
       toNumber(s[k])
     );
     return {
