@@ -42,11 +42,11 @@ function kindFromPath(pathname: string): ItemKind {
   const p = pathname.toLowerCase();
   if (p.includes("pvc")) return "pvc";
   if (p.includes("scr")) return "scr";
-  if (p.includes("st") || p.includes("wire")) return "wire";
+  if (p.includes("st")) return "wire";
   return "wire"; // 기본
 }
 
-// -------------------- sendData 빌더 --------------------
+// -------------------- sendData --------------------
 function buildSendDataForWire(s: string, e: string) {
   // ITM_GRP=24 (연선)
   return `${s};${e};24;0;ST-00-01:1!ST-01-01:1!ST-03-01:1!ST-03-02:1!ST-04-01:1!ST-05-01:1!ST-05-01:2!ST-05-01:3!ST-05-01:4!;`;

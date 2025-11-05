@@ -65,21 +65,31 @@ export const toStringClean = (v: unknown): string => {
 
 // ===== 스키마(필드 매핑) =====
 const WIRE_FIELD_KEYS = {
-  appearance: "ST-03-02",
-  pitch: "ST-01-01",
-  strandCount: "ST-03-01",
-  twistDirection: "ST-02-01",
-  outerDiameter: "ST-04-01",
-  conductorDiameters: ["ST-05-01", "ST-05-02", "ST-05-03", "ST-05-04"] as const,
+  appearance: "ST-00-01-1",
+  pitch: "ST-01-01-1",
+  strandCount: "ST-03-01-1",
+  twistDirection: "ST-03-02-1",
+  outerDiameter: "ST-04-01-1",
+  conductorDiameters: [
+    "ST-05-01-1",
+    "ST-05-01-2",
+    "ST-05-01-3",
+    "ST-05-01-4",
+  ] as const,
 } as const;
 
 const PVC_FIELD_KEYS = {
-  checks: ["PVC-01-01", "PVC-02-01", "PVC-03-01"] as const,
+  checks: ["PVC-01-01-1", "PVC-02-01-1", "PVC-03-01-1"] as const,
 } as const;
 
 const SCR_FIELD_KEYS = {
-  appearance: "CU-00-01",
-  conductorDiameters: ["CU-01-01", "CU-01-02", "CU-01-03", "CU-01-04"] as const,
+  appearance: "CU-00-01-1",
+  conductorDiameters: [
+    "CU-01-01-1",
+    "CU-01-01-2",
+    "CU-01-01-3",
+    "CU-01-01-4",
+  ] as const,
 } as const;
 
 // ===== 개별 행 변환 =====

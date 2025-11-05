@@ -4,9 +4,7 @@ import { Box, Grid } from "@mui/material";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { Outlet } from "react-router-dom";
-import Sidebar from "./Sidebar";
-// import { mtrDailyDetail, mtrDailyInfo, prcsSub } from "../../api/api";
-
+import Sidebar from "../Common/Sidebar";
 interface DashboardLayoutProps {
   children?: ReactNode;
 }
@@ -14,22 +12,6 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
   const toggleSidebar = () => setCollapsed(!collapsed);
-
-  // useEffect(() => {
-  //   (async () => {
-  //     const result = await mtrDailyInfo();
-  //     console.log("mtrDailyInfo: ", result);
-  //   })();
-
-  //   (async () => {
-  //     const result = await mtrDailyDetail();
-  //     console.log("mtrDailyDetail: ", result);
-  //   })();
-  //   (async () => {
-  //     const result = await prcsSub();
-  //     console.log("prcsSub: ", result);
-  //   })();
-  // }, []);
 
   return (
     <Box sx={{ display: "flex", width: "100%", height: "100vh" }}>

@@ -5,7 +5,7 @@ import { lazy } from "react";
 const MtrInsp = lazy(() => import("./pages/MtrInsp"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const MtrInspDataGrid = lazy(
-  () => import("./components/Common/MtrInspDataGrid")
+  () => import("./components/Quality/MtrInspDataGrid")
 );
 
 export default function App() {
