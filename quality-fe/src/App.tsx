@@ -3,9 +3,13 @@ import { lazy } from "react";
 
 // ---- Lazy import
 const MtrInsp = lazy(() => import("./pages/MtrInsp"));
+const PrcsSubInsp = lazy(() => import("./pages/PrcsSubInsp"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const MtrInspDataGrid = lazy(
   () => import("./components/Quality/MtrInspDataGrid")
+);
+const PrcsSubInspDataGrid = lazy(
+  () => import("./components/Quality/PrcsSubInspDataGrid")
 );
 
 export default function App() {
@@ -15,6 +19,9 @@ export default function App() {
         <Route path="/quality" element={<Dashboard />}>
           <Route path="/quality/mtr-insp" element={<MtrInsp />}>
             <Route path=":kind" element={<MtrInspDataGrid />} />
+          </Route>
+          <Route path="/quality/prcs" element={<PrcsSubInsp />}>
+            <Route path=":kind" element={<PrcsSubInspDataGrid />} />
           </Route>
         </Route>
 

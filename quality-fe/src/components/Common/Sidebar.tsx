@@ -53,6 +53,14 @@ const MENU: MenuNode[] = [
       //   label: "수입검사일지",
       //   path: "/quality/mtr-daily",
       // },
+      {
+        id: "prcs-insp",
+        label: "순회검사 일지",
+        children: [
+          { id: "ST", label: "연선", path: "/quality/prcs/st" },
+          { id: "DR", label: "신선", path: "/quality/prcs/dr" },
+        ],
+      },
     ],
   },
 ];
