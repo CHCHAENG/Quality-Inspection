@@ -59,7 +59,13 @@ const MENU: MenuNode[] = [
         children: [
           { id: "ST", label: "연선", path: "/quality/prcs/st" },
           { id: "DR", label: "신선", path: "/quality/prcs/dr" },
+          { id: "WE", label: "압출", path: "/quality/prcs/we" },
         ],
+      },
+      {
+        id: "final-insp",
+        label: "고전압 완제품 검사 일지",
+        path: "/quality/final",
       },
     ],
   },

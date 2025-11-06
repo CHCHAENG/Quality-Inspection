@@ -25,3 +25,15 @@ export async function prcsSub(sendData: string) {
   const res = await axios.post("/api/prcsSub", { sendData });
   return res.data;
 }
+
+// 순회검사일지 (압출)
+export async function prcsSubWE(sendData: string) {
+  const res = await axios.post("/api/prcsSubWE", { sendData });
+  return res.data;
+}
+
+// 완제품검사일지 (고전압선)
+export async function finalInsp(sendData: string) {
+  const res = await axios.post("/api/finalSub", { sendData });
+  return res.data;
+}

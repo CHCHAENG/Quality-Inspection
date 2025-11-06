@@ -33,6 +33,19 @@ const routes = [
     proc: "TR52122",
     keys: ["i_SDATE", "i_EDATE", "i_ITM_GRP", "i_LANG", "i_STR"],
   },
+  // 순회검사 일지 (압출)
+  {
+    path: "/api/prcsSubWE",
+    proc: "TR52112",
+    keys: ["i_SDATE", "i_EDATE", "i_ITM_GRP", "i_LANG", "i_STR"],
+  },
+
+  // 완제품 검사 (고전압선)
+  {
+    path: "/api/finalSub",
+    proc: "TR52042",
+    keys: ["i_SDATE", "i_EDATE", "i_ITM_GRP", "i_LANG", "i_STR"],
+  },
 ];
 
 // 자동 등록
