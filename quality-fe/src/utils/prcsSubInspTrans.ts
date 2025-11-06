@@ -18,20 +18,34 @@ export type BaseRow = {
   remark: string; // 비고
 };
 
+export type BaseRow_WE = {
+  id: number | string;
+
+  actualDate: string;
+  inspLot: string;
+  itemCode: string;
+  itemName: string;
+  processName: string;
+  roundTime: string;
+  inspector: string;
+  inspectedAt: string;
+  remark: string;
+};
+
 // 연선
 export type STFields = {
-  appearance?: string; // 외관상태
-  pitch?: number; // 피치
-  strandCount?: number; // 가닥수
-  twistDirection?: string; // 꼬임방향
-  outerDiameter?: number; // 외경값
+  appearance?: string;
+  pitch?: number;
+  strandCount?: number;
+  twistDirection?: string;
+  outerDiameter?: number;
   cond1?: number;
   cond2?: number;
   cond3?: number;
   cond4?: number;
 };
 
-// 신선(단선)
+// 신 선
 export type DRFields = {
   appearance?: string;
   strandCount?: number;
@@ -41,7 +55,37 @@ export type DRFields = {
   cond4?: number;
 };
 
+// 압출
+export type WEFields = {
+  appearance?: string;
+  color?: string;
+  label?: string;
+  packing?: string;
+  printing?: string;
+
+  insulationOD1?: number;
+  insulationOD2?: number;
+  souterDiameter?: number;
+  eccentricity?: number;
+
+  cond1?: number;
+  cond2?: number;
+  cond3?: number;
+  cond4?: number;
+
+  insulThk1?: number;
+  insulThk2?: number;
+  insulThk3?: number;
+  insulThk4?: number;
+
+  tensile?: number;
+  elongation?: number;
+  subStrandCnt?: number;
+  pitch?: number;
+};
+
 export type FrontRow = BaseRow & STFields & DRFields;
+export type FrontRow_WE = BaseRow_WE & WEFields;
 
 export type ItemKind = "st" | "dr";
 
@@ -83,11 +127,42 @@ const DR_FIELD_KEYS = {
   ] as const,
 } as const;
 
-// ===== 개별 행 변환 =====
+const WE_FIELD_KEYS = {
+  processName: "MAX(CASE WHEN '0' = '0' THEN H.MCHNM ELSE H.MCHNM_L END)",
+  appearance: "WE-01-01-1",
+  color: "WE-02-01-1",
+  label: "WE-03-01-1",
+  packing: "WE-04-01-1",
+  printing: "WE-05-01-1",
+
+  insulationOD: ["WE-06-01-1", "WE-06-01-2"] as const,
+  souterDiameter: "WE-07-01-1",
+  eccentricity: "WE-08-01-1",
+
+  conductorDiameters: [
+    "WE-09-01-1",
+    "WE-09-01-2",
+    "WE-09-01-3",
+    "WE-09-01-4",
+  ] as const,
+  insulationThickness: [
+    "WE-10-01-1",
+    "WE-10-01-2",
+    "WE-10-01-3",
+    "WE-10-01-4",
+  ] as const,
+
+  tensile: "WE-11-01-1",
+  elongation: "WE-12-01-1",
+  subStrandCnt: "WE-13-01-1",
+  pitch: "WE-14-01-1",
+} as const;
+
+// ===== 개별 행 변환 (연선, 신선)=====
 export function normalizeServerRow(
   s: ServerRow,
   idx: number,
-  kind: ItemKind
+  kind?: ItemKind
 ): FrontRow {
   // 공통(좌측)
   const barcode = toStringClean(s["MAX(A.BRCD)"]);
@@ -152,9 +227,9 @@ export function normalizeServerRow(
     };
   }
 
-  // ---- 신선(DR)
-  const appearance = toStringClean(s[DR_FIELD_KEYS.appearance]); // 외관상태
-  const strandCount = toNumber(s[DR_FIELD_KEYS.strandCount]); // 가닥수
+  // ---- 신선(DR) ----
+  const appearance = toStringClean(s[DR_FIELD_KEYS.appearance]);
+  const strandCount = toNumber(s[DR_FIELD_KEYS.strandCount]);
   const [d1, d2, d3, d4] = DR_FIELD_KEYS.singleDiameters.map((k) =>
     toNumber(s[k])
   );
@@ -170,6 +245,87 @@ export function normalizeServerRow(
   };
 }
 
+export function normalizeServerRow_WE(s: ServerRow, idx: number): FrontRow_WE {
+  // 공통(좌측)
+  const actualDate = (() => {
+    const f = s["MAX(D.PDATE)"] ?? s["FDATE"];
+    return f ? String(f).slice(0, 10) : "";
+  })();
+
+  const inspLot = toStringClean(s["MAX(A.INSPNO)"]);
+  const itemCode = toStringClean(s["MAX(A.ITMCD)"]);
+  const itemName = toStringClean(s["MAX(C.ITMNM)"]);
+  const processName = toStringClean(s[WE_FIELD_KEYS.processName]);
+  const roundTime = toStringClean(s["ROUNDDT"]);
+  const inspector = toStringClean(s["MAX(F.USRNM)"]);
+  const inspectedAt =
+    toStringClean(s["DATE_FORMAT(MAX(D.REGDT),'%Y-%m-%d %H:%i')"]) ||
+    toStringClean(s["DATE_FORMAT(MAX(A.REGDT),'%Y-%m-%d %H:%i')"]);
+  const remark = toStringClean(s["MAX(D.RMK)"]);
+
+  const base: BaseRow_WE = {
+    id: inspLot || itemCode ? `${inspLot || itemCode}-${idx + 1}` : idx + 1,
+    actualDate,
+    inspLot,
+    itemCode,
+    itemName,
+    processName,
+    roundTime,
+    inspector,
+    inspectedAt,
+    remark,
+  };
+  // ---- 압출(WE) ----
+  const appearance = toStringClean(s[WE_FIELD_KEYS.appearance]);
+  const color = toStringClean(s[WE_FIELD_KEYS.color]);
+  const label = toStringClean(s[WE_FIELD_KEYS.label]);
+  const packing = toStringClean(s[WE_FIELD_KEYS.packing]);
+  const printing = toStringClean(s[WE_FIELD_KEYS.printing]);
+
+  const [insulationOD1, insulationOD2] = WE_FIELD_KEYS.insulationOD.map((k) =>
+    toNumber(s[k])
+  );
+  const souterDiameter = toNumber(s[WE_FIELD_KEYS.souterDiameter]);
+  const eccentricity = toNumber(s[WE_FIELD_KEYS.eccentricity]);
+
+  const [cond1, cond2, cond3, cond4] = WE_FIELD_KEYS.conductorDiameters.map(
+    (k) => toNumber(s[k])
+  );
+  const [insulThk1, insulThk2, insulThk3, insulThk4] =
+    WE_FIELD_KEYS.insulationThickness.map((k) => toNumber(s[k]));
+
+  const tensile = toNumber(s[WE_FIELD_KEYS.tensile]);
+  const elongation = toNumber(s[WE_FIELD_KEYS.elongation]);
+  const subStrandCnt = toNumber(s[WE_FIELD_KEYS.subStrandCnt]);
+  const pitch = toNumber(s[WE_FIELD_KEYS.pitch]);
+
+  console.log("data : ", s);
+  return {
+    ...base,
+    appearance,
+    color,
+    label,
+    packing,
+    printing,
+    insulationOD1,
+    insulationOD2,
+    souterDiameter,
+    eccentricity,
+    cond1,
+    cond2,
+    cond3,
+    cond4,
+    insulThk1,
+    insulThk2,
+    insulThk3,
+    insulThk4,
+    tensile,
+    elongation,
+    subStrandCnt,
+    pitch,
+  };
+}
+
 // ===== 배열 변환 =====
 export function transformServerData(
   arr: ServerRow[],
@@ -177,4 +333,9 @@ export function transformServerData(
 ): FrontRow[] {
   if (!Array.isArray(arr)) return [];
   return arr.map((row, i) => normalizeServerRow(row, i, kind));
+}
+
+export function transformServerData_WE(arr: ServerRow[]): FrontRow_WE[] {
+  if (!Array.isArray(arr)) return [];
+  return arr.map((row, i) => normalizeServerRow_WE(row, i));
 }
