@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npx pm2 start index.js --name server --watch"
+    "start": "npx pm2 kill && npx pm2 start index.js --name server --watch"
   },
   "keywords": [],
   "author": "",
