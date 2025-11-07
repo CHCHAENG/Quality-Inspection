@@ -2,11 +2,13 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { lazy } from "react";
 
 // ---- Lazy import
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+
 const MtrInsp = lazy(() => import("./pages/MtrInsp"));
 const PrcsSubInsp = lazy(() => import("./pages/PrcsSubInsp"));
 const FinalSubInsp = lazy(() => import("./pages/FinalSubInsp"));
+const InitialInsp = lazy(() => import("./pages/IntialInsp"));
 
-const Dashboard = lazy(() => import("./pages/Dashboard"));
 const MtrInspDataGrid = lazy(
   () => import("./components/Quality/MtrInspDataGrid")
 );
@@ -25,11 +27,14 @@ export default function App() {
           <Route path="mtr-insp" element={<MtrInsp />}>
             <Route path=":kind" element={<MtrInspDataGrid />} />
           </Route>
-          <Route path="prcs" element={<PrcsSubInsp />}>
+          <Route path="prcs-insp" element={<PrcsSubInsp />}>
             <Route path="we" element={<PrcsSubWEInspDataGrid />} />
             <Route path=":kind" element={<PrcsSubInspDataGrid />} />
           </Route>
-          <Route path="final" element={<FinalSubInsp />} />
+          <Route path="final-insp" element={<FinalSubInsp />} />
+          <Route path="initial-insp" element={<InitialInsp />}>
+            <Route path=":kind" element={<MtrInspDataGrid />} />
+          </Route>
         </Route>
 
         <Route path="/" element={<Navigate to="/quality" replace />} />

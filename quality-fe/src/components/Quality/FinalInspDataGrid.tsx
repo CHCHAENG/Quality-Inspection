@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Stack,
@@ -16,6 +16,7 @@ import {
   type ServerRow,
   type FrontRow,
   transformServerData,
+  ItemKind,
 } from "../../utils/finalSubInspTrans";
 import * as XLSX from "xlsx";
 import dayjs, { Dayjs } from "dayjs";
@@ -26,6 +27,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { finalInsp } from "../../api/api";
 import { extractErrorMessage } from "../../utils/extractError";
+import { useLocation } from "react-router-dom";
 
 dayjs.locale("ko");
 dayjs.extend(minMax);
@@ -35,13 +37,43 @@ type RowSelectionModelV8 = {
   ids: Set<GridRowId>;
 };
 
+// -------------------- 경로 기반 kind 판별 --------------------
+function kindFromPath(pathname: string): ItemKind {
+  const p = pathname.toLowerCase();
+  if (p.includes("wx")) return "wx";
+  if (p.includes("we")) return "we";
+  return "whex"; // 기본
+}
+
 // -------------------- sendData --------------------
-function buildSendData(s: string, e: string) {
+function buildSendDataForWHEX(s: string, e: string) {
   // ITM_GRP=3C (고전압선)
   return `${s};${e};3C;0;WHEX-01-01:1!WHEX-03-01:1!WHEX-04-01:1!WHEX-05-01:1!WHEX-06-01:1!WHEX-07-01:1!WHEX-07-01:2!WHEX-08-01:1!WHEX-08-01:2!WHEX-09-02:1!WHEX-10-01:1!WHEX-10-01:2!WHEX-10-01:3!WHEX-10-01:4!WHEX-11-01:1!WHEX-12-01:1!WHEX-12-01:2!WHEX-12-01:3!WHEX-12-01:4!WHEX-13-01:1!WHEX-13-01:2!WHEX-13-01:3!WHEX-13-01:4!WHEX-16-01:1!WHEX-17-01:1!WHEX-18-01:1!WHEX-19-01:1!WHEX-21-01:1!WHEX-22-01:1!WHEX-23-01:1!;`;
 }
 
+function buildSendDataForWX(s: string, e: string) {
+  // ITM_GRP=28 (저전압 조사후)
+  return `${s};${e};28;0;WX-01-01:1!WX-02-01:1!WX-03-01:1!WX-04-01:1!WX-05-01:1!WX-05-02:1!WX-06-01:1!WX-06-01:2!WX-07-01:1!WX-09-01:1!WX-09-01:2!WX-09-01:3!WX-09-01:4!WX-13-01:1!;
+`;
+}
+
+function buildSendDataForWE(s: string, e: string) {
+  // ITM_GRP=27 (저전압 압출)
+  return `${s};${e};27;0;WE-01-01:1!WE-02-01:1!WE-03-01:1!WE-04-01:1!WE-05-01:1!WE-05-02:1!WE-06-01:1!WE-07-01:1!WE-09-01:1!WE-09-01:2!WE-09-01:3!WE-09-01:4!WE-13-01:1!;`;
+}
+
+function buildSendDataString(kind: ItemKind, s: string, e: string) {
+  if (kind === "wx") return buildSendDataForWX(s, e);
+  if (kind === "we") return buildSendDataForWE(s, e);
+  return buildSendDataForWHEX(s, e);
+}
 export default function FinalInspDataGrid() {
+  const location = useLocation();
+  const effectiveKind = useMemo<ItemKind>(
+    () => kindFromPath(location.pathname),
+    [location.pathname]
+  );
+
   // 원본
   const [rawServerData, setRawServerData] = useState<ServerRow[]>([]);
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
@@ -61,8 +93,17 @@ export default function FinalInspDataGrid() {
 
   const reqSeq = useRef(0);
 
+  // ---- kind 바뀔 때 모든 상태 초기화
+  useEffect(() => {
+    reqSeq.current += 1; // 이전 요청 결과는 전부 무시
+    setRawServerData([]); // rows 초기화
+    setRowSelectionModel({ type: "include", ids: new Set() });
+    setPaginationModel({ page: 0, pageSize: 5 });
+    setLoading(false);
+  }, [effectiveKind]);
+
   // -------------------- 공통 컬럼 --------------------
-  const columns: GridColDef[] = useMemo(
+  const commonColumns: GridColDef[] = useMemo(
     () => [
       // 상단 메타
       { field: "actualDate", headerName: "생산일자", width: 110 },
@@ -73,7 +114,12 @@ export default function FinalInspDataGrid() {
       { field: "inspector", headerName: "검사자", width: 100 },
       { field: "inspectedAt", headerName: "검사일자", width: 150 },
       { field: "remark", headerName: "비고", width: 160 },
+    ],
+    []
+  );
 
+  const whexExtraColumns: GridColDef[] = useMemo(
+    () => [
       // 상태(OK/NG 등)
       { field: "appearance", headerName: "외관상태", width: 100 },
       { field: "color", headerName: "색상상태", width: 100 },
@@ -221,6 +267,27 @@ export default function FinalInspDataGrid() {
     []
   );
 
+  const wxExtraColumns: GridColDef[] = useMemo(() => 
+    [],[];
+  );
+
+  const weExtraColumns: GridColDef[] = useMemo(() => 
+    [],[];
+  );
+
+  // -------------------- 최종 컬럼 --------------------
+  const columns: GridColDef[] = useMemo(() => {
+    if (effectiveKind === "wx") return [...commonColumns, ...wxExtraColumns];
+    if (effectiveKind === "we") return [...commonColumns, ...weExtraColumns];
+    return [...commonColumns, ...whexExtraColumns];
+  }, [
+    commonColumns,
+    whexExtraColumns,
+    wxExtraColumns,
+    weExtraColumns,
+    effectiveKind,
+  ]);
+
   // -------------------- rows 변환 --------------------
   const rows = useMemo<FrontRow[]>(
     () => transformServerData(rawServerData),
@@ -245,7 +312,7 @@ export default function FinalInspDataGrid() {
 
     const s = dayjs.min(startDate, endDate).format("YYYY-MM-DD");
     const e = dayjs.max(startDate, endDate).format("YYYY-MM-DD");
-    const sendData = buildSendData(s, e);
+    const sendData = buildSendDataString(effectiveKind, s, e);
 
     const mySeq = reqSeq.current;
 

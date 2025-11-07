@@ -1,13 +1,14 @@
 import { Box } from "@mui/material";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import Sidebar from "../components/Common/Sidebar";
 import FinalInspDataGrid from "../components/Quality/FinalInspDataGrid";
+import { Outlet } from "react-router-dom";
 
-// interface PrcsSubInspProps {
-//   children?: ReactNode;
-// }
+interface FinalInspProps {
+  children?: ReactNode;
+}
 
-export default function PrcsSubInsp() {
+export default function FinalInsp({ children }: FinalInspProps) {
   const [collapsed, setCollapsed] = useState(false);
   const toggleSidebar = () => setCollapsed(!collapsed);
 
@@ -29,7 +30,7 @@ export default function PrcsSubInsp() {
           transition: "margin 0.3s",
         }}
       >
-        {/* {children ?? <Outlet />}// */}
+        {children ?? <Outlet />}
         <FinalInspDataGrid />
       </Box>
     </Box>

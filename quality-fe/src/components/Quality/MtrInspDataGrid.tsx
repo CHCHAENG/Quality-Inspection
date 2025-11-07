@@ -209,7 +209,6 @@ export default function MtrInspDataGrid() {
     setLoading(true);
     try {
       const data = await mtrInsp(sendData);
-      // const data = await mtrInsp(sendData);
       if (reqSeq.current !== mySeq) return;
 
       setRawServerData(data ?? []);

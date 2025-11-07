@@ -73,6 +73,8 @@ export type WHEXFields = {
 
 export type FrontRow = BaseRow & WHEXFields;
 
+export type ItemKind = "whex" | "we" | "wx";
+
 // ===== 공통 유틸 =====
 export const toNumber = (v: unknown): number | undefined => {
   if (v === null || v === undefined) return undefined;

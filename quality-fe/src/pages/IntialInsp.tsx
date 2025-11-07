@@ -1,14 +1,13 @@
-import { Box, Grid } from "@mui/material";
-import { useState } from "react";
-import type { ReactNode } from "react";
+import { Box } from "@mui/material";
+import { useState, type ReactNode } from "react";
+import Sidebar from "../components/Common/Sidebar";
 import { Outlet } from "react-router-dom";
-import Sidebar from "../Common/Sidebar";
 
-interface DashboardLayoutProps {
+interface InitialInspProps {
   children?: ReactNode;
 }
 
-export default function DashboardLayout({ children }: DashboardLayoutProps) {
+export default function InitialInsp({ children }: InitialInspProps) {
   const [collapsed, setCollapsed] = useState(false);
   const toggleSidebar = () => setCollapsed(!collapsed);
 
@@ -22,13 +21,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         component="main"
         sx={{
           flexGrow: 1,
-          width: "100%",
+          flexBasis: 0,
+          minWidth: 0,
+          height: "100%",
+          minHeight: 0,
+          p: 2,
           transition: "margin 0.3s",
         }}
       >
-        <Grid container spacing={2}>
-          <Box sx={{ width: "100%" }}>{children ?? <Outlet />}</Box>
-        </Grid>
+        {children ?? <Outlet />}
       </Box>
     </Box>
   );
