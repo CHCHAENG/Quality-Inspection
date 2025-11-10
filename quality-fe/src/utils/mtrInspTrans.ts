@@ -20,31 +20,31 @@ export type BaseRow = {
 
 // 연선
 export type STFields = {
-  appearance?: string; // ST-03-02
-  pitch?: number; // ST-01-01
-  strandCount?: number; // ST-03-01
-  twistDirection?: string; // ST-02-01
-  outerDiameter?: number; // ST-04-01
-  cond1?: number; // ST-05-01
-  cond2?: number; // ST-05-02
-  cond3?: number; // ST-05-03
-  cond4?: number; // ST-05-04
+  appearance?: string;
+  pitch?: number;
+  strandCount?: number;
+  twistDirection?: string;
+  outerDiameter?: number;
+  cond1?: number;
+  cond2?: number;
+  cond3?: number;
+  cond4?: number;
 };
 
 // PVC
 export type PVCFields = {
-  pvcCheck1?: string; // PVC-01-01 → 외관상태
-  pvcCheck2?: string; // PVC-02-01 → 색상상태
-  pvcCheck3?: string; // PVC-03-01 → 포장상태
+  pvcCheck1?: string;
+  pvcCheck2?: string;
+  pvcCheck3?: string;
 };
 
 // SCR
 export type SCRFields = {
-  appearance?: string; // CU-00-01
-  cond1?: number; // CU-01-01
-  cond2?: number; // CU-01-02
-  cond3?: number; // CU-01-03
-  cond4?: number; // CU-01-04
+  appearance?: string;
+  cond1?: number;
+  cond2?: number;
+  cond3?: number;
+  cond4?: number;
 };
 
 export type FrontRow = BaseRow & STFields & PVCFields & SCRFields;

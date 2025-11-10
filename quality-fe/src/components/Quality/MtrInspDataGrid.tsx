@@ -187,13 +187,9 @@ export default function MtrInspDataGrid() {
   // -------------------- 선택 행 계산 --------------------
   const selectedRows = useMemo(() => {
     if (rowSelectionModel.type === "include") {
-      return rows.filter((r) =>
-        rowSelectionModel.ids.has(r.barcode as GridRowId)
-      );
+      return rows.filter((r) => rowSelectionModel.ids.has(r.id as GridRowId));
     }
-    return rows.filter(
-      (r) => !rowSelectionModel.ids.has(r.barcode as GridRowId)
-    );
+    return rows.filter((r) => !rowSelectionModel.ids.has(r.id as GridRowId));
   }, [rows, rowSelectionModel]);
 
   // -------------------- 조회 버튼 --------------------
@@ -333,7 +329,7 @@ export default function MtrInspDataGrid() {
         <DataGrid
           rows={rows}
           columns={columns}
-          getRowId={(row) => row.barcode}
+          getRowId={(row) => row.id}
           checkboxSelection
           disableRowSelectionOnClick
           pagination

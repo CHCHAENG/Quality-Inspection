@@ -128,7 +128,6 @@ const DR_FIELD_KEYS = {
 } as const;
 
 const WE_FIELD_KEYS = {
-  processName: "MAX(CASE WHEN '0' = '0' THEN H.MCHNM ELSE H.MCHNM_L END)",
   appearance: "WE-01-01-1",
   color: "WE-02-01-1",
   label: "WE-03-01-1",
@@ -255,7 +254,9 @@ export function normalizeServerRow_WE(s: ServerRow, idx: number): FrontRow_WE {
   const inspLot = toStringClean(s["MAX(A.INSPNO)"]);
   const itemCode = toStringClean(s["MAX(A.ITMCD)"]);
   const itemName = toStringClean(s["MAX(C.ITMNM)"]);
-  const processName = toStringClean(s[WE_FIELD_KEYS.processName]);
+  const processName = toStringClean(
+    s["MAX(CASE WHEN '0' = '0' THEN H.MCHNM ELSE H.MCHNM_L END)"]
+  );
   const roundTime = toStringClean(s["ROUNDDT"]);
   const inspector = toStringClean(s["MAX(F.USRNM)"]);
   const inspectedAt =

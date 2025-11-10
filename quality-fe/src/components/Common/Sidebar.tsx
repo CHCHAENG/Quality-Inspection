@@ -43,9 +43,9 @@ const MENU: MenuNode[] = [
         id: "mtr-insp",
         label: "원자재 수입검사 일지",
         children: [
-          { id: "ST", label: "연선", path: "/quality/mtr-insp/st" },
-          { id: "PVC", label: "PVC", path: "/quality/mtr-insp/pvc" },
-          { id: "SCR", label: "SCR", path: "/quality/mtr-insp/scr" },
+          { id: "mtr-insp-ST", label: "연선", path: "/quality/mtr-insp/st" },
+          { id: "mtr-insp-PVC", label: "PVC", path: "/quality/mtr-insp/pvc" },
+          { id: "mtr-insp-SCR", label: "SCR", path: "/quality/mtr-insp/scr" },
         ],
       },
       // {
@@ -57,9 +57,9 @@ const MENU: MenuNode[] = [
         id: "prcs-insp",
         label: "순회검사 일지",
         children: [
-          { id: "ST", label: "연선", path: "/quality/prcs-insp/st" },
-          { id: "DR", label: "신선", path: "/quality/prcs-insp/dr" },
-          { id: "WE", label: "압출", path: "/quality/prcs-insp/we" },
+          { id: "prcs-insp-ST", label: "연선", path: "/quality/prcs-insp/st" },
+          { id: "prcs-insp-DR", label: "신선", path: "/quality/prcs-insp/dr" },
+          { id: "prcs-insp-WE", label: "압출", path: "/quality/prcs-insp/we" },
         ],
       },
       {
@@ -68,29 +68,33 @@ const MENU: MenuNode[] = [
         path: "/quality/final-insp/whex",
       },
       {
-        id: "initial-insp",
+        id: "initFinal-insp",
         label: "초종품 검사일지",
         children: [
-          { id: "WE", label: "저전압 압출", path: "/quality/final-insp/we" },
           {
-            id: "WX_S",
-            label: "저전압 조사전",
-            path: "/quality/initial-insp/wx-s",
+            id: "final-insp-WE",
+            label: "저전압 압출",
+            path: "/quality/final-insp/we",
           },
           {
-            id: "WX",
+            id: "initFinal-insp-WX",
+            label: "저전압 조사전",
+            path: "/quality/initFinal-insp/wx",
+          },
+          {
+            id: "final-insp-WX",
             label: "저전압 조사후",
             path: "/quality/final-insp/wx",
           },
           {
-            id: "WHEX",
+            id: "initFinal-insp-WHEX",
             label: "고전압 쉬즈",
-            path: "/quality/initial-insp/whex",
+            path: "/quality/initFinal-insp/whex",
           },
           {
-            id: "WHBS",
+            id: "initFinal-insp-WHBS",
             label: "고전압 압출",
-            path: "/quality/initial-insp/whbs",
+            path: "/quality/initFinal-insp/whbs",
           },
         ],
       },
