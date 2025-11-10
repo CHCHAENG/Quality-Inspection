@@ -40,10 +40,17 @@ const routes = [
     keys: ["i_SDATE", "i_EDATE", "i_ITM_GRP", "i_LANG", "i_STR"],
   },
 
-  // 완제품 검사 (고전압선)
+  // 완제품 검사 (고전압선, 저전압 압출, 저전압 조사후)
   {
     path: "/api/finalSub",
     proc: "TR52042",
+    keys: ["i_SDATE", "i_EDATE", "i_ITM_GRP", "i_LANG", "i_STR"],
+  },
+
+  //초종품 검사 (고전압 압출, 고전압 쉬즈, 저전압 조사전)
+  {
+    path: "/api/initFinalSub",
+    proc: "TR52122",
     keys: ["i_SDATE", "i_EDATE", "i_ITM_GRP", "i_LANG", "i_STR"],
   },
 ];
