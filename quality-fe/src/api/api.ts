@@ -32,8 +32,14 @@ export async function prcsSubWE(sendData: string) {
   return res.data;
 }
 
-// 완제품검사일지 (고전압선)
+// 완제품검사일지 (고전압선, 저전압 압출, 저전압 조사후)
 export async function finalInsp(sendData: string) {
   const res = await axios.post("/api/finalSub", { sendData });
+  return res.data;
+}
+
+// 반제품검사일지 (=초종품검사일지 / 고전압 쉬즈, 고전압 압출, 저전압 조사전)
+export async function initFinalinsp(sendData: string) {
+  const res = await axios.post("/api/initFinalSub", { sendData });
   return res.data;
 }

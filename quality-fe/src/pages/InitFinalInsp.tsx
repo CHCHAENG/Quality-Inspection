@@ -3,11 +3,11 @@ import { useState, type ReactNode } from "react";
 import Sidebar from "../components/Common/Sidebar";
 import { Outlet } from "react-router-dom";
 
-interface InitialInspProps {
+interface InitFinalProps {
   children?: ReactNode;
 }
 
-export default function InitialInsp({ children }: InitialInspProps) {
+export default function InitFinal({ children }: InitFinalProps) {
   const [collapsed, setCollapsed] = useState(false);
   const toggleSidebar = () => setCollapsed(!collapsed);
 

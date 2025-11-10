@@ -7,7 +7,7 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
 const MtrInsp = lazy(() => import("./pages/MtrInsp"));
 const PrcsSubInsp = lazy(() => import("./pages/PrcsSubInsp"));
 const FinalSubInsp = lazy(() => import("./pages/FinalSubInsp"));
-const InitialInsp = lazy(() => import("./pages/IntialInsp"));
+const InitFinalInsp = lazy(() => import("./pages/InitFinalInsp"));
 
 const MtrInspDataGrid = lazy(
   () => import("./components/Quality/MtrInspDataGrid")
@@ -20,6 +20,9 @@ const PrcsSubInspDataGrid = lazy(
 );
 const FinalInspDataGrid = lazy(
   () => import("./components/Quality/FinalInspDataGrid")
+);
+const InitFinalInspDataGrid = lazy(
+  () => import("./components/Quality/InitFinalInspDataGrid")
 );
 
 export default function App() {
@@ -37,8 +40,8 @@ export default function App() {
           <Route path="final-insp" element={<FinalSubInsp />}>
             <Route path=":kind" element={<FinalInspDataGrid />} />
           </Route>
-          <Route path="initial-insp" element={<InitialInsp />}>
-            <Route path=":kind" element={<MtrInspDataGrid />} />
+          <Route path="initFinal-insp" element={<InitFinalInsp />}>
+            <Route path=":kind" element={<InitFinalInspDataGrid />} />
           </Route>
         </Route>
 
