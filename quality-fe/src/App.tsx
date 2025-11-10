@@ -18,6 +18,9 @@ const PrcsSubWEInspDataGrid = lazy(
 const PrcsSubInspDataGrid = lazy(
   () => import("./components/Quality/PrcsSubInspDataGrid")
 );
+const FinalInspDataGrid = lazy(
+  () => import("./components/Quality/FinalInspDataGrid")
+);
 
 export default function App() {
   return (
@@ -31,7 +34,9 @@ export default function App() {
             <Route path="we" element={<PrcsSubWEInspDataGrid />} />
             <Route path=":kind" element={<PrcsSubInspDataGrid />} />
           </Route>
-          <Route path="final-insp" element={<FinalSubInsp />} />
+          <Route path="final-insp" element={<FinalSubInsp />}>
+            <Route path=":kind" element={<FinalInspDataGrid />} />
+          </Route>
           <Route path="initial-insp" element={<InitialInsp />}>
             <Route path=":kind" element={<MtrInspDataGrid />} />
           </Route>

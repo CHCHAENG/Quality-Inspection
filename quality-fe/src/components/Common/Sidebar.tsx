@@ -58,20 +58,20 @@ const MENU: MenuNode[] = [
         label: "순회검사 일지",
         children: [
           { id: "ST", label: "연선", path: "/quality/prcs-insp/st" },
-          { id: "DR", label: "신선", path: "/quality/-insp/dr" },
-          { id: "WE", label: "압출", path: "/quality/-insp/we" },
+          { id: "DR", label: "신선", path: "/quality/prcs-insp/dr" },
+          { id: "WE", label: "압출", path: "/quality/prcs-insp/we" },
         ],
       },
       {
         id: "final-insp",
         label: "고전압 완제품 검사 일지",
-        path: "/quality/final-insp",
+        path: "/quality/final-insp/whex",
       },
       {
         id: "initial-insp",
         label: "초종품 검사일지",
         children: [
-          { id: "WE", label: "저전압 압출", path: "/quality/initial-insp/we" },
+          { id: "WE", label: "저전압 압출", path: "/quality/final-insp/we" },
           {
             id: "WX_S",
             label: "저전압 조사전",
@@ -80,7 +80,7 @@ const MENU: MenuNode[] = [
           {
             id: "WX",
             label: "저전압 조사후",
-            path: "/quality/initial-insp/wx",
+            path: "/quality/final-insp/wx",
           },
           {
             id: "WHEX",

@@ -1,7 +1,6 @@
 import { Box } from "@mui/material";
 import { useState, type ReactNode } from "react";
 import Sidebar from "../components/Common/Sidebar";
-import FinalInspDataGrid from "../components/Quality/FinalInspDataGrid";
 import { Outlet } from "react-router-dom";
 
 interface FinalInspProps {
@@ -31,7 +30,6 @@ export default function FinalInsp({ children }: FinalInspProps) {
         }}
       >
         {children ?? <Outlet />}
-        <FinalInspDataGrid />
       </Box>
     </Box>
   );

@@ -51,15 +51,14 @@ function buildSendDataForWHEX(s: string, e: string) {
   return `${s};${e};3C;0;WHEX-01-01:1!WHEX-03-01:1!WHEX-04-01:1!WHEX-05-01:1!WHEX-06-01:1!WHEX-07-01:1!WHEX-07-01:2!WHEX-08-01:1!WHEX-08-01:2!WHEX-09-02:1!WHEX-10-01:1!WHEX-10-01:2!WHEX-10-01:3!WHEX-10-01:4!WHEX-11-01:1!WHEX-12-01:1!WHEX-12-01:2!WHEX-12-01:3!WHEX-12-01:4!WHEX-13-01:1!WHEX-13-01:2!WHEX-13-01:3!WHEX-13-01:4!WHEX-16-01:1!WHEX-17-01:1!WHEX-18-01:1!WHEX-19-01:1!WHEX-21-01:1!WHEX-22-01:1!WHEX-23-01:1!;`;
 }
 
-function buildSendDataForWX(s: string, e: string) {
-  // ITM_GRP=28 (저전압 조사후)
-  return `${s};${e};28;0;WX-01-01:1!WX-02-01:1!WX-03-01:1!WX-04-01:1!WX-05-01:1!WX-05-02:1!WX-06-01:1!WX-06-01:2!WX-07-01:1!WX-09-01:1!WX-09-01:2!WX-09-01:3!WX-09-01:4!WX-13-01:1!;
-`;
-}
-
 function buildSendDataForWE(s: string, e: string) {
   // ITM_GRP=27 (저전압 압출)
   return `${s};${e};27;0;WE-01-01:1!WE-02-01:1!WE-03-01:1!WE-04-01:1!WE-05-01:1!WE-05-02:1!WE-06-01:1!WE-07-01:1!WE-09-01:1!WE-09-01:2!WE-09-01:3!WE-09-01:4!WE-13-01:1!;`;
+}
+
+function buildSendDataForWX(s: string, e: string) {
+  // ITM_GRP=28 (저전압 조사후)
+  return `${s};${e};28;0;WX-01-01:1!WX-02-01:1!WX-03-01:1!WX-04-01:1!WX-05-01:1!WX-05-02:1!WX-06-01:1!WX-06-01:2!WX-07-01:1!WX-09-01:1!WX-09-01:2!WX-09-01:3!WX-09-01:4!WX-13-01:1!;`;
 }
 
 function buildSendDataString(kind: ItemKind, s: string, e: string) {
@@ -105,14 +104,17 @@ export default function FinalInspDataGrid() {
   // -------------------- 공통 컬럼 --------------------
   const commonColumns: GridColDef[] = useMemo(
     () => [
-      // 상단 메타
-      { field: "actualDate", headerName: "생산일자", width: 110 },
-      { field: "lotNo", headerName: "검사로트", width: 130 },
+      { field: "barcode", headerName: "바코드", width: 260 },
+      { field: "lotNo", headerName: "로트번호", width: 130 },
       { field: "initFinal", headerName: "초/종품", width: 100 },
       { field: "itemCode", headerName: "품목코드", width: 130 },
       { field: "itemName", headerName: "품목명", width: 180 },
+      { field: "qty", headerName: "수량", width: 80, type: "number" },
+      { field: "unit", headerName: "단위", width: 80 },
+      { field: "decision", headerName: "결과", width: 80 },
       { field: "inspector", headerName: "검사자", width: 100 },
       { field: "inspectedAt", headerName: "검사일자", width: 150 },
+      { field: "actualDate", headerName: "실적일자", width: 110 },
       { field: "remark", headerName: "비고", width: 160 },
     ],
     []
@@ -120,14 +122,14 @@ export default function FinalInspDataGrid() {
 
   const whexExtraColumns: GridColDef[] = useMemo(
     () => [
-      // 상태(OK/NG 등)
+      // 상태
       { field: "appearance", headerName: "외관상태", width: 100 },
       { field: "color", headerName: "색상상태", width: 100 },
       { field: "label", headerName: "라벨상태", width: 100 },
       { field: "packing", headerName: "포장상태", width: 100 },
       { field: "printing", headerName: "인쇄상태", width: 100 },
 
-      // 완성외경 (2포인트)
+      // 완성외경
       {
         field: "oDiameter1",
         headerName: "완성외경 1",
@@ -140,8 +142,7 @@ export default function FinalInspDataGrid() {
         width: 100,
         type: "number",
       },
-
-      // 절연외경 (2포인트)
+      // 절연외경
       {
         field: "insulationOD1",
         headerName: "절연외경 1",
@@ -154,7 +155,6 @@ export default function FinalInspDataGrid() {
         width: 100,
         type: "number",
       },
-
       // 연선외경
       {
         field: "souterDiameter",
@@ -168,7 +168,6 @@ export default function FinalInspDataGrid() {
       { field: "cond2", headerName: "도체경 2", width: 100, type: "number" },
       { field: "cond3", headerName: "도체경 3", width: 100, type: "number" },
       { field: "cond4", headerName: "도체경 4", width: 100, type: "number" },
-
       // 차폐도체경
       {
         field: "s_cond",
@@ -176,7 +175,6 @@ export default function FinalInspDataGrid() {
         width: 120,
         type: "number",
       },
-
       // 절연두께 (1~4)
       {
         field: "insulThk1",
@@ -202,7 +200,6 @@ export default function FinalInspDataGrid() {
         width: 100,
         type: "number",
       },
-
       // 쉬즈두께 (1~4)
       {
         field: "shezThk1",
@@ -244,7 +241,6 @@ export default function FinalInspDataGrid() {
         width: 100,
         type: "number",
       },
-
       {
         field: "subStrandCnt",
         headerName: "소선수",
@@ -267,12 +263,83 @@ export default function FinalInspDataGrid() {
     []
   );
 
-  const wxExtraColumns: GridColDef[] = useMemo(() => 
-    [],[];
+  const weExtraColumns: GridColDef[] = useMemo(
+    () => [
+      // 상태
+      { field: "appearance", headerName: "외관상태", width: 100 },
+      { field: "color", headerName: "색상상태", width: 100 },
+      { field: "label", headerName: "라벨상태", width: 100 },
+      { field: "packing", headerName: "포장상태", width: 100 },
+      { field: "printing", headerName: "인쇄상태", width: 100 },
+      { field: "eccentricity", headerName: "편심률(판정)", width: 100 },
+
+      {
+        field: "insulationOD1",
+        headerName: "절연외경",
+        width: 110,
+        type: "number",
+      },
+      {
+        field: "souterDiameter",
+        headerName: "연선외경",
+        width: 110,
+        type: "number",
+      },
+      { field: "cond1", headerName: "도체경 1", width: 110, type: "number" },
+      { field: "cond2", headerName: "도체경 2", width: 110, type: "number" },
+      { field: "cond3", headerName: "도체경 3", width: 110, type: "number" },
+      { field: "cond4", headerName: "도체경 4", width: 110, type: "number" },
+      {
+        field: "subStrandCnt",
+        headerName: "소선수",
+        width: 100,
+        type: "number",
+      },
+    ],
+    []
   );
 
-  const weExtraColumns: GridColDef[] = useMemo(() => 
-    [],[];
+  // WX (저전압 조사후) - extra columns
+  const wxExtraColumns: GridColDef[] = useMemo(
+    () => [
+      // 상태
+      { field: "appearance", headerName: "외관상태", width: 100 },
+      { field: "color", headerName: "색상상태", width: 100 },
+      { field: "label", headerName: "라벨상태", width: 100 },
+      { field: "packing", headerName: "포장상태", width: 100 },
+      { field: "printing", headerName: "인쇄상태", width: 100 },
+      { field: "eccentricity", headerName: "편심률(판정)", width: 100 },
+
+      {
+        field: "insulationOD1",
+        headerName: "절연외경1",
+        width: 110,
+        type: "number",
+      },
+      {
+        field: "insulationOD2",
+        headerName: "절연외경2",
+        width: 110,
+        type: "number",
+      },
+      {
+        field: "souterDiameter",
+        headerName: "연선외경",
+        width: 110,
+        type: "number",
+      },
+      { field: "cond1", headerName: "도체경 1", width: 110, type: "number" },
+      { field: "cond2", headerName: "도체경 2", width: 110, type: "number" },
+      { field: "cond3", headerName: "도체경 3", width: 110, type: "number" },
+      { field: "cond4", headerName: "도체경 4", width: 110, type: "number" },
+      {
+        field: "subStrandCnt",
+        headerName: "소선수",
+        width: 100,
+        type: "number",
+      },
+    ],
+    []
   );
 
   // -------------------- 최종 컬럼 --------------------
@@ -290,8 +357,8 @@ export default function FinalInspDataGrid() {
 
   // -------------------- rows 변환 --------------------
   const rows = useMemo<FrontRow[]>(
-    () => transformServerData(rawServerData),
-    [rawServerData]
+    () => transformServerData(rawServerData, effectiveKind),
+    [rawServerData, effectiveKind]
   );
 
   // -------------------- 선택 행 계산 --------------------
