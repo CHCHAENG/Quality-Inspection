@@ -489,7 +489,16 @@ export default function InitialInspDataGrid() {
             </Typography>
             <Button
               variant="contained"
-              onClick={() => exportToXlsx(selectedRows, "순회검사_압출.xlsx")}
+              onClick={() =>
+                exportToXlsx(
+                  selectedRows,
+                  effectiveKind === "wx"
+                    ? "초종품검사(저전압 조사전).xlsx"
+                    : effectiveKind === "whex"
+                    ? "초종품검사(고전압 쉬즈).xlsx"
+                    : "초종품검사(고전압 압출).xlsx"
+                )
+              }
               disabled={selectedRows.length === 0}
             >
               엑셀 다운로드

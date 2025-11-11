@@ -483,7 +483,16 @@ export default function FinalInspDataGrid() {
             </Typography>
             <Button
               variant="contained"
-              onClick={() => exportToXlsx(selectedRows, "순회검사_압출.xlsx")}
+              onClick={() =>
+                exportToXlsx(
+                  selectedRows,
+                  effectiveKind === "whex"
+                    ? "완제품검사(고전압).xlsx"
+                    : effectiveKind === "we"
+                    ? "초종품검사(저전압 압출).xlsx"
+                    : "초종품검사(저전압 조사후).xlsx"
+                )
+              }
               disabled={selectedRows.length === 0}
             >
               엑셀 다운로드
