@@ -17,8 +17,7 @@ import {
   type ServerRow,
   type FrontRow,
   type ItemKind,
-} from "../../utils/mtrInspTrans";
-import * as XLSX from "xlsx";
+} from "../../utils/InspDataTrans/mtrInspTrans";
 import dayjs, { Dayjs } from "dayjs";
 import minMax from "dayjs/plugin/minMax";
 import "dayjs/locale/ko";
@@ -26,8 +25,9 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { mtrInsp } from "../../api/api";
-import { extractErrorMessage } from "../../utils/extractError";
+import { extractErrorMessage } from "../../utils/Common/extractError";
 import { useLocation } from "react-router-dom";
+import { exportToXlsxStyled } from "../../utils/SelectedRow/mtrInsp";
 
 dayjs.locale("ko");
 dayjs.extend(minMax);
@@ -178,6 +178,84 @@ export default function MtrInspDataGrid() {
     effectiveKind,
   ]);
 
+  // -------------------- 연선 Selected 컬럼 --------------------
+  const stSelectedColumns: GridColDef[] = useMemo(
+    () => [
+      { field: "vendor", headerName: "업체명", width: 160 },
+      { field: "barcode", headerName: "LOT NO", width: 260 },
+      { field: "std", headerName: "규격", width: 80 },
+      { field: "appearance", headerName: "외관", width: 80 },
+      { field: "packing", headerName: "포장상태", width: 160 },
+      { field: "subStrandCnt", headerName: "소선수", width: 80 },
+      { field: "souterDiameter", headerName: "연선외경", width: 80 },
+      { field: "pitch", headerName: "피치", width: 80 },
+      { field: "cond1", headerName: "도체경1", width: 100, type: "number" },
+      { field: "cond2", headerName: "도체경2", width: 100, type: "number" },
+      { field: "cond3", headerName: "도체경3", width: 100, type: "number" },
+      { field: "cond4", headerName: "도체경4", width: 100, type: "number" },
+      { field: "inspectedAt", headerName: "입고일자", width: 160 },
+      { field: "qty", headerName: "입고수량", width: 80, type: "number" },
+      { field: "decision", headerName: "판정", width: 100 },
+    ],
+    []
+  );
+
+  // -------------------- PVC Selected 컬럼 --------------------
+  const pvcSelectedColumns: GridColDef[] = useMemo(
+    () => [
+      { field: "vendor", headerName: "업체명", width: 160 },
+      { field: "itemName", headerName: "품명", width: 180 },
+      { field: "color", headerName: "색상", width: 80 },
+      { field: "barcode", headerName: "LOT NO", width: 260 },
+      { field: "pvcCheck1", headerName: "외관상태", width: 100 },
+      {
+        field: "color_check",
+        headerName: "색상(한도견본일치할것)",
+        width: 100,
+      },
+      { field: "label", headerName: "라벨", width: 100 },
+      { field: "pvcCheck3", headerName: "포장상태", width: 100 },
+      { field: "inspectedAt", headerName: "입고일자", width: 160 },
+      { field: "decision", headerName: "판정", width: 100 },
+      { field: "decision2", headerName: "판정", width: 100 },
+      { field: "vendorRemark", headerName: "비고", width: 160 },
+    ],
+    []
+  );
+
+  // -------------------- SCR Selected 컬럼 --------------------
+  const scrSelectedColumns: GridColDef[] = useMemo(
+    () => [
+      { field: "vendor", headerName: "업체명", width: 160 },
+      { field: "barcode", headerName: "LOT NO", width: 260 },
+      { field: "packing", headerName: "포장상태", width: 160 },
+      {
+        field: "appearance",
+        headerName: "외관(흠.녹.균열이 없을것)",
+        width: 80,
+      },
+      { field: "cond1", headerName: "도체경1", width: 90, type: "number" },
+      { field: "cond2", headerName: "도체경2", width: 90, type: "number" },
+      { field: "cond3", headerName: "도체경3", width: 90, type: "number" },
+      { field: "cond4", headerName: "도체경4", width: 90, type: "number" },
+      { field: "inspectedAt", headerName: "입고일자", width: 160 },
+      { field: "qty", headerName: "입고수량", width: 80, type: "number" },
+      { field: "vendorRemark", headerName: "비고", width: 160 },
+    ],
+    []
+  );
+
+  const selectedColumns: GridColDef[] = useMemo(() => {
+    if (effectiveKind === "pvc") return [...pvcSelectedColumns];
+    if (effectiveKind === "scr") return [...scrSelectedColumns];
+    return [...stSelectedColumns];
+  }, [
+    stSelectedColumns,
+    pvcSelectedColumns,
+    scrSelectedColumns,
+    effectiveKind,
+  ]);
+
   // -------------------- rows 변환 --------------------
   const rows = useMemo<FrontRow[]>(
     () => transformServerData(rawServerData, effectiveKind),
@@ -210,41 +288,13 @@ export default function MtrInspDataGrid() {
       setRawServerData(data ?? []);
       setRowSelectionModel({ type: "include", ids: new Set() });
       setPaginationModel((prev) => ({ ...prev, page: 0 }));
-    } catch (err: any) {
+    } catch (err) {
       if (reqSeq.current !== mySeq) return;
       console.error(extractErrorMessage(err));
       setRawServerData([]);
     } finally {
       if (reqSeq.current === mySeq) setLoading(false);
     }
-  }
-
-  // -------------------- 엑셀 내보내기 --------------------
-  function exportToXlsx(data: any[], filename: string) {
-    const ordered = data.map((r) => {
-      const o: Record<string, any> = {};
-      columns.forEach((c) => {
-        o[c.headerName ?? (c.field as string)] = (r as any)[c.field];
-      });
-      return o;
-    });
-
-    const ws = XLSX.utils.json_to_sheet(ordered);
-    const colWidths = Object.keys(ordered[0] || {}).map((key) => ({
-      wch:
-        Math.max(
-          key.length,
-          ...ordered.map((row) => String(row[key] ?? "").length)
-        ) + 2,
-    }));
-    (ws as any)["!cols"] = colWidths;
-
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-    XLSX.writeFile(
-      wb,
-      filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`
-    );
   }
 
   return (
@@ -307,8 +357,9 @@ export default function MtrInspDataGrid() {
             <Button
               variant="contained"
               onClick={() =>
-                exportToXlsx(
+                exportToXlsxStyled(
                   selectedRows,
+                  selectedColumns,
                   effectiveKind === "pvc"
                     ? "수입검사(원자재)_PVC.xlsx"
                     : effectiveKind === "scr"
@@ -355,7 +406,7 @@ export default function MtrInspDataGrid() {
         </Typography>
         <DataGrid
           rows={selectedRows}
-          columns={columns}
+          columns={selectedColumns}
           pagination
           initialState={{
             pagination: { paginationModel: { page: 0, pageSize: 5 } },

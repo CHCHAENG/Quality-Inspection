@@ -1,5 +1,8 @@
-import { DailyInspField } from "../mtrInspTrans";
+import { DailyInspField } from "../InspDataTrans/mtrInspTrans";
 
+// ========== 원자재 수입검사일지 ==========
+
+// ========== 일일 수입검사일지 ==========
 // 절연 평균
 function safeAvg(nums: Array<number | undefined>) {
   const arr = nums.filter(

@@ -17,7 +17,7 @@ import {
   type FrontRow,
   transformServerData,
   ItemKind,
-} from "../../utils/initFinalSubInspTrans";
+} from "../../utils/InspDataTrans/initFinalSubInspTrans";
 import * as XLSX from "xlsx";
 import dayjs, { Dayjs } from "dayjs";
 import minMax from "dayjs/plugin/minMax";
@@ -26,7 +26,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { initFinalinsp } from "../../api/api";
-import { extractErrorMessage } from "../../utils/extractError";
+import { extractErrorMessage } from "../../utils/Common/extractError";
 import { useLocation } from "react-router-dom";
 
 dayjs.locale("ko");

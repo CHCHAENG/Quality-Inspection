@@ -16,8 +16,7 @@ import {
   type ServerRow,
   type DailyInspField,
   transformServerData_Daliy,
-} from "../../utils/mtrInspTrans";
-import * as XLSX from "xlsx";
+} from "../../utils/InspDataTrans/mtrInspTrans";
 import dayjs, { Dayjs } from "dayjs";
 import minMax from "dayjs/plugin/minMax";
 import "dayjs/locale/ko";
@@ -25,8 +24,11 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { mtrDailyInfo } from "../../api/api";
-import { extractErrorMessage } from "../../utils/extractError";
-import { buildPreviewRow } from "../../utils/SelectedRow/mtrInsp";
+import { extractErrorMessage } from "../../utils/Common/extractError";
+import {
+  buildPreviewRow,
+  exportToXlsxStyled,
+} from "../../utils/SelectedRow/mtrInsp";
 
 dayjs.locale("ko");
 dayjs.extend(minMax);
@@ -244,11 +246,6 @@ export default function MtrDaliyInspDataGrid() {
 
   // -------------------- 선택 행 계산 --------------------
   const selectedRows = useMemo(() => {
-    // if (rowSelectionModel.type === "include") {
-    //   return rows.filter((r) => rowSelectionModel.ids.has(r.id as GridRowId));
-    // }
-    // return rows.filter((r) => !rowSelectionModel.ids.has(r.id as GridRowId));
-
     if (rowSelectionModel.type === "include") {
       return rows
         .filter((r) => rowSelectionModel.ids.has(r.id as GridRowId))
@@ -277,41 +274,13 @@ export default function MtrDaliyInspDataGrid() {
       setRawServerData(data ?? []);
       setRowSelectionModel({ type: "include", ids: new Set() });
       setPaginationModel((prev) => ({ ...prev, page: 0 }));
-    } catch (err: any) {
+    } catch (err) {
       if (reqSeq.current !== mySeq) return;
       console.error(extractErrorMessage(err));
       setRawServerData([]);
     } finally {
       if (reqSeq.current === mySeq) setLoading(false);
     }
-  }
-
-  // -------------------- 엑셀 내보내기 --------------------
-  function exportToXlsx(data: any[], filename: string) {
-    const ordered = data.map((r) => {
-      const o: Record<string, any> = {};
-      columns.forEach((c) => {
-        o[c.headerName ?? (c.field as string)] = (r as any)[c.field];
-      });
-      return o;
-    });
-
-    const ws = XLSX.utils.json_to_sheet(ordered);
-    const colWidths = Object.keys(ordered[0] || {}).map((key) => ({
-      wch:
-        Math.max(
-          key.length,
-          ...ordered.map((row) => String(row[key] ?? "").length)
-        ) + 2,
-    }));
-    (ws as any)["!cols"] = colWidths;
-
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-    XLSX.writeFile(
-      wb,
-      filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`
-    );
   }
 
   return (
@@ -374,7 +343,11 @@ export default function MtrDaliyInspDataGrid() {
             <Button
               variant="contained"
               onClick={() =>
-                exportToXlsx(selectedRows, "일일 수입검사일지.xlsx")
+                exportToXlsxStyled(
+                  selectedRows,
+                  selectedColumns,
+                  "일일 수입검사일지.xlsx"
+                )
               }
               disabled={selectedRows.length === 0}
             >

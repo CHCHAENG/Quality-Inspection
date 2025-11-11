@@ -16,7 +16,7 @@ import {
   type ServerRow,
   type FrontRow_WE,
   transformServerData_WE,
-} from "../../utils/prcsSubInspTrans";
+} from "../../utils/InspDataTrans/prcsSubInspTrans";
 import * as XLSX from "xlsx";
 import dayjs, { Dayjs } from "dayjs";
 import minMax from "dayjs/plugin/minMax";
@@ -25,7 +25,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { prcsSubWE } from "../../api/api";
-import { extractErrorMessage } from "../../utils/extractError";
+import { extractErrorMessage } from "../../utils/Common/extractError";
 
 dayjs.locale("ko");
 dayjs.extend(minMax);
