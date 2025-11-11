@@ -26,6 +26,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { mtrDailyInfo } from "../../api/api";
 import { extractErrorMessage } from "../../utils/extractError";
+import { buildPreviewRow } from "../../utils/SelectedRow/mtrInsp";
 
 dayjs.locale("ko");
 dayjs.extend(minMax);
@@ -142,6 +143,99 @@ export default function MtrDaliyInspDataGrid() {
     []
   );
 
+  const selectedColumns: GridColDef[] = useMemo<GridColDef[]>(
+    () => [
+      { field: "no", headerName: "No", width: 50 },
+      { field: "vendor", headerName: "업체명", width: 140 },
+      { field: "itemName", headerName: "품명", width: 120 },
+      { field: "std", headerName: "규격", width: 80 },
+      { field: "pColor", headerName: "색상", width: 80 },
+      { field: "lotNo", headerName: "LOT NO", width: 160 },
+      { field: "appearance", headerName: "외관", width: 80 },
+      { field: "printing", headerName: "인쇄", width: 80, type: "number" },
+
+      {
+        field: "subStrandCnt",
+        headerName: "소선수",
+        width: 110,
+        type: "number",
+      },
+      {
+        field: "oDiameter",
+        headerName: "완성외경",
+        width: 110,
+        type: "number",
+      },
+      { field: "shezThk", headerName: "쉬즈두께", width: 110, type: "number" },
+      { field: "s_cond", headerName: "차폐경", width: 110, type: "number" },
+      { field: "diameter1", headerName: "외경1", width: 110, type: "number" },
+      { field: "diameter2", headerName: "외경2", width: 110, type: "number" },
+      {
+        field: "souterDiameter",
+        headerName: "연선외경",
+        width: 100,
+        type: "number",
+      },
+      { field: "pitch", headerName: "피치(참고)", width: 90, type: "number" },
+      { field: "cond1", headerName: "소선경1", width: 100, type: "number" },
+      { field: "cond2", headerName: "소선경2", width: 100, type: "number" },
+      { field: "cond3", headerName: "소선경3", width: 100, type: "number" },
+      { field: "cond4", headerName: "소선경4", width: 100, type: "number" },
+      {
+        field: "insulThk1",
+        headerName: "절연두께1",
+        width: 100,
+        type: "number",
+      },
+      {
+        field: "insulThk2",
+        headerName: "절연두께2",
+        width: 100,
+        type: "number",
+      },
+      {
+        field: "insulThk3",
+        headerName: "절연두께3",
+        width: 100,
+        type: "number",
+      },
+      {
+        field: "insulThk4",
+        headerName: "절연두께4",
+        width: 100,
+        type: "number",
+      },
+      {
+        field: "avg_insulThk",
+        headerName: "절연평균",
+        width: 100,
+        type: "number",
+      },
+      {
+        field: "eccentricity",
+        headerName: "편심율",
+        width: 100,
+        type: "number",
+      },
+      { field: "t_pitch", headerName: "연합피치", width: 100, type: "number" },
+      { field: "tensile", headerName: "인장강도", width: 100, type: "number" },
+      { field: "elongation", headerName: "신장률", width: 110, type: "number" },
+      {
+        field: "shez_tensile",
+        headerName: "쉬즈 인장강도",
+        width: 110,
+        type: "number",
+      },
+      {
+        field: "shez_elongation",
+        headerName: "쉬즈 신장률",
+        width: 110,
+        type: "number",
+      },
+    ],
+    []
+  );
+
   // -------------------- rows 변환 --------------------
   const rows = useMemo<DailyInspField[]>(
     () => transformServerData_Daliy(rawServerData),
@@ -150,10 +244,19 @@ export default function MtrDaliyInspDataGrid() {
 
   // -------------------- 선택 행 계산 --------------------
   const selectedRows = useMemo(() => {
+    // if (rowSelectionModel.type === "include") {
+    //   return rows.filter((r) => rowSelectionModel.ids.has(r.id as GridRowId));
+    // }
+    // return rows.filter((r) => !rowSelectionModel.ids.has(r.id as GridRowId));
+
     if (rowSelectionModel.type === "include") {
-      return rows.filter((r) => rowSelectionModel.ids.has(r.id as GridRowId));
+      return rows
+        .filter((r) => rowSelectionModel.ids.has(r.id as GridRowId))
+        .map(buildPreviewRow);
     }
-    return rows.filter((r) => !rowSelectionModel.ids.has(r.id as GridRowId));
+    return rows
+      .filter((r) => !rowSelectionModel.ids.has(r.id as GridRowId))
+      .map(buildPreviewRow);
   }, [rows, rowSelectionModel]);
 
   // -------------------- 조회 버튼 --------------------
@@ -312,7 +415,7 @@ export default function MtrDaliyInspDataGrid() {
         </Typography>
         <DataGrid
           rows={selectedRows}
-          columns={columns}
+          columns={selectedColumns}
           pagination
           initialState={{
             pagination: { paginationModel: { page: 0, pageSize: 5 } },

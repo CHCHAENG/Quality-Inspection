@@ -80,6 +80,10 @@ export type DailyInspField = {
   elongation?: number;
   shez_tensile?: number;
   shez_elongation?: number;
+
+  // selected_row
+  avg_insulThk?: number;
+  eccentricity?: number;
 };
 
 export type FrontRow = BaseRow & STFields & PVCFields & SCRFields;
