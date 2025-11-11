@@ -25,10 +25,8 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { mtrDailyInfo } from "../../api/api";
 import { extractErrorMessage } from "../../utils/Common/extractError";
-import {
-  buildPreviewRow,
-  exportToXlsxStyled,
-} from "../../utils/SelectedRow/mtrInsp";
+import { buildPreviewRow } from "../../utils/SelectedRow/mtrInsp";
+import { exportToXlsxStyled } from "../../utils/Common/excelExportLayout";
 
 dayjs.locale("ko");
 dayjs.extend(minMax);

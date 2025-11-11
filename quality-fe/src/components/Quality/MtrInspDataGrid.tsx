@@ -27,7 +27,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { mtrInsp } from "../../api/api";
 import { extractErrorMessage } from "../../utils/Common/extractError";
 import { useLocation } from "react-router-dom";
-import { exportToXlsxStyled } from "../../utils/SelectedRow/mtrInsp";
+import { exportToXlsxStyled } from "../../utils/Common/excelExportLayout";
 
 dayjs.locale("ko");
 dayjs.extend(minMax);
