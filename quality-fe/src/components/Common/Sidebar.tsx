@@ -48,11 +48,11 @@ const MENU: MenuNode[] = [
           { id: "mtr-insp-SCR", label: "SCR", path: "/quality/mtr-insp/scr" },
         ],
       },
-      // {
-      //   id: "mtr-daily",
-      //   label: "수입검사일지",
-      //   path: "/quality/mtr-daily",
-      // },
+      {
+        id: "mtr-daily",
+        label: "일일 수입검사일지",
+        path: "/quality/mtr-insp/daily",
+      },
       {
         id: "prcs-insp",
         label: "순회검사 일지",
@@ -146,13 +146,15 @@ export default function Sidebar({ collapsed, toggleSidebar }: SidebarProps) {
       <List disablePadding>
         {nodes.map((node) => {
           const IconComp = node.icon;
-          const active = isPathActive(location.pathname, node.path);
+          const active = node.path
+            ? isPathActive(location.pathname, node.path)
+            : autoOpenIds.has(node.id);
           const hasChildren = !!node.children?.length;
 
           return (
             <ListItem key={node.id} disablePadding sx={{ display: "block" }}>
               <ListItemButton
-                selected={active && !collapsed}
+                selected={Boolean(node.path) && active && !collapsed}
                 disableRipple
                 disableTouchRipple
                 onClick={() => {
@@ -254,7 +256,7 @@ export default function Sidebar({ collapsed, toggleSidebar }: SidebarProps) {
       component="nav"
       aria-label="sidebar"
       sx={{
-        width: collapsed ? 60 : 260, // 폭만 변경
+        width: collapsed ? 60 : 240, // 폭만 변경
         transition: "width .2s ease",
         // height: "100vh",
         // minHeight: "100vh",

@@ -18,13 +18,8 @@ const routes = [
   // 수입검사일지
   {
     path: "/api/mtrDailyInfo",
-    proc: "TR51315",
-    keys: ["i_BRCD", "i_LANG"],
-  },
-  {
-    path: "/api/mtrDailyDetail",
-    proc: "TR51313",
-    keys: ["i_BRCD", "i_ITMCD", "i_GRPCD", "i_INSPSEQ", "i_LANG"],
+    proc: "TR59001",
+    keys: ["i_SDATE", "i_EDATE", "i_FILEGBN", "i_LANG"],
   },
 
   // 순회검사 일지 (신선, 연선)

@@ -23,6 +23,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         sx={{
           flexGrow: 1,
           width: "100%",
+
           transition: "margin 0.3s",
         }}
       >

@@ -7,16 +7,8 @@ export async function mtrInsp(sendData: string) {
 }
 
 // 수입검사일지
-export async function mtrDailyInfo() {
-  const sendData = "PD3F1BK0Q300SK125627029;0;";
-
+export async function mtrDailyInfo(sendData: string) {
   const res = await axios.post("/api/mtrDailyInfo", { sendData });
-  return res.data;
-}
-export async function mtrDailyDetail() {
-  const sendData = "PD3F1BK0Q300SK125627029;2D3F1BK0D;NE-28-01;1;0;";
-
-  const res = await axios.post("/api/mtrDailyDetail", { sendData });
   return res.data;
 }
 
