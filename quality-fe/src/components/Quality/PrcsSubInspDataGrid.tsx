@@ -28,6 +28,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { prcsSub } from "../../api/api";
 import { extractErrorMessage } from "../../utils/Common/extractError";
 import { useLocation } from "react-router-dom";
+import { exportToXlsxStyled } from "../../utils/Common/excelExportLayout";
 
 dayjs.locale("ko");
 dayjs.extend(minMax);
@@ -168,11 +169,79 @@ export default function PrcsSubInspDataGrid() {
     []
   );
 
+  // -------------------- 연선(ST) Selected 컬럼 --------------------
+  const stSelectedColumns: GridColDef[] = useMemo(
+    () => [
+      { field: "no", headerName: "NO", width: 50 },
+      { field: "itemCode", headerName: "규격", width: 150 },
+      { field: "lotNo", headerName: "LOT", width: 140 },
+      { field: "appearance", headerName: "외관", width: 100 },
+      { field: "strandCount", headerName: "소선수", width: 90, type: "number" },
+      {
+        field: "outerDiameter",
+        headerName: "연선외경",
+        width: 110,
+        type: "number",
+      },
+      { field: "cond1", headerName: "소선경 1", width: 110, type: "number" },
+      { field: "cond2", headerName: "소선경 2", width: 110, type: "number" },
+      { field: "cond3", headerName: "소선경 3", width: 110, type: "number" },
+      { field: "cond4", headerName: "소선경 4", width: 110, type: "number" },
+      { field: "twistDirection", headerName: "꼬임방향", width: 100 },
+      { field: "decision", headerName: "판정", width: 90 },
+      { field: "remark", headerName: "비고", width: 160 },
+    ],
+    []
+  );
+
+  // -------------------- 신선(DR) Selected 컬럼 --------------------
+  const drSelectedColumns: GridColDef[] = useMemo(
+    () => [
+      { field: "no", headerName: "NO", width: 50 },
+      { field: "itemCode", headerName: "규격", width: 150 },
+      { field: "lotNo", headerName: "LOT", width: 140 },
+      { field: "appearance", headerName: "외관", width: 100 },
+      { field: "strandCount", headerName: "소선수", width: 90, type: "number" },
+      {
+        field: "cond1",
+        headerName: "소선경 1",
+        width: 110,
+        type: "number",
+      },
+      {
+        field: "cond2",
+        headerName: "소선경 2",
+        width: 110,
+        type: "number",
+      },
+      {
+        field: "cond3",
+        headerName: "소선경 3",
+        width: 110,
+        type: "number",
+      },
+      {
+        field: "cond4",
+        headerName: "소선경 4",
+        width: 110,
+        type: "number",
+      },
+      { field: "decision", headerName: "판정", width: 90 },
+      { field: "remark", headerName: "비고", width: 160 },
+    ],
+    []
+  );
+
   // -------------------- 최종 컬럼 --------------------
   const columns: GridColDef[] = useMemo(() => {
     if (effectiveKind === "dr") return [...commonColumns, ...drExtraColumns];
     return [...commonColumns, ...stExtraColumns];
   }, [commonColumns, stExtraColumns, drExtraColumns, effectiveKind]);
+
+  const selectedColumns: GridColDef[] = useMemo(() => {
+    if (effectiveKind === "dr") return [...drSelectedColumns];
+    return [...stSelectedColumns];
+  }, [stSelectedColumns, drSelectedColumns, effectiveKind]);
 
   // -------------------- rows 변환 --------------------
   const rows = useMemo<FrontRow[]>(
@@ -182,10 +251,12 @@ export default function PrcsSubInspDataGrid() {
 
   // -------------------- 선택 행 계산 --------------------
   const selectedRows = useMemo(() => {
-    if (rowSelectionModel.type === "include") {
-      return rows.filter((r) => rowSelectionModel.ids.has(r.id as GridRowId));
-    }
-    return rows.filter((r) => !rowSelectionModel.ids.has(r.id as GridRowId));
+    const filtered =
+      rowSelectionModel.type === "include"
+        ? rows.filter((r) => rowSelectionModel.ids.has(r.id as GridRowId))
+        : rows.filter((r) => !rowSelectionModel.ids.has(r.id as GridRowId));
+
+    return filtered.map((r, idx) => ({ ...r, no: idx + 1 }));
   }, [rows, rowSelectionModel]);
 
   // -------------------- 조회 버튼 --------------------
@@ -206,41 +277,13 @@ export default function PrcsSubInspDataGrid() {
       setRawServerData(data ?? []);
       setRowSelectionModel({ type: "include", ids: new Set() });
       setPaginationModel((prev) => ({ ...prev, page: 0 }));
-    } catch (err: any) {
+    } catch (err) {
       if (reqSeq.current !== mySeq) return;
       console.error(extractErrorMessage(err));
       setRawServerData([]);
     } finally {
       if (reqSeq.current === mySeq) setLoading(false);
     }
-  }
-
-  // -------------------- 엑셀 내보내기 --------------------
-  function exportToXlsx(data: any[], filename: string) {
-    const ordered = data.map((r) => {
-      const o: Record<string, any> = {};
-      columns.forEach((c) => {
-        o[c.headerName ?? (c.field as string)] = (r as any)[c.field];
-      });
-      return o;
-    });
-
-    const ws = XLSX.utils.json_to_sheet(ordered);
-    const colWidths = Object.keys(ordered[0] || {}).map((key) => ({
-      wch:
-        Math.max(
-          key.length,
-          ...ordered.map((row) => String(row[key] ?? "").length)
-        ) + 2,
-    }));
-    (ws as any)["!cols"] = colWidths;
-
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-    XLSX.writeFile(
-      wb,
-      filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`
-    );
   }
 
   return (
@@ -303,8 +346,9 @@ export default function PrcsSubInspDataGrid() {
             <Button
               variant="contained"
               onClick={() =>
-                exportToXlsx(
+                exportToXlsxStyled(
                   selectedRows,
+                  selectedColumns,
                   effectiveKind === "dr"
                     ? "순회검사_신선.xlsx"
                     : "순회검사_연선.xlsx"
@@ -349,7 +393,7 @@ export default function PrcsSubInspDataGrid() {
         </Typography>
         <DataGrid
           rows={selectedRows}
-          columns={columns}
+          columns={selectedColumns}
           pagination
           initialState={{
             pagination: { paginationModel: { page: 0, pageSize: 5 } },

@@ -182,7 +182,7 @@ export default function MtrInspDataGrid() {
   // -------------------- 연선 Selected 컬럼 --------------------
   const stSelectedColumns: GridColDef[] = useMemo(
     () => [
-      { field: "no", headerName: "NO", width: 60 },
+      { field: "no", headerName: "NO", width: 50 },
       { field: "vendor", headerName: "업체명", width: 160 },
       { field: "barcode", headerName: "LOT NO", width: 260 },
       { field: "std", headerName: "규격", width: 80 },
@@ -205,7 +205,7 @@ export default function MtrInspDataGrid() {
   // -------------------- PVC Selected 컬럼 --------------------
   const pvcSelectedColumns: GridColDef[] = useMemo(
     () => [
-      { field: "no", headerName: "NO", width: 60 },
+      { field: "no", headerName: "NO", width: 50 },
       { field: "vendor", headerName: "업체명", width: 160 },
       { field: "itemName", headerName: "품명", width: 180 },
       { field: "itemColor", headerName: "색상", width: 80 },
@@ -229,7 +229,7 @@ export default function MtrInspDataGrid() {
   // -------------------- SCR Selected 컬럼 --------------------
   const scrSelectedColumns: GridColDef[] = useMemo(
     () => [
-      { field: "no", headerName: "NO", width: 60 },
+      { field: "no", headerName: "NO", width: 50 },
       { field: "vendor", headerName: "업체명", width: 160 },
       { field: "barcode", headerName: "LOT NO", width: 260 },
       { field: "packing", headerName: "포장상태", width: 160 },

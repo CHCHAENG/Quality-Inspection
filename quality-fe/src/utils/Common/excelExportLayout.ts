@@ -1,10 +1,17 @@
 import { GridColDef } from "@mui/x-data-grid";
-import { DailyInspField, FrontRow } from "../InspDataTrans/mtrInspTrans";
+import {
+  DailyInspField,
+  FrontRow as FrontRow_MTR,
+} from "../InspDataTrans/mtrInspTrans";
+import {
+  FrontRow as FrontRow_PRCS,
+  FrontRow_WE,
+} from "../InspDataTrans/prcsSubInspTrans";
 import * as XLSX from "xlsx-js-style";
 
 // 엑셀 내보내기
 export function exportToXlsxStyled(
-  data: DailyInspField[] | FrontRow[],
+  data: DailyInspField[] | FrontRow_MTR[] | FrontRow_PRCS[] | FrontRow_WE[],
   columns: GridColDef[],
   filename: string
 ) {
@@ -62,7 +69,6 @@ export function exportToXlsxStyled(
   for (let r = 1; r <= range.e.r; r++) {
     for (let c = range.s.c; c <= range.e.c; c++) {
       const addr = XLSX.utils.encode_cell({ r, c });
-      // 값이 없어서 셀이 생성되지 않은 경우, 스타일을 먹이려면 셀을 생성해야 함
       if (!ws[addr]) {
         ws[addr] = { t: "s", v: "" };
       }
@@ -73,7 +79,6 @@ export function exportToXlsxStyled(
         ...prevStyle,
         border: bodyBorder,
         alignment: {
-          // 숫자는 오른쪽, 그 외는 왼쪽 정렬
           horizontal: isNum ? "right" : "left",
           vertical: "center",
           wrapText: true,
