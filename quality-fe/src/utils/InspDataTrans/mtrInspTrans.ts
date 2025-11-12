@@ -53,7 +53,6 @@ export type SCRFields = {
 export type DailyInspField = {
   id: number | string;
 
-  no?: number;
   vendor?: string;
   itemName?: string;
   std?: string;
@@ -134,7 +133,6 @@ const SCR_FIELD_KEYS = {
 } as const;
 
 const DAILY_FIELD_KEYS = {
-  no: "NO",
   vendor: "CSTNM",
   itemName: "PSORT",
   std: "STD",
@@ -239,7 +237,6 @@ export function normalizeServerRow_Daily(
   s: ServerRow,
   idx: number
 ): DailyInspField {
-  const no = toNumber(s[DAILY_FIELD_KEYS.no]);
   const vendor = toStringClean(s[DAILY_FIELD_KEYS.vendor]);
   const itemName = toStringClean(s[DAILY_FIELD_KEYS.itemName]);
   const std = toStringClean(s[DAILY_FIELD_KEYS.std]);
@@ -264,11 +261,10 @@ export function normalizeServerRow_Daily(
   const shez_tensile = toNumber(s[DAILY_FIELD_KEYS.shez_tensile]);
   const shez_elongation = toNumber(s[DAILY_FIELD_KEYS.shez_elongation]);
 
-  const id = no || lotNo ? `${no}-${lotNo || idx + 1}` : idx + 1;
+  const id = lotNo ? `${lotNo || idx + 1}` : idx + 1;
 
   return {
     id,
-    no,
     vendor,
     itemName,
     std,

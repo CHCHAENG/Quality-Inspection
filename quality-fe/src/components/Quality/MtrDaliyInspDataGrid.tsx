@@ -64,7 +64,6 @@ export default function MtrDaliyInspDataGrid() {
   // -------------------- 공통 컬럼 --------------------
   const columns: GridColDef[] = useMemo<GridColDef[]>(
     () => [
-      { field: "no", headerName: "No", width: 50 },
       { field: "vendor", headerName: "업체명", width: 140 },
       { field: "itemName", headerName: "품명", width: 120 },
       { field: "std", headerName: "규격", width: 80 },
@@ -145,7 +144,7 @@ export default function MtrDaliyInspDataGrid() {
 
   const selectedColumns: GridColDef[] = useMemo<GridColDef[]>(
     () => [
-      { field: "no", headerName: "No", width: 50 },
+      { field: "no", headerName: "NO", width: 50 },
       { field: "vendor", headerName: "업체명", width: 140 },
       { field: "itemName", headerName: "품명", width: 120 },
       { field: "std", headerName: "규격", width: 80 },
@@ -244,14 +243,12 @@ export default function MtrDaliyInspDataGrid() {
 
   // -------------------- 선택 행 계산 --------------------
   const selectedRows = useMemo(() => {
-    if (rowSelectionModel.type === "include") {
-      return rows
-        .filter((r) => rowSelectionModel.ids.has(r.id as GridRowId))
-        .map(buildPreviewRow);
-    }
-    return rows
-      .filter((r) => !rowSelectionModel.ids.has(r.id as GridRowId))
-      .map(buildPreviewRow);
+    const base = (
+      rowSelectionModel.type === "include"
+        ? rows.filter((r) => rowSelectionModel.ids.has(r.id as GridRowId))
+        : rows.filter((r) => !rowSelectionModel.ids.has(r.id as GridRowId))
+    ).map(buildPreviewRow);
+    return base.map((r, idx) => ({ ...r, no: idx + 1 }));
   }, [rows, rowSelectionModel]);
 
   // -------------------- 조회 버튼 --------------------
