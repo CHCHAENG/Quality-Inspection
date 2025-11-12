@@ -22,10 +22,10 @@ export function exportToXlsxStyled(
   // 4) 헤더 스타일 적용
   const headerStyle = {
     border: {
-      top: { style: "thin", color: { rgb: "FFB0BEC5" } },
-      right: { style: "thin", color: { rgb: "FFB0BEC5" } },
-      bottom: { style: "thin", color: { rgb: "FFB0BEC5" } },
-      left: { style: "thin", color: { rgb: "FFB0BEC5" } },
+      top: { style: "thin", color: { rgb: "FF5A6A7D" } },
+      right: { style: "thin", color: { rgb: "FF5A6A7D" } },
+      bottom: { style: "thin", color: { rgb: "FF5A6A7D" } },
+      left: { style: "thin", color: { rgb: "FF5A6A7D" } },
     },
 
     font: { bold: true, sz: 10, color: { rgb: "FF000000" } },
@@ -42,14 +42,44 @@ export function exportToXlsxStyled(
     if (ws[addr]) ws[addr].s = headerStyle;
   }
 
+  const bodyBorder = {
+    top: { style: "thin", color: { rgb: "FF5A6A7D" } },
+    right: { style: "thin", color: { rgb: "FF5A6A7D" } },
+    bottom: { style: "thin", color: { rgb: "FF5A6A7D" } },
+    left: { style: "thin", color: { rgb: "FF5A6A7D" } },
+  };
+
   // 6) 숫자 컬럼 서식(옵션): DataGrid 컬럼 type이 number면 표시 형식 지정
+  // for (let r = 1; r <= range.e.r; r++) {
+  //   columns.forEach((col, c) => {
+  //     if (col.type === "number") {
+  //       const addr = XLSX.utils.encode_cell({ r, c });
+  //       if (ws[addr]) ws[addr].z = "0.000"; // 필요 시 "0.0" 등으로 조정
+  //     }
+  //   });
+  // }
+
   for (let r = 1; r <= range.e.r; r++) {
-    columns.forEach((col, c) => {
-      if (col.type === "number") {
-        const addr = XLSX.utils.encode_cell({ r, c });
-        if (ws[addr]) ws[addr].z = "0.000"; // 필요 시 "0.0" 등으로 조정
+    for (let c = range.s.c; c <= range.e.c; c++) {
+      const addr = XLSX.utils.encode_cell({ r, c });
+      // 값이 없어서 셀이 생성되지 않은 경우, 스타일을 먹이려면 셀을 생성해야 함
+      if (!ws[addr]) {
+        ws[addr] = { t: "s", v: "" };
       }
-    });
+      const isNum = columns[c]?.type === "number";
+
+      const prevStyle = ws[addr].s || {};
+      ws[addr].s = {
+        ...prevStyle,
+        border: bodyBorder,
+        alignment: {
+          // 숫자는 오른쪽, 그 외는 왼쪽 정렬
+          horizontal: isNum ? "right" : "left",
+          vertical: "center",
+          wrapText: true,
+        },
+      };
+    }
   }
 
   // 7) 열 너비 자동
