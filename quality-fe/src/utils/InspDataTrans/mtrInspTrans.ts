@@ -2,7 +2,6 @@ export type ServerRow = Record<string, unknown>;
 
 export type BaseRow = {
   id: number | string;
-
   // 공통(좌측)
   reqNo: string;
   vendor: string;
@@ -16,6 +15,9 @@ export type BaseRow = {
   inspectedAt: string;
   remark: string;
   vendorRemark: string;
+
+  // selected row
+  itemColor?: string;
 };
 
 // 연선

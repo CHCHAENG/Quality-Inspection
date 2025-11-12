@@ -1,6 +1,21 @@
-import { DailyInspField } from "../InspDataTrans/mtrInspTrans";
+import { BaseRow, DailyInspField } from "../InspDataTrans/mtrInspTrans";
 
 // ========== 원자재 수입검사일지 ==========
+// PVC - 품명에서 색상 값 추출
+export function splitItemNameAndColor(
+  r: BaseRow
+): BaseRow & { itemName: string; itemColor: string } {
+  const rawName = (r.itemName ?? "").trim();
+  const m = rawName.match(/^(.*?)[\s_-]*([A-Za-z]+)\s*\([^)]+\)\s*$/);
+  const itemName = m ? m[1].trim() : rawName;
+  const itemColor = m ? m[2].toUpperCase() : "";
+
+  return {
+    ...r,
+    itemName,
+    itemColor,
+  };
+}
 
 // ========== 일일 수입검사일지 ==========
 // 절연 평균

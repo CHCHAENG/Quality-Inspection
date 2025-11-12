@@ -28,6 +28,7 @@ import { mtrInsp } from "../../api/api";
 import { extractErrorMessage } from "../../utils/Common/extractError";
 import { useLocation } from "react-router-dom";
 import { exportToXlsxStyled } from "../../utils/Common/excelExportLayout";
+import { splitItemNameAndColor } from "../../utils/SelectedRow/mtrInsp";
 
 dayjs.locale("ko");
 dayjs.extend(minMax);
@@ -181,6 +182,7 @@ export default function MtrInspDataGrid() {
   // -------------------- 연선 Selected 컬럼 --------------------
   const stSelectedColumns: GridColDef[] = useMemo(
     () => [
+      { field: "no", headerName: "NO", width: 60 },
       { field: "vendor", headerName: "업체명", width: 160 },
       { field: "barcode", headerName: "LOT NO", width: 260 },
       { field: "std", headerName: "규격", width: 80 },
@@ -203,9 +205,10 @@ export default function MtrInspDataGrid() {
   // -------------------- PVC Selected 컬럼 --------------------
   const pvcSelectedColumns: GridColDef[] = useMemo(
     () => [
+      { field: "no", headerName: "NO", width: 60 },
       { field: "vendor", headerName: "업체명", width: 160 },
       { field: "itemName", headerName: "품명", width: 180 },
-      { field: "color", headerName: "색상", width: 80 },
+      { field: "itemColor", headerName: "색상", width: 80 },
       { field: "barcode", headerName: "LOT NO", width: 260 },
       { field: "pvcCheck1", headerName: "외관상태", width: 100 },
       {
@@ -226,6 +229,7 @@ export default function MtrInspDataGrid() {
   // -------------------- SCR Selected 컬럼 --------------------
   const scrSelectedColumns: GridColDef[] = useMemo(
     () => [
+      { field: "no", headerName: "NO", width: 60 },
       { field: "vendor", headerName: "업체명", width: 160 },
       { field: "barcode", headerName: "LOT NO", width: 260 },
       { field: "packing", headerName: "포장상태", width: 160 },
@@ -264,10 +268,12 @@ export default function MtrInspDataGrid() {
 
   // -------------------- 선택 행 계산 --------------------
   const selectedRows = useMemo(() => {
-    if (rowSelectionModel.type === "include") {
-      return rows.filter((r) => rowSelectionModel.ids.has(r.id as GridRowId));
-    }
-    return rows.filter((r) => !rowSelectionModel.ids.has(r.id as GridRowId));
+    const base = (
+      rowSelectionModel.type === "include"
+        ? rows.filter((r) => rowSelectionModel.ids.has(r.id as GridRowId))
+        : rows.filter((r) => !rowSelectionModel.ids.has(r.id as GridRowId))
+    ).map(splitItemNameAndColor);
+    return base.map((r, idx) => ({ ...r, no: idx + 1 }));
   }, [rows, rowSelectionModel]);
 
   // -------------------- 조회 버튼 --------------------
