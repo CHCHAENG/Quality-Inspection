@@ -19,7 +19,7 @@ export type BaseRow = {
 
   // selected row
   std?: string;
-  color?: string;
+  p_color?: string;
 };
 
 // 고전압선
