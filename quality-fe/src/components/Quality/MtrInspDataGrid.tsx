@@ -268,13 +268,16 @@ export default function MtrInspDataGrid() {
 
   // -------------------- 선택 행 계산 --------------------
   const selectedRows = useMemo(() => {
-    const base = (
+    const filtered =
       rowSelectionModel.type === "include"
         ? rows.filter((r) => rowSelectionModel.ids.has(r.id as GridRowId))
-        : rows.filter((r) => !rowSelectionModel.ids.has(r.id as GridRowId))
-    ).map(splitItemNameAndColor);
+        : rows.filter((r) => !rowSelectionModel.ids.has(r.id as GridRowId));
+
+    const base =
+      effectiveKind === "pvc" ? filtered.map(splitItemNameAndColor) : filtered;
+
     return base.map((r, idx) => ({ ...r, no: idx + 1 }));
-  }, [rows, rowSelectionModel]);
+  }, [rows, rowSelectionModel, effectiveKind]);
 
   // -------------------- 조회 버튼 --------------------
   async function handleSearch() {
