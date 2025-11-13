@@ -17,7 +17,6 @@ import {
   type FrontRow_WE,
   transformServerData_WE,
 } from "../../utils/InspDataTrans/prcsSubInspTrans";
-import * as XLSX from "xlsx";
 import dayjs, { Dayjs } from "dayjs";
 import minMax from "dayjs/plugin/minMax";
 import "dayjs/locale/ko";
@@ -26,6 +25,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { prcsSubWE } from "../../api/api";
 import { extractErrorMessage } from "../../utils/Common/extractError";
+import { exportToXlsxStyled } from "../../utils/Common/excelExportLayout";
 
 dayjs.locale("ko");
 dayjs.extend(minMax);
@@ -150,6 +150,94 @@ export default function PrcsSubWEInspDataGrid() {
     []
   );
 
+  const selectedColumns: GridColDef[] = useMemo(
+    () => [
+      { field: "actualDate", headerName: "생산일자", width: 110 },
+      { field: "inspLot", headerName: "검사로트", width: 130 },
+      { field: "itemCode", headerName: "품목코드", width: 130 },
+      { field: "itemName", headerName: "품목명", width: 180 },
+      { field: "processName", headerName: "생산호기", width: 120 },
+      { field: "roundTime", headerName: "순회시간", width: 130 },
+      { field: "inspector", headerName: "검사자", width: 100 },
+      { field: "inspectedAt", headerName: "검사일자", width: 150 },
+      { field: "remark", headerName: "비고", width: 160 },
+
+      // 외관/색상/라벨/포장/인쇄 상태
+      { field: "appearance", headerName: "외관상태", width: 100 },
+      { field: "color", headerName: "색상상태", width: 100 },
+      { field: "label", headerName: "라벨상태", width: 100 },
+      { field: "packing", headerName: "포장상태", width: 100 },
+      { field: "printing", headerName: "인쇄상태", width: 100 },
+
+      // 치수/물성
+      {
+        field: "insulationOD1",
+        headerName: "절연외경 1",
+        width: 110,
+        type: "number",
+      },
+      {
+        field: "insulationOD2",
+        headerName: "절연외경 2",
+        width: 110,
+        type: "number",
+      },
+      {
+        field: "souterDiameter",
+        headerName: "연선외경",
+        width: 110,
+        type: "number",
+      },
+      {
+        field: "eccentricity",
+        headerName: "편심율(완측)",
+        width: 120,
+        type: "number",
+      },
+
+      { field: "cond1", headerName: "도체경 1", width: 110, type: "number" },
+      { field: "cond2", headerName: "도체경 2", width: 110, type: "number" },
+      { field: "cond3", headerName: "도체경 3", width: 110, type: "number" },
+      { field: "cond4", headerName: "도체경 4", width: 110, type: "number" },
+
+      {
+        field: "insulThk1",
+        headerName: "절연두께 1",
+        width: 110,
+        type: "number",
+      },
+      {
+        field: "insulThk2",
+        headerName: "절연두께 2",
+        width: 110,
+        type: "number",
+      },
+      {
+        field: "insulThk3",
+        headerName: "절연두께 3",
+        width: 110,
+        type: "number",
+      },
+      {
+        field: "insulThk4",
+        headerName: "절연두께 4",
+        width: 110,
+        type: "number",
+      },
+
+      { field: "tensile", headerName: "인장강도", width: 110, type: "number" },
+      { field: "elongation", headerName: "신장률", width: 110, type: "number" },
+      {
+        field: "subStrandCnt",
+        headerName: "소선수",
+        width: 100,
+        type: "number",
+      },
+      { field: "pitch", headerName: "피치", width: 90, type: "number" },
+    ],
+    []
+  );
+
   // -------------------- rows 변환 --------------------
   const rows = useMemo<FrontRow_WE[]>(
     () => transformServerData_WE(rawServerData),
@@ -186,41 +274,13 @@ export default function PrcsSubWEInspDataGrid() {
       setRawServerData(data ?? []);
       setRowSelectionModel({ type: "include", ids: new Set() });
       setPaginationModel((prev) => ({ ...prev, page: 0 }));
-    } catch (err: any) {
+    } catch (err) {
       if (reqSeq.current !== mySeq) return;
       console.error(extractErrorMessage(err));
       setRawServerData([]);
     } finally {
       if (reqSeq.current === mySeq) setLoading(false);
     }
-  }
-
-  // -------------------- 엑셀 내보내기 --------------------
-  function exportToXlsx(data: any[], filename: string) {
-    const ordered = data.map((r) => {
-      const o: Record<string, any> = {};
-      columns.forEach((c) => {
-        o[c.headerName ?? (c.field as string)] = (r as any)[c.field];
-      });
-      return o;
-    });
-
-    const ws = XLSX.utils.json_to_sheet(ordered);
-    const colWidths = Object.keys(ordered[0] || {}).map((key) => ({
-      wch:
-        Math.max(
-          key.length,
-          ...ordered.map((row) => String(row[key] ?? "").length)
-        ) + 2,
-    }));
-    (ws as any)["!cols"] = colWidths;
-
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-    XLSX.writeFile(
-      wb,
-      filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`
-    );
   }
 
   return (
@@ -282,7 +342,13 @@ export default function PrcsSubWEInspDataGrid() {
             </Typography>
             <Button
               variant="contained"
-              onClick={() => exportToXlsx(selectedRows, "순회검사_압출.xlsx")}
+              onClick={() =>
+                exportToXlsxStyled(
+                  selectedRows,
+                  selectedColumns,
+                  "순회검사_압출.xlsx"
+                )
+              }
               disabled={selectedRows.length === 0}
             >
               엑셀 다운로드
@@ -322,7 +388,7 @@ export default function PrcsSubWEInspDataGrid() {
         </Typography>
         <DataGrid
           rows={selectedRows}
-          columns={columns}
+          columns={selectedColumns}
           pagination
           initialState={{
             pagination: { paginationModel: { page: 0, pageSize: 5 } },

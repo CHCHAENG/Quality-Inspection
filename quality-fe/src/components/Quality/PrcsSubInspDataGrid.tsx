@@ -18,7 +18,6 @@ import {
   type FrontRow,
   type ItemKind,
 } from "../../utils/InspDataTrans/prcsSubInspTrans";
-import * as XLSX from "xlsx";
 import dayjs, { Dayjs } from "dayjs";
 import minMax from "dayjs/plugin/minMax";
 import "dayjs/locale/ko";

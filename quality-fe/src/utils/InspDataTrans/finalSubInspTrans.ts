@@ -16,6 +16,10 @@ export type BaseRow = {
   inspectedAt: string;
   actualDate: string;
   remark: string;
+
+  // selected row
+  std?: string;
+  color?: string;
 };
 
 // 고전압선
