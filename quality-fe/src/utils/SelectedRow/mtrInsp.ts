@@ -24,7 +24,9 @@ function safeAvg(nums: Array<number | undefined>) {
     (v): v is number => typeof v === "number" && Number.isFinite(v)
   );
   if (arr.length === 0) return undefined;
-  return arr.reduce((a, b) => a + b, 0) / arr.length;
+
+  const avg = arr.reduce((a, b) => a + b, 0) / arr.length;
+  return Math.round(avg * 100) / 100;
 }
 
 // 편심율
