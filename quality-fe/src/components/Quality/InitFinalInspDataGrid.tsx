@@ -30,7 +30,7 @@ import { useLocation } from "react-router-dom";
 import { exportToXlsxStyled } from "../../utils/Common/excelExportLayout";
 import {
   buildPreviewRow,
-  splitProcessNameStdColorWithParen,
+  splitProcessNameStdColor,
 } from "../../utils/SelectedRow/initFinalInsp";
 
 dayjs.locale("ko");
@@ -626,7 +626,7 @@ export default function InitialInspDataGrid() {
         ? rows.filter((r) => rowSelectionModel.ids.has(r.id as GridRowId))
         : rows
             .filter((r) => !rowSelectionModel.ids.has(r.id as GridRowId))
-            .map(splitProcessNameStdColorWithParen);
+            .map(splitProcessNameStdColor);
 
     const base =
       effectiveKind === "whbs" ? filtered.map(buildPreviewRow) : filtered;

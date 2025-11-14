@@ -18,7 +18,6 @@ import {
   transformServerData,
   ItemKind,
 } from "../../utils/InspDataTrans/finalSubInspTrans";
-import * as XLSX from "xlsx";
 import dayjs, { Dayjs } from "dayjs";
 import minMax from "dayjs/plugin/minMax";
 import "dayjs/locale/ko";
