@@ -1,27 +1,18 @@
 import { GridColDef } from "@mui/x-data-grid";
-import {
-  DailyInspField,
-  FrontRow as FrontRow_MTR,
-} from "../InspDataTrans/mtrInspTrans";
-import {
-  FrontRow as FrontRow_PRCS,
-  FrontRow_WE,
-} from "../InspDataTrans/prcsSubInspTrans";
-import { FrontRow as FrontRow_FINAL } from "../InspDataTrans/finalSubInspTrans";
-import { FrontRow as FrontRow_INITFINAL } from "../InspDataTrans/initFinalSubInspTrans";
-
 import * as XLSX from "xlsx-js-style";
+// 필요하면 다른 타입 import는 남겨도 되고, 이 함수에서는 안 써도 됨.
+// import {
+//   DailyInspField,
+//   FrontRow as FrontRow_MTR,
+// } from "../InspDataTrans/mtrInspTrans";
+// ...
 
-// 엑셀 내보내기
-export function exportToXlsxStyled(
-  data:
-    | DailyInspField[]
-    | FrontRow_MTR[]
-    | FrontRow_PRCS[]
-    | FrontRow_WE[]
-    | FrontRow_FINAL[]
-    | FrontRow_INITFINAL[],
-  columns: GridColDef[],
+type ExcelCell = string | number | null;
+
+// 엑셀 내보내기 (제네릭 버전)
+export function exportToXlsxStyled<T extends Record<string, unknown>>(
+  data: T[],
+  columns: GridColDef<T>[],
   filename: string,
   kind?: string
 ) {
@@ -29,22 +20,30 @@ export function exportToXlsxStyled(
   const headers = columns.map((c) => c.headerName ?? String(c.field));
 
   // 2) 본문 AoA (컬럼 순서 고정)
-  const rowsAoA: any[][] = [];
+  const rowsAoA: ExcelCell[][] = [];
   const printHistoryRowIdxList: number[] = []; // 인쇄이력 행 인덱스
 
-  (data as any[]).forEach((row) => {
-    // 기본 데이터 한 줄
-    const baseRow = columns.map((c) => row[c.field as string]);
+  data.forEach((row) => {
+    const baseRow: ExcelCell[] = columns.map((c) => {
+      const field = c.field as keyof T;
+      const v = row[field];
+
+      if (v === null || v === undefined) return null;
+      if (typeof v === "number") return v;
+      return String(v);
+    });
+
     rowsAoA.push(baseRow);
 
     if (kind === "final_whex") {
-      const printHistoryRow = columns.map((col, idx) =>
+      const printHistoryRow: ExcelCell[] = columns.map((_, idx) =>
         idx === 0 ? "인쇄이력" : ""
       );
       rowsAoA.push(printHistoryRow);
       printHistoryRowIdxList.push(rowsAoA.length - 1);
     }
   });
+
   const printHistoryRowIdxSet = new Set(printHistoryRowIdxList);
 
   // 3) AoA -> Sheet (헤더 1행 + 본문)
