@@ -95,6 +95,8 @@ export type WHBSFields = {
   eccentricity?: number;
   //소선수
   subStrandCnt?: number;
+  // selected - 절연평균
+  avg_insulThk?: number;
 };
 
 export type FrontRow = BaseRow & WHEXFields & WXFields & WHBSFields;

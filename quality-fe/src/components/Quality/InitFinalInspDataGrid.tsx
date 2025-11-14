@@ -28,7 +28,10 @@ import { initFinalinsp } from "../../api/api";
 import { extractErrorMessage } from "../../utils/Common/extractError";
 import { useLocation } from "react-router-dom";
 import { exportToXlsxStyled } from "../../utils/Common/excelExportLayout";
-import { splitProcessNameStdColorWithParen } from "../../utils/SelectedRow/initFinalInsp";
+import {
+  buildPreviewRow,
+  splitProcessNameStdColorWithParen,
+} from "../../utils/SelectedRow/initFinalInsp";
 
 dayjs.locale("ko");
 dayjs.extend(minMax);
@@ -494,11 +497,6 @@ export default function InitialInspDataGrid() {
       { field: "std", headerName: "규격", width: 80 },
       { field: "p_color", headerName: "색상", width: 60 },
       { field: "lotNo", headerName: "LOT NO", width: 130 },
-      { field: "appearance", headerName: "외관", width: 60 },
-      { field: "color", headerName: "색상", width: 60 },
-      { field: "label", headerName: "라벨", width: 60 },
-      { field: "packing", headerName: "포장", width: 60 },
-      { field: "printing", headerName: "인쇄", width: 60 },
       {
         field: "subStrandCnt",
         headerName: "소선수",
@@ -507,7 +505,25 @@ export default function InitialInspDataGrid() {
       },
       {
         field: "insulationOD1",
-        headerName: "절연외경",
+        headerName: "절연외경 1",
+        width: 100,
+        type: "number",
+      },
+      {
+        field: "insulationOD2",
+        headerName: "절연외경 2",
+        width: 100,
+        type: "number",
+      },
+      {
+        field: "insulationOD3",
+        headerName: "절연외경 3",
+        width: 100,
+        type: "number",
+      },
+      {
+        field: "insulationOD4",
+        headerName: "절연외경 4",
         width: 100,
         type: "number",
       },
@@ -517,13 +533,56 @@ export default function InitialInspDataGrid() {
         width: 100,
         type: "number",
       },
-      { field: "cond1", headerName: "소선경 1", width: 100, type: "number" },
-      { field: "cond2", headerName: "소선경 2", width: 100, type: "number" },
-      { field: "cond3", headerName: "소선경 3", width: 100, type: "number" },
-      { field: "cond4", headerName: "소선경 4", width: 100, type: "number" },
-      { field: "eccentricity", headerName: "편심률", width: 80 },
-      { field: "s_check", headerName: "시료확인", width: 150 },
-      { field: "initFinal", headerName: "초/종품", width: 100 },
+
+      { field: "cond1", headerName: "도체경 1", width: 100, type: "number" },
+      { field: "cond2", headerName: "도체경 2", width: 100, type: "number" },
+      { field: "cond3", headerName: "도체경 3", width: 100, type: "number" },
+      { field: "cond4", headerName: "도체경 4", width: 100, type: "number" },
+      {
+        field: "avg_insulThk",
+        headerName: "절연평균",
+        width: 100,
+        type: "number",
+      },
+      {
+        field: "insulThk1",
+        headerName: "절연두께 1",
+        width: 100,
+        type: "number",
+      },
+      {
+        field: "insulThk2",
+        headerName: "절연두께 2",
+        width: 100,
+        type: "number",
+      },
+      {
+        field: "insulThk3",
+        headerName: "절연두께 3",
+        width: 100,
+        type: "number",
+      },
+      {
+        field: "insulThk4",
+        headerName: "절연두께 4",
+        width: 100,
+        type: "number",
+      },
+      {
+        field: "insulThk5",
+        headerName: "절연두께 5",
+        width: 100,
+        type: "number",
+      },
+      {
+        field: "insulThk6",
+        headerName: "절연두께 6",
+        width: 100,
+        type: "number",
+      },
+
+      { field: "eccentricity", headerName: "편심", width: 80 },
+      { field: "initFinal", headerName: "구분", width: 100 },
       { field: "decision", headerName: "판정", width: 80 },
     ],
     []
@@ -569,10 +628,10 @@ export default function InitialInspDataGrid() {
             .filter((r) => !rowSelectionModel.ids.has(r.id as GridRowId))
             .map(splitProcessNameStdColorWithParen);
 
-    // const base =
-    //   effectiveKind === "whex" ? filtered.map(getBraidedShieldValue) : filtered;
+    const base =
+      effectiveKind === "whbs" ? filtered.map(buildPreviewRow) : filtered;
 
-    return filtered.map((r, idx) => ({ ...r, no: idx + 1 }));
+    return base.map((r, idx) => ({ ...r, no: idx + 1 }));
   }, [rows, rowSelectionModel, effectiveKind]);
 
   // -------------------- 조회 버튼 --------------------
