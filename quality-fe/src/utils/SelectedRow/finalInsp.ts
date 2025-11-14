@@ -6,7 +6,7 @@ export function splitProcessNameStdColor(
 ): BaseRow & { itemName: string; std: string; p_color: string } {
   const raw = (r.itemName ?? "").trim();
 
-  const m = raw.match(/^(.*?)\s+([\d.]+)\s+([A-Za-z]+)$/);
+  const m = raw.match(/^(.*?)\s+([\d.]+)\s+([A-Za-z]+)\s*$/);
 
   const itemName = m ? m[1].trim() : raw;
   const std = m ? m[2].trim() : "";
