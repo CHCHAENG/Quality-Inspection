@@ -8,6 +8,8 @@ import {
   FrontRow_WE,
 } from "../InspDataTrans/prcsSubInspTrans";
 import { FrontRow as FrontRow_FINAL } from "../InspDataTrans/finalSubInspTrans";
+import { FrontRow as FrontRow_INITFINAL } from "../InspDataTrans/initFinalSubInspTrans";
+
 import * as XLSX from "xlsx-js-style";
 
 // 엑셀 내보내기
@@ -17,7 +19,8 @@ export function exportToXlsxStyled(
     | FrontRow_MTR[]
     | FrontRow_PRCS[]
     | FrontRow_WE[]
-    | FrontRow_FINAL[],
+    | FrontRow_FINAL[]
+    | FrontRow_INITFINAL[],
   columns: GridColDef[],
   filename: string,
   kind?: string

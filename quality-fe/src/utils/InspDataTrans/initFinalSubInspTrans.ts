@@ -17,6 +17,9 @@ export type BaseRow = {
   inspectedAt: string;
   remark: string;
   initFinal: string;
+
+  // selected column
+  pColor?: string;
 };
 
 // 저전압 조사전
