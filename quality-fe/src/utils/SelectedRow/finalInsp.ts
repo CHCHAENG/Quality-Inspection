@@ -1,4 +1,4 @@
-import { BaseRow } from "../InspDataTrans/finalSubInspTrans";
+import { BaseRow, WHEXFields } from "../InspDataTrans/finalSubInspTrans";
 
 // ========== 완제품검사 ==========
 export function splitProcessNameStdColor(
@@ -18,4 +18,18 @@ export function splitProcessNameStdColor(
     std,
     p_color,
   };
+}
+
+export function getBraidedShieldValue(r: WHEXFields): WHEXFields & {
+  br_shield_s?: number;
+  br_shield_d?: number;
+} {
+  const s = r.br_shield_s ?? "";
+  const d = r.br_shield_d ?? "";
+
+  // 둘 다 값이 있으면 "합/타"로
+  if (s !== "" && d !== "") return { ...r, br_shield: `${s}/${d}` };
+
+  // 둘 다 없으면 빈 문자열
+  return { ...r, br_shield: "" };
 }

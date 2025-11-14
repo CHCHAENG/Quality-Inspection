@@ -29,7 +29,10 @@ import { finalInsp } from "../../api/api";
 import { extractErrorMessage } from "../../utils/Common/extractError";
 import { useLocation } from "react-router-dom";
 import { exportToXlsxStyled } from "../../utils/Common/excelExportLayout";
-import { splitProcessNameStdColor } from "../../utils/SelectedRow/finalInsp";
+import {
+  getBraidedShieldValue,
+  splitProcessNameStdColor,
+} from "../../utils/SelectedRow/finalInsp";
 
 dayjs.locale("ko");
 dayjs.extend(minMax);
@@ -583,15 +586,18 @@ export default function FinalInspDataGrid() {
 
   // -------------------- 선택 행 계산 --------------------
   const selectedRows = useMemo(() => {
-    const base =
+    const filtered =
       rowSelectionModel.type === "include"
         ? rows.filter((r) => rowSelectionModel.ids.has(r.id as GridRowId))
         : rows
             .filter((r) => !rowSelectionModel.ids.has(r.id as GridRowId))
             .map(splitProcessNameStdColor);
 
+    const base =
+      effectiveKind === "whex" ? filtered.map(getBraidedShieldValue) : filtered;
+
     return base.map((r, idx) => ({ ...r, no: idx + 1 }));
-  }, [rows, rowSelectionModel]);
+  }, [rows, rowSelectionModel, effectiveKind]);
 
   // -------------------- 조회 버튼 --------------------
   async function handleSearch() {

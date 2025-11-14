@@ -73,6 +73,7 @@ export type WHEXFields = {
   br_shield_s?: number;
   //편조차폐(타)
   br_shield_d?: number;
+  br_shield?: string;
 };
 
 // 저전압 압출 & 저전압 조사후
