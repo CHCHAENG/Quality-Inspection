@@ -256,11 +256,9 @@ export default function Sidebar({ collapsed, toggleSidebar }: SidebarProps) {
       component="nav"
       aria-label="sidebar"
       sx={{
-        width: collapsed ? 60 : 240, // 폭만 변경
+        width: collapsed ? 60 : 220,
         transition: "width .2s ease",
-        // height: "100vh",
-        // minHeight: "100vh",
-        height: "100%",
+        // height: "100%",
         alignSelf: "stretch",
         display: "flex",
         flexDirection: "column",

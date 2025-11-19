@@ -1,4 +1,4 @@
-import { Box, Grid } from "@mui/material";
+import { Box } from "@mui/material";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { Outlet } from "react-router-dom";
@@ -27,9 +27,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           transition: "margin 0.3s",
         }}
       >
-        <Grid container spacing={2}>
-          <Box sx={{ width: "100%" }}>{children ?? <Outlet />}</Box>
-        </Grid>
+        {children ?? <Outlet />}
       </Box>
     </Box>
   );

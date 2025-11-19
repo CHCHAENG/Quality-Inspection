@@ -1,11 +1,5 @@
 import { GridColDef } from "@mui/x-data-grid";
 import * as XLSX from "xlsx-js-style";
-// 필요하면 다른 타입 import는 남겨도 되고, 이 함수에서는 안 써도 됨.
-// import {
-//   DailyInspField,
-//   FrontRow as FrontRow_MTR,
-// } from "../InspDataTrans/mtrInspTrans";
-// ...
 
 type ExcelCell = string | number | null;
 
@@ -19,9 +13,9 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
   // 1) 헤더 텍스트 배열
   const headers = columns.map((c) => c.headerName ?? String(c.field));
 
-  // 2) 본문 AoA (컬럼 순서 고정)
+  // 2) 본문 AoA
   const rowsAoA: ExcelCell[][] = [];
-  const printHistoryRowIdxList: number[] = []; // 인쇄이력 행 인덱스
+  const printHistoryRowIdxList: number[] = [];
 
   data.forEach((row) => {
     const baseRow: ExcelCell[] = columns.map((c) => {
@@ -35,6 +29,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
 
     rowsAoA.push(baseRow);
 
+    // 기존 final_whex 용 인쇄이력 행
     if (kind === "final_whex") {
       const printHistoryRow: ExcelCell[] = columns.map((_, idx) =>
         idx === 0 ? "인쇄이력" : ""
@@ -46,8 +41,50 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
 
   const printHistoryRowIdxSet = new Set(printHistoryRowIdxList);
 
-  // 3) AoA -> Sheet (헤더 1행 + 본문)
-  const ws = XLSX.utils.aoa_to_sheet([headers, ...rowsAoA]);
+  // 기본 AoA (헤더 1행 + 본문)
+  const baseAoA: ExcelCell[][] = [headers, ...rowsAoA];
+
+  let finalAoA: ExcelCell[][] = baseAoA;
+  let usedHeaders: string[] = headers;
+  let usedBodyAoA: ExcelCell[][] = rowsAoA;
+
+  const isTransposeLike = kind === "transpose" || kind === "transparse";
+
+  // 순회검사(압출) 일 경우 행/열 변환 (+ transparse 포함)
+  if (isTransposeLike) {
+    const rowCount = baseAoA.length;
+    const colCount = baseAoA[0]?.length ?? 0;
+
+    const transposed: ExcelCell[][] = [];
+
+    for (let c = 0; c < colCount; c++) {
+      const newRow: ExcelCell[] = [];
+      for (let r = 0; r < rowCount; r++) {
+        newRow.push(baseAoA[r]?.[c] ?? null);
+      }
+      transposed.push(newRow);
+    }
+
+    // 🔹 kind === "transparse" 인 경우에만 마지막 행에 "판정 / OK" 추가
+    if (kind === "transparse") {
+      const colCount2 = transposed[0]?.length ?? 0;
+      const judgeRow: ExcelCell[] = [];
+
+      for (let c = 0; c < colCount2; c++) {
+        if (c === 0) judgeRow.push("판정"); // 첫 번째 열: 필드명
+        else judgeRow.push("OK"); // 나머지 열: OK
+      }
+
+      transposed.push(judgeRow);
+    }
+
+    finalAoA = transposed;
+    usedHeaders = (transposed[0] ?? []).map((v) => String(v ?? ""));
+    usedBodyAoA = transposed.slice(1); // 판정 행 포함
+  }
+
+  // 3) AoA -> Sheet
+  const ws = XLSX.utils.aoa_to_sheet(finalAoA);
 
   // 4) 헤더 스타일 적용
   const headerStyle = {
@@ -81,21 +118,24 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
   // 6) 본문 스타일링
   for (let r = 1; r <= range.e.r; r++) {
     const isPrintHistoryRow =
-      kind === "final_whex" && printHistoryRowIdxSet.has(r - 1); // rowsAoA index = r-1
+      kind === "final_whex" && printHistoryRowIdxSet.has(r - 1);
 
     for (let c = range.s.c; c <= range.e.c; c++) {
       const addr = XLSX.utils.encode_cell({ r, c });
       if (!ws[addr]) {
         ws[addr] = { t: "s", v: "" };
       }
-      const isNum = columns[c]?.type === "number";
 
-      const prevStyle = ws[addr].s || {};
-      ws[addr].s = {
+      const cell = ws[addr];
+      const v = cell.v;
+      const isNumCell = typeof v === "number";
+
+      const prevStyle = cell.s || {};
+      cell.s = {
         ...prevStyle,
         border: bodyBorder,
         alignment: {
-          horizontal: isNum ? "right" : "left",
+          horizontal: isNumCell ? "right" : "left",
           vertical: "center",
           wrapText: true,
         },
@@ -129,14 +169,13 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
       .reduce((a, b) => Math.max(a, b), 0);
   }
 
-  const widths = columns.map((col, cIdx) => {
-    const header = headers[cIdx] ?? String(col.field);
+  const widths = usedHeaders.map((header, cIdx) => {
     const headerLen = visualLen(header);
-    const maxCellLen = rowsAoA.length
-      ? Math.max(...rowsAoA.map((row) => visualLen(row[cIdx])))
+    const maxCellLen = usedBodyAoA.length
+      ? Math.max(...usedBodyAoA.map((row) => visualLen(row[cIdx])))
       : 0;
 
-    const pad = col.type === "number" ? 3 : 5;
+    const pad = isTransposeLike ? 5 : columns[cIdx]?.type === "number" ? 3 : 5;
 
     const wch = Math.min(
       Math.max(Math.max(headerLen, maxCellLen) + pad, 10),
@@ -147,7 +186,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
 
   ws["!cols"] = widths;
 
-  // 8) "인쇄이력" 행 셀 병합 (A열 ~ 마지막 열)
+  // 8) "인쇄이력" 행 셀 병합 (A열 ~ 마지막 열) - 기존 기능 유지
   if (kind === "final_whex" && printHistoryRowIdxList.length > 0) {
     const merges: XLSX.Range[] = ws["!merges"] ?? [];
 

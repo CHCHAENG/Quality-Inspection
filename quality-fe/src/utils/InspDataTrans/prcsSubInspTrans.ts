@@ -25,7 +25,7 @@ export type BaseRow_WE = {
   inspLot: string;
   itemCode: string;
   itemName: string;
-  processName: string;
+  processName_we: string;
   roundTime: string;
   inspector: string;
   inspectedAt: string;
@@ -82,6 +82,17 @@ export type WEFields = {
   elongation?: number;
   subStrandCnt?: number;
   pitch?: number;
+
+  // selected
+  std?: string;
+  p_color?: string;
+  sampleSize?: string;
+  conductorConfig?: string;
+  avg_insultaion?: number;
+  avg_souterDiameter?: number;
+  avg_cond?: number;
+  avg_insulThk?: number;
+  twistDirection?: string;
 };
 
 export type FrontRow = BaseRow & STFields & DRFields;
@@ -254,8 +265,8 @@ export function normalizeServerRow_WE(s: ServerRow, idx: number): FrontRow_WE {
   const inspLot = toStringClean(s["MAX(A.INSPNO)"]);
   const itemCode = toStringClean(s["MAX(A.ITMCD)"]);
   const itemName = toStringClean(s["MAX(C.ITMNM)"]);
-  const processName = toStringClean(
-    s["MAX(CASE WHEN '0' = '0' THEN H.MCHNM ELSE H.MCHNM_L END)"]
+  const processName_we = toStringClean(
+    s["MAX(CASE WHEN  '0'  = '0' THEN H.MCHNM ELSE H.MCHNM_L END)"]
   );
   const roundTime = toStringClean(s["ROUNDDT"]);
   const inspector = toStringClean(s["MAX(F.USRNM)"]);
@@ -270,7 +281,7 @@ export function normalizeServerRow_WE(s: ServerRow, idx: number): FrontRow_WE {
     inspLot,
     itemCode,
     itemName,
-    processName,
+    processName_we,
     roundTime,
     inspector,
     inspectedAt,
@@ -300,7 +311,6 @@ export function normalizeServerRow_WE(s: ServerRow, idx: number): FrontRow_WE {
   const subStrandCnt = toNumber(s[WE_FIELD_KEYS.subStrandCnt]);
   const pitch = toNumber(s[WE_FIELD_KEYS.pitch]);
 
-  console.log("data : ", s);
   return {
     ...base,
     appearance,
