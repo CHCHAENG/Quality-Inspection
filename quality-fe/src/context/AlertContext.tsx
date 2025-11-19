@@ -39,7 +39,6 @@ export function AlertProvider({ children }: { children: ReactNode }) {
     setOpen(true);
   }, []);
 
-  // 🔹 Snackbar 자동 닫힘 핸들러
   const handleClose = useCallback(() => {
     setOpen(false);
   }, []);
@@ -54,7 +53,7 @@ export function AlertProvider({ children }: { children: ReactNode }) {
         onClose={handleClose}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
-        <Alert severity={severity} onClose={handleClose} sx={{ width: "100%" }}>
+        <Alert severity={severity} sx={{ width: "100%" }}>
           {message}
         </Alert>
       </Snackbar>

@@ -194,6 +194,7 @@ export default function PrcsSubWEInspDataGrid() {
       { field: "sampleSize", headerName: "시료크기", width: 100 },
       { field: "printing", headerName: "인쇄상태", width: 100 },
       { field: "appearance", headerName: "겉모양", width: 100 },
+      { field: "printing_hi", headerName: "인쇄내역", width: 100 },
       { field: "conductorConfig", headerName: "도체구성", width: 100 },
       {
         field: "insulationOD1",
@@ -355,9 +356,7 @@ export default function PrcsSubWEInspDataGrid() {
     // 생산호기 압출호기 확인
     if (row.processName_we !== selectedHoGi) {
       showAlert({
-        message: `선택한 압출호기(${selectedHoGi})와 행의 생산호기(${
-          row.processName_we ?? "-"
-        })가 일치하지 않아 저장할 수 없습니다.`,
+        message: "압출 호기별 설정 값을 확인해주세요.",
         severity: "warning",
       });
       return;
@@ -371,6 +370,11 @@ export default function PrcsSubWEInspDataGrid() {
     setRowSelectionModel({
       type: "include",
       ids: new Set(),
+    });
+
+    showAlert({
+      message: `${selectedHoGi} 값 설정이 완료되었습니다.`,
+      severity: "success",
     });
   }
 
@@ -495,6 +499,11 @@ export default function PrcsSubWEInspDataGrid() {
           onPaginationModelChange={setPaginationModel}
           rowSelectionModel={rowSelectionModel}
           onRowSelectionModelChange={setRowSelectionModel}
+          isRowSelectable={(params) => {
+            const selectedCount = rowSelectionModel.ids.size;
+            if (selectedCount === 0) return true;
+            return rowSelectionModel.ids.has(params.id);
+          }}
           loading={loading}
           sx={{
             width: 1,
