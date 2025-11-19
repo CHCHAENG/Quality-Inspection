@@ -27,6 +27,7 @@ import { mtrDailyInfo } from "../../api/api";
 import { extractErrorMessage } from "../../utils/Common/extractError";
 import { buildPreviewRow } from "../../utils/SelectedRow/mtrInsp";
 import { ExcelDownloadButton } from "../Common/ExcelDownloadButton";
+import { useAlert } from "../../context/AlertContext";
 
 dayjs.locale("ko");
 dayjs.extend(minMax);
@@ -60,6 +61,8 @@ export default function MtrDaliyInspDataGrid() {
   const [loading, setLoading] = useState(false);
 
   const reqSeq = useRef(0);
+
+  const { showAlert } = useAlert();
 
   // -------------------- 공통 컬럼 --------------------
   const columns: GridColDef[] = useMemo<GridColDef[]>(
@@ -271,7 +274,14 @@ export default function MtrDaliyInspDataGrid() {
       setPaginationModel((prev) => ({ ...prev, page: 0 }));
     } catch (err) {
       if (reqSeq.current !== mySeq) return;
-      console.error(extractErrorMessage(err));
+
+      const msg = extractErrorMessage(err);
+
+      showAlert({
+        message: msg || "조회 중 오류가 발생했습니다.",
+        severity: "error",
+      });
+
       setRawServerData([]);
     } finally {
       if (reqSeq.current === mySeq) setLoading(false);

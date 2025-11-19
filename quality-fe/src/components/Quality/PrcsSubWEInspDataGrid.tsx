@@ -408,7 +408,14 @@ export default function PrcsSubWEInspDataGrid() {
       });
     } catch (err) {
       if (reqSeq.current !== mySeq) return;
-      console.error(extractErrorMessage(err));
+
+      const msg = extractErrorMessage(err);
+
+      showAlert({
+        message: msg || "조회 중 오류가 발생했습니다.",
+        severity: "error",
+      });
+
       setRawServerData([]);
     } finally {
       if (reqSeq.current === mySeq) setLoading(false);

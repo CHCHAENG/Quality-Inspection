@@ -29,6 +29,7 @@ import { extractErrorMessage } from "../../utils/Common/extractError";
 import { useLocation } from "react-router-dom";
 import { splitItemNameAndColor } from "../../utils/SelectedRow/mtrInsp";
 import { ExcelDownloadButton } from "../Common/ExcelDownloadButton";
+import { useAlert } from "../../context/AlertContext";
 
 dayjs.locale("ko");
 dayjs.extend(minMax);
@@ -92,6 +93,8 @@ export default function MtrInspDataGrid() {
   const [loading, setLoading] = useState(false);
 
   const reqSeq = useRef(0);
+
+  const { showAlert } = useAlert();
 
   // ---- kind 바뀔 때 모든 상태 초기화
   useEffect(() => {
@@ -299,7 +302,14 @@ export default function MtrInspDataGrid() {
       setPaginationModel((prev) => ({ ...prev, page: 0 }));
     } catch (err) {
       if (reqSeq.current !== mySeq) return;
-      console.error(extractErrorMessage(err));
+
+      const msg = extractErrorMessage(err);
+
+      showAlert({
+        message: msg || "조회 중 오류가 발생했습니다.",
+        severity: "error",
+      });
+
       setRawServerData([]);
     } finally {
       if (reqSeq.current === mySeq) setLoading(false);
