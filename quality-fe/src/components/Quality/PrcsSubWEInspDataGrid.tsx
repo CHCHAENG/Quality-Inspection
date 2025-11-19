@@ -29,12 +29,12 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { prcsSubWE } from "../../api/api";
 import { extractErrorMessage } from "../../utils/Common/extractError";
-import { exportToXlsxStyled } from "../../utils/Common/excelExportLayout";
 import {
   buildPreviewRow,
   splitProcessNameStdColorSimple,
 } from "../../utils/SelectedRow/prcsInsp";
 import { useAlert } from "../../context/AlertContext";
+import { ExcelDownloadButton } from "../Common/ExcelDownloadButton";
 
 dayjs.locale("ko");
 dayjs.extend(minMax);
@@ -469,19 +469,14 @@ export default function PrcsSubWEInspDataGrid() {
 
           {/* 엑셀 다운로드 (선택행 기준) */}
           <Stack direction="row" alignItems="center" spacing={1}>
-            <Button
-              variant="contained"
-              onClick={() =>
-                exportToXlsxStyled(
-                  hoGiSummaryRows,
-                  selectedColumns,
-                  "순회검사_압출.xlsx",
-                  "transpose"
-                )
-              }
-            >
-              엑셀 다운로드
-            </Button>
+            <ExcelDownloadButton
+              data={hoGiSummaryRows}
+              columns={selectedColumns}
+              filename="순회검사_압출.xlsx"
+              kind="transpose"
+              label="엑셀 다운로드"
+              buttonProps={{ variant: "contained" }}
+            />
           </Stack>
         </Stack>
       </LocalizationProvider>

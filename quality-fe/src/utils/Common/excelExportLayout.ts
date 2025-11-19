@@ -8,7 +8,8 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
   data: T[],
   columns: GridColDef<T>[],
   filename: string,
-  kind?: string
+  kind?: string,
+  onFinished?: (success: boolean) => void
 ) {
   // 1) 헤더 텍스트 배열
   const headers = columns.map((c) => c.headerName ?? String(c.field));
@@ -29,7 +30,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
 
     rowsAoA.push(baseRow);
 
-    // 기존 final_whex 용 인쇄이력 행
+    // final_whex 용 인쇄이력 행
     if (kind === "final_whex") {
       const printHistoryRow: ExcelCell[] = columns.map((_, idx) =>
         idx === 0 ? "인쇄이력" : ""
@@ -46,7 +47,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
 
   let finalAoA: ExcelCell[][] = baseAoA;
   let usedHeaders: string[] = headers;
-  let usedBodyAoA: ExcelCell[][] = rowsAoA;
+  const usedBodyAoA: ExcelCell[][] = rowsAoA;
 
   const isTransposeLike = kind === "transpose" || kind === "transparse";
 
@@ -65,22 +66,8 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
       transposed.push(newRow);
     }
 
-    // 🔹 kind === "transparse" 인 경우에만 마지막 행에 "판정 / OK" 추가
-    if (kind === "transparse") {
-      const colCount2 = transposed[0]?.length ?? 0;
-      const judgeRow: ExcelCell[] = [];
-
-      for (let c = 0; c < colCount2; c++) {
-        if (c === 0) judgeRow.push("판정"); // 첫 번째 열: 필드명
-        else judgeRow.push("OK"); // 나머지 열: OK
-      }
-
-      transposed.push(judgeRow);
-    }
-
     finalAoA = transposed;
     usedHeaders = (transposed[0] ?? []).map((v) => String(v ?? ""));
-    usedBodyAoA = transposed.slice(1); // 판정 행 포함
   }
 
   // 3) AoA -> Sheet
@@ -205,8 +192,15 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
   // 9) 저장
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-  XLSX.writeFile(
-    wb,
-    filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`
-  );
+
+  try {
+    XLSX.writeFile(
+      wb,
+      filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`
+    );
+    onFinished?.(true);
+  } catch (e) {
+    console.error(e);
+    onFinished?.(false);
+  }
 }

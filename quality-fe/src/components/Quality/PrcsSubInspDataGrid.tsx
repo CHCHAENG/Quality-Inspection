@@ -27,7 +27,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { prcsSub } from "../../api/api";
 import { extractErrorMessage } from "../../utils/Common/extractError";
 import { useLocation } from "react-router-dom";
-import { exportToXlsxStyled } from "../../utils/Common/excelExportLayout";
+import { ExcelDownloadButton } from "../Common/ExcelDownloadButton";
 
 dayjs.locale("ko");
 dayjs.extend(minMax);
@@ -342,21 +342,17 @@ export default function PrcsSubInspDataGrid() {
             <Typography color="text.secondary">
               선택된 행: {selectedRows.length}개
             </Typography>
-            <Button
-              variant="contained"
-              onClick={() =>
-                exportToXlsxStyled(
-                  selectedRows,
-                  selectedColumns,
-                  effectiveKind === "dr"
-                    ? "순회검사_신선.xlsx"
-                    : "순회검사_연선.xlsx"
-                )
+            <ExcelDownloadButton
+              data={selectedRows}
+              columns={selectedColumns}
+              filename={
+                effectiveKind === "dr"
+                  ? "순회검사_신선.xlsx"
+                  : "순회검사_연선.xlsx"
               }
-              disabled={selectedRows.length === 0}
-            >
-              엑셀 다운로드
-            </Button>
+              label="엑셀 다운로드"
+              buttonProps={{ variant: "contained" }}
+            />
           </Stack>
         </Stack>
       </LocalizationProvider>

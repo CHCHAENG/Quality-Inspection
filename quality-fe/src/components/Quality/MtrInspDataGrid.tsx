@@ -27,8 +27,8 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { mtrInsp } from "../../api/api";
 import { extractErrorMessage } from "../../utils/Common/extractError";
 import { useLocation } from "react-router-dom";
-import { exportToXlsxStyled } from "../../utils/Common/excelExportLayout";
 import { splitItemNameAndColor } from "../../utils/SelectedRow/mtrInsp";
+import { ExcelDownloadButton } from "../Common/ExcelDownloadButton";
 
 dayjs.locale("ko");
 dayjs.extend(minMax);
@@ -363,23 +363,19 @@ export default function MtrInspDataGrid() {
             <Typography color="text.secondary">
               선택된 행: {selectedRows.length}개
             </Typography>
-            <Button
-              variant="contained"
-              onClick={() =>
-                exportToXlsxStyled(
-                  selectedRows,
-                  selectedColumns,
-                  effectiveKind === "pvc"
-                    ? "수입검사(원자재)_PVC.xlsx"
-                    : effectiveKind === "scr"
-                    ? "수입검사(원자재)_SCR.xlsx"
-                    : "수입검사(원자재)_연선.xlsx"
-                )
+            <ExcelDownloadButton
+              data={selectedRows}
+              columns={selectedColumns}
+              filename={
+                effectiveKind === "pvc"
+                  ? "수입검사(원자재)_PVC.xlsx"
+                  : effectiveKind === "scr"
+                  ? "수입검사(원자재)_SCR.xlsx"
+                  : "수입검사(원자재)_연선.xlsx"
               }
-              disabled={selectedRows.length === 0}
-            >
-              엑셀 다운로드
-            </Button>
+              label="엑셀 다운로드"
+              buttonProps={{ variant: "contained" }}
+            />
           </Stack>
         </Stack>
       </LocalizationProvider>

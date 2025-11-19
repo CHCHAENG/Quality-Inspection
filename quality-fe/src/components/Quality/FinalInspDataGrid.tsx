@@ -27,11 +27,11 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { finalInsp } from "../../api/api";
 import { extractErrorMessage } from "../../utils/Common/extractError";
 import { useLocation } from "react-router-dom";
-import { exportToXlsxStyled } from "../../utils/Common/excelExportLayout";
 import {
   getBraidedShieldValue,
   splitProcessNameStdColor,
 } from "../../utils/SelectedRow/finalInsp";
+import { ExcelDownloadButton } from "../Common/ExcelDownloadButton";
 
 dayjs.locale("ko");
 dayjs.extend(minMax);
@@ -682,24 +682,20 @@ export default function FinalInspDataGrid() {
             <Typography color="text.secondary">
               선택된 행: {selectedRows.length}개
             </Typography>
-            <Button
-              variant="contained"
-              onClick={() =>
-                exportToXlsxStyled(
-                  selectedRows,
-                  selectedColumns,
-                  effectiveKind === "whex"
-                    ? "완제품검사(고전압).xlsx"
-                    : effectiveKind === "we"
-                    ? "초종품검사(저전압 압출).xlsx"
-                    : "초종품검사(저전압 조사후).xlsx",
-                  effectiveKind === "whex" ? "final_whex" : ""
-                )
+            <ExcelDownloadButton
+              data={selectedRows}
+              columns={selectedColumns}
+              filename={
+                effectiveKind === "whex"
+                  ? "완제품검사(고전압).xlsx"
+                  : effectiveKind === "we"
+                  ? "초종품검사(저전압 압출).xlsx"
+                  : "초종품검사(저전압 조사후).xlsx"
               }
-              disabled={selectedRows.length === 0}
-            >
-              엑셀 다운로드
-            </Button>
+              kind={effectiveKind === "whex" ? "final_whex" : ""}
+              label="엑셀 다운로드"
+              buttonProps={{ variant: "contained" }}
+            />
           </Stack>
         </Stack>
       </LocalizationProvider>

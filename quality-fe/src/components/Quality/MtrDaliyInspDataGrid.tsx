@@ -26,7 +26,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { mtrDailyInfo } from "../../api/api";
 import { extractErrorMessage } from "../../utils/Common/extractError";
 import { buildPreviewRow } from "../../utils/SelectedRow/mtrInsp";
-import { exportToXlsxStyled } from "../../utils/Common/excelExportLayout";
+import { ExcelDownloadButton } from "../Common/ExcelDownloadButton";
 
 dayjs.locale("ko");
 dayjs.extend(minMax);
@@ -335,19 +335,13 @@ export default function MtrDaliyInspDataGrid() {
             <Typography color="text.secondary">
               선택된 행: {selectedRows.length}개
             </Typography>
-            <Button
-              variant="contained"
-              onClick={() =>
-                exportToXlsxStyled(
-                  selectedRows,
-                  selectedColumns,
-                  "일일 수입검사일지.xlsx"
-                )
-              }
-              disabled={selectedRows.length === 0}
-            >
-              엑셀 다운로드
-            </Button>
+            <ExcelDownloadButton
+              data={selectedRows}
+              columns={selectedColumns}
+              filename={"일일 수입검사일지.xlsx"}
+              label="엑셀 다운로드"
+              buttonProps={{ variant: "contained" }}
+            />
           </Stack>
         </Stack>
       </LocalizationProvider>
