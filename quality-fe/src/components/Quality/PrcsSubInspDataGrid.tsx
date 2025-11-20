@@ -29,6 +29,7 @@ import { extractErrorMessage } from "../../utils/Common/extractError";
 import { useLocation } from "react-router-dom";
 import { ExcelDownloadButton } from "../Common/ExcelDownloadButton";
 import { useAlert } from "../../context/AlertContext";
+import { formatDateRange } from "../../utils/Common/formatDateRange";
 
 dayjs.locale("ko");
 dayjs.extend(minMax);
@@ -362,6 +363,15 @@ export default function PrcsSubInspDataGrid() {
               }
               label="엑셀 다운로드"
               buttonProps={{ variant: "contained" }}
+              headerOptions={{
+                title:
+                  effectiveKind === "dr"
+                    ? "순회검사일지 신선"
+                    : "순회검사일지 연선",
+                inspectDateText: formatDateRange(startDate, endDate),
+                inspectorNameText: "test",
+                showApprovalLine: true,
+              }}
             />
           </Stack>
         </Stack>

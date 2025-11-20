@@ -30,6 +30,7 @@ import { useLocation } from "react-router-dom";
 import { splitItemNameAndColor } from "../../utils/SelectedRow/mtrInsp";
 import { ExcelDownloadButton } from "../Common/ExcelDownloadButton";
 import { useAlert } from "../../context/AlertContext";
+import { formatDateRange } from "../../utils/Common/formatDateRange";
 
 dayjs.locale("ko");
 dayjs.extend(minMax);
@@ -385,6 +386,17 @@ export default function MtrInspDataGrid() {
               }
               label="엑셀 다운로드"
               buttonProps={{ variant: "contained" }}
+              headerOptions={{
+                title:
+                  effectiveKind === "pvc"
+                    ? "원자재 수입검사 일지(PVC)"
+                    : effectiveKind === "scr"
+                    ? "원자재 수입검사 일지(SCR)"
+                    : "원자재 수입검사 일지(연선)",
+                inspectDateText: formatDateRange(startDate, endDate),
+                inspectorNameText: "test",
+                showApprovalLine: true,
+              }}
             />
           </Stack>
         </Stack>

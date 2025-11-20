@@ -33,6 +33,7 @@ import {
 } from "../../utils/SelectedRow/initFinalInsp";
 import { ExcelDownloadButton } from "../Common/ExcelDownloadButton";
 import { useAlert } from "../../context/AlertContext";
+import { formatDateRange } from "../../utils/Common/formatDateRange";
 
 dayjs.locale("ko");
 dayjs.extend(minMax);
@@ -740,6 +741,17 @@ export default function InitialInspDataGrid() {
               }
               label="엑셀 다운로드"
               buttonProps={{ variant: "contained" }}
+              headerOptions={{
+                title:
+                  effectiveKind === "wx"
+                    ? "압출 초종품 검사일지(조사전)"
+                    : effectiveKind === "whex"
+                    ? "초종품 검사일지(고전압 쉬즈)"
+                    : "초종품 검사일지(고전압 압출)",
+                inspectDateText: formatDateRange(startDate, endDate),
+                inspectorNameText: "test",
+                showApprovalLine: true,
+              }}
             />
           </Stack>
         </Stack>

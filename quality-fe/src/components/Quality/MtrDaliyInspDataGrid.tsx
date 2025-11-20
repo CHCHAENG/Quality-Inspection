@@ -28,6 +28,7 @@ import { extractErrorMessage } from "../../utils/Common/extractError";
 import { buildPreviewRow } from "../../utils/SelectedRow/mtrInsp";
 import { ExcelDownloadButton } from "../Common/ExcelDownloadButton";
 import { useAlert } from "../../context/AlertContext";
+import { formatDateRange } from "../../utils/Common/formatDateRange";
 
 dayjs.locale("ko");
 dayjs.extend(minMax);
@@ -351,6 +352,12 @@ export default function MtrDaliyInspDataGrid() {
               filename={"일일 수입검사일지.xlsx"}
               label="엑셀 다운로드"
               buttonProps={{ variant: "contained" }}
+              headerOptions={{
+                title: "일일 수입검사 일지 (독정리)",
+                inspectDateText: formatDateRange(startDate, endDate),
+                inspectorNameText: "test",
+                showApprovalLine: true,
+              }}
             />
           </Stack>
         </Stack>
