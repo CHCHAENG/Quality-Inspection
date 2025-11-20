@@ -35,6 +35,7 @@ import {
 } from "../../utils/SelectedRow/prcsInsp";
 import { useAlert } from "../../context/AlertContext";
 import { ExcelDownloadButton } from "../Common/ExcelDownloadButton";
+import { formatDateRange } from "../../utils/Common/formatDateRange";
 
 dayjs.locale("ko");
 dayjs.extend(minMax);
@@ -373,7 +374,7 @@ export default function PrcsSubWEInspDataGrid() {
     });
 
     showAlert({
-      message: `${selectedHoGi} 값 설정이 완료되었습니다.`,
+      message: `${selectedHoGi} 값 저장이 완료되었습니다.`,
       severity: "success",
     });
   }
@@ -483,6 +484,12 @@ export default function PrcsSubWEInspDataGrid() {
               kind="transpose"
               label="엑셀 다운로드"
               buttonProps={{ variant: "contained" }}
+              headerOptions={{
+                title: "순회검사일지(압출)",
+                inspectDateText: formatDateRange(startDate, endDate),
+                inspectorNameText: "test",
+                showApprovalLine: true,
+              }}
             />
           </Stack>
         </Stack>
