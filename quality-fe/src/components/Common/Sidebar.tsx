@@ -13,10 +13,10 @@ import {
   Collapse,
   Tooltip,
 } from "@mui/material";
-import { FiAlignJustify } from "react-icons/fi";
 import { RiDashboardHorizontalFill } from "react-icons/ri";
 import { MdExpandMore, MdChevronRight } from "react-icons/md";
 import type { IconType } from "react-icons";
+import { Link } from "react-router-dom";
 
 interface SidebarProps {
   collapsed: boolean;
@@ -222,7 +222,6 @@ export default function Sidebar({ collapsed, toggleSidebar }: SidebarProps) {
                   />
                 </Box>
 
-                {/* 우측 화살표: 폴더일 때만, 접힘일 때는 숨김(언마운트 아님) */}
                 <Box
                   sx={{
                     display: hasChildren && !collapsed ? "flex" : "none",
@@ -237,7 +236,6 @@ export default function Sidebar({ collapsed, toggleSidebar }: SidebarProps) {
                 </Box>
               </ListItemButton>
 
-              {/* Collapse: unmount 하지 않음 → 상태 유지 */}
               {hasChildren && (
                 <Collapse in={isOpen(node.id)} timeout="auto">
                   {renderNodes(node.children!, depth + 1)}
@@ -248,7 +246,7 @@ export default function Sidebar({ collapsed, toggleSidebar }: SidebarProps) {
         })}
       </List>
     ),
-    [collapsed, isOpen, location.pathname, navigate, toggleOpen]
+    [collapsed, isOpen, location.pathname, navigate, toggleOpen, autoOpenIds]
   );
 
   return (
@@ -273,8 +271,39 @@ export default function Sidebar({ collapsed, toggleSidebar }: SidebarProps) {
           justifyContent: collapsed ? "center" : "flex-end",
         }}
       >
-        <IconButton onClick={toggleSidebar}>
-          <FiAlignJustify />
+        <IconButton
+          onClick={toggleSidebar}
+          sx={{
+            p: 0,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            width: "100%",
+          }}
+        >
+          {collapsed ? (
+            <img
+              src="/icon.png"
+              style={{
+                width: "30px",
+                height: "auto",
+                display: "block",
+                margin: "0 auto",
+              }}
+            />
+          ) : (
+            <Link to="/quality" style={{ textDecoration: "none" }}>
+              <img
+                src="/logo.jpg"
+                style={{
+                  width: "100px",
+                  height: "auto",
+                  display: "block",
+                  margin: "0 auto",
+                }}
+              />
+            </Link>
+          )}
         </IconButton>
       </Toolbar>
 

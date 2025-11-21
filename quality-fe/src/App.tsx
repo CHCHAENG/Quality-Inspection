@@ -4,6 +4,7 @@ import { AlertProvider } from "./context/AlertContext";
 
 // ---- Lazy import
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const DashboardHome = lazy(() => import("./pages/DashboardHome"));
 const MtrInsp = lazy(() => import("./pages/MtrInsp"));
 const PrcsSubInsp = lazy(() => import("./pages/PrcsSubInsp"));
 const FinalSubInsp = lazy(() => import("./pages/FinalSubInsp"));
@@ -34,6 +35,7 @@ export default function App() {
       <AlertProvider>
         <Routes>
           <Route path="/quality" element={<Dashboard />}>
+            <Route index element={<DashboardHome />} />
             <Route path="mtr-insp" element={<MtrInsp />}>
               <Route path="daily" element={<MtrDaliyInspDataGrid />} />
               <Route path=":kind" element={<MtrInspDataGrid />} />
