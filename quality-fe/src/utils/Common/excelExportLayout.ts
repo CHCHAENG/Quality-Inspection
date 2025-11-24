@@ -54,8 +54,6 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
   const baseAoA: ExcelCell[][] = [headers, ...rowsAoA];
 
   let finalAoA: ExcelCell[][] = baseAoA;
-  let usedHeaders: string[] = headers;
-  const usedBodyAoA: ExcelCell[][] = rowsAoA;
 
   const isTransposeLike = kind === "transpose" || kind === "transparse";
 
@@ -75,7 +73,6 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
     }
 
     finalAoA = transposed;
-    usedHeaders = (transposed[0] ?? []).map((v) => String(v ?? ""));
   }
 
   // ================================
@@ -377,22 +374,29 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
       .reduce((a, b) => Math.max(a, b), 0);
   }
 
-  const widths = usedHeaders.map((header, cIdx) => {
-    const headerLen = visualLen(header);
-    const maxCellLen = usedBodyAoA.length
-      ? Math.max(...usedBodyAoA.map((row) => visualLen(row[cIdx])))
-      : 0;
+  if (ws["!ref"]) {
+    const startRowForWidth = headerOffset > 0 ? headerOffset : range.s.r;
 
-    const pad = isTransposeLike ? 5 : columns[cIdx]?.type === "number" ? 3 : 5;
+    const colWidths: { wch: number }[] = [];
 
-    const wch = Math.min(
-      Math.max(Math.max(headerLen, maxCellLen) + pad, 10),
-      60
-    );
-    return { wch };
-  });
+    for (let c = range.s.c; c <= range.e.c; c++) {
+      let maxLen = 0;
 
-  ws["!cols"] = widths;
+      for (let r = startRowForWidth; r <= range.e.r; r++) {
+        const addr = XLSX.utils.encode_cell({ r, c });
+        const cell = ws[addr];
+        if (!cell || cell.v === undefined || cell.v === null) continue;
+
+        const len = visualLen(cell.v);
+        if (len > maxLen) maxLen = len;
+      }
+
+      const wch = Math.max(maxLen + 3, 5);
+      colWidths[c] = { wch };
+    }
+
+    ws["!cols"] = colWidths;
+  }
 
   // 8) "인쇄이력" 행 셀 병합 (A열 ~ 마지막 열)
   if (kind === "final_whex" && printHistoryRowIdxList.length > 0) {
