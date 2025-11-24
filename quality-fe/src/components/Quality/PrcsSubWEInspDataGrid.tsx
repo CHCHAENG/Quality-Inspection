@@ -487,7 +487,7 @@ export default function PrcsSubWEInspDataGrid() {
               headerOptions={{
                 title: "순회검사일지(압출)",
                 inspectDateText: formatDateRange(startDate, endDate),
-                inspectorNameText: "test",
+                inspectorNameText: "",
                 showApprovalLine: true,
               }}
             />

@@ -14,6 +14,7 @@ type ExcelDownloadButtonProps<T extends Record<string, unknown>> = {
   label?: string;
   buttonProps?: ButtonProps;
   headerOptions?: ExportHeaderOptions;
+  onBeforeDownload?: () => boolean | void;
 };
 
 export function ExcelDownloadButton<T extends Record<string, unknown>>(
@@ -27,6 +28,7 @@ export function ExcelDownloadButton<T extends Record<string, unknown>>(
     label = "엑셀 다운로드",
     buttonProps,
     headerOptions,
+    onBeforeDownload,
   } = props;
 
   const { showAlert } = useAlert();
@@ -38,6 +40,14 @@ export function ExcelDownloadButton<T extends Record<string, unknown>>(
         severity: "warning",
       });
       return;
+    }
+
+    // 엑셀 다운로드 전 검사자 선택
+    if (onBeforeDownload) {
+      const result = onBeforeDownload();
+      if (result === false) {
+        return;
+      }
     }
 
     try {

@@ -81,6 +81,7 @@ export type DailyInspField = {
   elongation?: number;
   shez_tensile?: number;
   shez_elongation?: number;
+  inspector?: string;
 
   // selected_row
   avg_insulThk?: number;
@@ -154,6 +155,7 @@ const DAILY_FIELD_KEYS = {
   elongation: "신장률",
   shez_tensile: "쉬즈 인장강도",
   shez_elongation: "쉬즈 신장률",
+  inspector: "USRNM",
 } as const;
 
 // ===== 개별 행 변환 =====
@@ -260,6 +262,7 @@ export function normalizeServerRow_Daily(
   const elongation = toNumber(s[DAILY_FIELD_KEYS.elongation]);
   const shez_tensile = toNumber(s[DAILY_FIELD_KEYS.shez_tensile]);
   const shez_elongation = toNumber(s[DAILY_FIELD_KEYS.shez_elongation]);
+  const inspector = toStringClean(s[DAILY_FIELD_KEYS.inspector]);
 
   const id = lotNo ? `${lotNo || idx + 1}` : idx + 1;
 
@@ -293,6 +296,7 @@ export function normalizeServerRow_Daily(
     elongation,
     shez_tensile,
     shez_elongation,
+    inspector,
   };
 }
 

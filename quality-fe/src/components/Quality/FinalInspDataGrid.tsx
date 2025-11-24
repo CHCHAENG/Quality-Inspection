@@ -5,7 +5,15 @@ import {
   Button,
   Typography,
   CircularProgress,
+  Checkbox,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  ListItemText,
+  OutlinedInput,
 } from "@mui/material";
+import type { SelectChangeEvent } from "@mui/material/Select";
 import {
   DataGrid,
   type GridColDef,
@@ -100,14 +108,7 @@ export default function FinalInspDataGrid() {
 
   const { showAlert } = useAlert();
 
-  // ---- kind 바뀔 때 모든 상태 초기화
-  useEffect(() => {
-    reqSeq.current += 1; // 이전 요청 결과는 전부 무시
-    setRawServerData([]); // rows 초기화
-    setRowSelectionModel({ type: "include", ids: new Set() });
-    setPaginationModel({ page: 0, pageSize: 5 });
-    setLoading(false);
-  }, [effectiveKind]);
+  const [selectedInspectors, setSelectedInspectors] = useState<string[]>([]);
 
   // -------------------- 공통 컬럼 --------------------
   const commonColumns: GridColDef[] = useMemo(
@@ -602,6 +603,50 @@ export default function FinalInspDataGrid() {
     return base.map((r, idx) => ({ ...r, no: idx + 1 }));
   }, [rows, rowSelectionModel, effectiveKind]);
 
+  // -------------------- 선택된 행에서 검사자 목록 추출 --------------------
+  const inspectorOptions = useMemo(() => {
+    const set = new Set<string>();
+    selectedRows.forEach((r) => {
+      const name = r.inspector;
+      if (name) {
+        set.add(String(name));
+      }
+    });
+    return Array.from(set);
+  }, [selectedRows]);
+
+  const handleInspectorSelectChange = (event: SelectChangeEvent<string[]>) => {
+    const value = event.target.value as string[] | string;
+    setSelectedInspectors(typeof value === "string" ? value.split(",") : value);
+  };
+
+  // 엑셀 헤더에 들어갈 검사자
+  const inspectorNameText = useMemo(() => {
+    // 사용자가 직접 선택한 값
+    if (selectedInspectors.length > 0) {
+      return selectedInspectors.join(", ");
+    }
+    // 검사자가 1명일 때 자동으로 적용
+    if (inspectorOptions.length === 1) {
+      return inspectorOptions[0];
+    }
+
+    return "";
+  }, [selectedInspectors, inspectorOptions]);
+
+  // 엑셀 다운로드 전 검사자 선택 체크
+  const handleBeforeExcelDownload = () => {
+    // 검사자가 2명 이상일 때 선택 안한 경우
+    if (inspectorOptions.length >= 2 && !inspectorNameText) {
+      showAlert({
+        message: "검사자를 선택해 주세요.",
+        severity: "warning",
+      });
+      return false;
+    }
+    return true;
+  };
+
   // -------------------- 조회 버튼 --------------------
   async function handleSearch() {
     if (!startDate || !endDate) return;
@@ -620,6 +665,7 @@ export default function FinalInspDataGrid() {
       setRawServerData(data ?? []);
       setRowSelectionModel({ type: "include", ids: new Set() });
       setPaginationModel((prev) => ({ ...prev, page: 0 }));
+      setSelectedInspectors([]);
     } catch (err) {
       if (reqSeq.current !== mySeq) return;
 
@@ -631,10 +677,26 @@ export default function FinalInspDataGrid() {
       });
 
       setRawServerData([]);
+      setSelectedInspectors([]);
     } finally {
       if (reqSeq.current === mySeq) setLoading(false);
     }
   }
+
+  // ---- kind 바뀔 때 모든 상태 초기화
+  useEffect(() => {
+    reqSeq.current += 1;
+    setRawServerData([]);
+    setRowSelectionModel({ type: "include", ids: new Set() });
+    setPaginationModel({ page: 0, pageSize: 5 });
+    setLoading(false);
+    setSelectedInspectors([]);
+  }, [effectiveKind]);
+
+  // selectedRows가 바뀔 때 검사자 선택 초기화
+  useEffect(() => {
+    setSelectedInspectors([]);
+  }, [selectedRows.length]);
 
   return (
     <Box
@@ -693,6 +755,55 @@ export default function FinalInspDataGrid() {
             <Typography color="text.secondary">
               선택된 행: {selectedRows.length}개
             </Typography>
+
+            {/* 검사자 선택 Select + 체크박스 */}
+            {inspectorOptions.length > 0 && (
+              <FormControl size="small" sx={{ minWidth: 220 }}>
+                <InputLabel
+                  id="inspector-select-label"
+                  sx={{ fontSize: "14px" }}
+                >
+                  검사자 선택
+                </InputLabel>
+                <Select
+                  labelId="inspector-select-label"
+                  multiple
+                  label="검사자 선택"
+                  value={selectedInspectors}
+                  onChange={handleInspectorSelectChange}
+                  input={<OutlinedInput label="검사자 선택" />}
+                  renderValue={(selected) => (selected as string[]).join(", ")}
+                  sx={{
+                    fontSize: "14px",
+                    height: "36px",
+                  }}
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        "& .MuiMenuItem-root": {
+                          fontSize: "14px",
+                        },
+                      },
+                    },
+                  }}
+                >
+                  {inspectorOptions.map((name) => (
+                    <MenuItem key={name} value={name}>
+                      <Checkbox
+                        size="small"
+                        checked={selectedInspectors.indexOf(name) > -1}
+                        sx={{ padding: "2px" }}
+                      />
+                      <ListItemText
+                        primary={name}
+                        primaryTypographyProps={{ fontSize: "14px" }}
+                      />
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+
             <ExcelDownloadButton
               data={selectedRows}
               columns={selectedColumns}
@@ -706,6 +817,7 @@ export default function FinalInspDataGrid() {
               kind={effectiveKind === "whex" ? "final_whex" : ""}
               label="엑셀 다운로드"
               buttonProps={{ variant: "contained" }}
+              onBeforeDownload={handleBeforeExcelDownload}
               headerOptions={{
                 title:
                   effectiveKind === "whex"
@@ -714,7 +826,7 @@ export default function FinalInspDataGrid() {
                     ? "초종품 검사일지(압출공정)"
                     : "초종품 검사일지(조사공정)",
                 inspectDateText: formatDateRange(startDate, endDate),
-                inspectorNameText: "test",
+                inspectorNameText,
                 showApprovalLine: true,
               }}
             />

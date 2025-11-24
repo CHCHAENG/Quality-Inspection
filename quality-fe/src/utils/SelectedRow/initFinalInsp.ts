@@ -1,8 +1,9 @@
 import { BaseRow, WHBSFields } from "../InspDataTrans/initFinalSubInspTrans";
 
-export function splitProcessNameStdColor(
-  r: BaseRow
-): BaseRow & { itemName: string; std: string; p_color: string } {
+// ========== 품명 파싱 (제네릭) ==========
+export function splitProcessNameStdColor<T extends BaseRow>(
+  r: T
+): T & { itemName: string; std: string; p_color: string } {
   const raw = (r.itemName ?? "").trim();
 
   const m = raw.match(/^(.*?)\s+([\d.]+)\s+([A-Za-z]+)\s*\((.*?)\)$/);
@@ -32,7 +33,9 @@ function safeAvg(nums: Array<number | undefined>) {
 
 // 편심율
 function calcEccentricityPercent(values: Array<number | undefined>) {
-  const arr = values.filter((v): v is number => Number.isFinite(v as number));
+  const arr = values.filter(
+    (v): v is number => typeof v === "number" && Number.isFinite(v)
+  );
   if (arr.length < 2) return undefined;
 
   const max = Math.max(...arr);
@@ -44,7 +47,10 @@ function calcEccentricityPercent(values: Array<number | undefined>) {
   return Math.round(result * 10) / 10;
 }
 
-export function buildPreviewRow(r: WHBSFields): WHBSFields & {
+// ========== 미리보기 행 생성 (제네릭) ==========
+export function buildPreviewRow<T extends WHBSFields>(
+  r: T
+): T & {
   avg_insulThk?: number;
   eccentricity?: number;
 } {
