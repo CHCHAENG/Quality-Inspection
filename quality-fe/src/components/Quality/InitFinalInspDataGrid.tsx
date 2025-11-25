@@ -37,7 +37,8 @@ import { extractErrorMessage } from "../../utils/Common/extractError";
 import { useLocation } from "react-router-dom";
 import {
   buildPreviewRow,
-  splitProcessNameStdColor,
+  splitProcessNameStdColor_WH,
+  splitProcessNameStdColor_WX,
 } from "../../utils/SelectedRow/initFinalInsp";
 import { ExcelDownloadButton } from "../Common/ExcelDownloadButton";
 import { useAlert } from "../../context/AlertContext";
@@ -626,12 +627,17 @@ export default function InitialInspDataGrid() {
 
   // -------------------- 선택 행 계산 --------------------
   const selectedRows = useMemo(() => {
+    const parseFn =
+      effectiveKind === "wx"
+        ? splitProcessNameStdColor_WX
+        : splitProcessNameStdColor_WH;
+
     const filtered =
       rowSelectionModel.type === "include"
         ? rows.filter((r) => rowSelectionModel.ids.has(r.id as GridRowId))
         : rows
             .filter((r) => !rowSelectionModel.ids.has(r.id as GridRowId))
-            .map(splitProcessNameStdColor);
+            .map(parseFn);
 
     const base =
       effectiveKind === "whbs" ? filtered.map(buildPreviewRow) : filtered;

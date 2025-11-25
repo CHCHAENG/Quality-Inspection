@@ -1,7 +1,7 @@
 import { BaseRow, WHBSFields } from "../InspDataTrans/initFinalSubInspTrans";
 
 // ========== 품명 파싱 (제네릭) ==========
-export function splitProcessNameStdColor<T extends BaseRow>(
+export function splitProcessNameStdColor_WH<T extends BaseRow>(
   r: T
 ): T & { itemName: string; std: string; p_color: string } {
   const raw = (r.itemName ?? "").trim();
@@ -9,6 +9,30 @@ export function splitProcessNameStdColor<T extends BaseRow>(
   const m = raw.match(/^(.*?)\s+([\d.]+)\s+([A-Za-z]+)\s*\((.*?)\)$/);
 
   const itemName = m ? m[1].trim() : raw;
+  const std = m ? m[2].trim() : "";
+  const p_color = m ? m[3].trim().toUpperCase() : "";
+
+  return {
+    ...r,
+    itemName,
+    std,
+    p_color,
+  };
+}
+
+export function splitProcessNameStdColor_WX<T extends BaseRow>(
+  r: T
+): T & { itemName: string; std: string; p_color: string } {
+  const raw = (r.itemName ?? "").trim();
+
+  // 1) 끝에 붙은 괄호 설명 (예: "(반)", "(절연)", "( 흑 )" 등) 제거
+  const cleaned = raw.replace(/\s*\([^)]*\)\s*$/, "");
+
+  // 2) "품명  숫자규격  색상" 형태 파싱
+  //    예: "AEXF 3.0 W", "AHHEX-BS 3.0 O" 등
+  const m = cleaned.match(/^(.*?)\s+([\d.]+)\s+([A-Za-z]+)$/);
+
+  const itemName = m ? m[1].trim() : cleaned;
   const std = m ? m[2].trim() : "";
   const p_color = m ? m[3].trim().toUpperCase() : "";
 
