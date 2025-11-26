@@ -333,15 +333,14 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
       }
 
       const cell = ws[addr];
-      const v = cell.v;
-      const isNumCell = typeof v === "number";
-
       const prevStyle = cell.s || {};
+
       cell.s = {
         ...prevStyle,
         border: bodyBorder,
         alignment: {
-          horizontal: isNumCell ? "right" : "left",
+          // ✅ 모든 본문 데이터 가운데 정렬
+          horizontal: "center",
           vertical: "center",
           wrapText: true,
         },
