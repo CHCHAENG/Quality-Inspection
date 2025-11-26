@@ -5,11 +5,15 @@ import {
   Button,
   Typography,
   CircularProgress,
+  Checkbox,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
+  ListItemText,
+  OutlinedInput,
 } from "@mui/material";
+import type { SelectChangeEvent } from "@mui/material/Select";
 import {
   DataGrid,
   type GridColDef,
@@ -94,6 +98,8 @@ export default function PrcsSubWEInspDataGrid() {
   });
 
   const { showAlert } = useAlert();
+
+  const [selectedInspectors, setSelectedInspectors] = useState<string[]>([]);
 
   // -------------------- 공통 컬럼 --------------------
   const columns: GridColDef[] = useMemo(
@@ -379,6 +385,62 @@ export default function PrcsSubWEInspDataGrid() {
     });
   }
 
+  // -------------------- 선택된 행에서 검사자 목록 추출 --------------------
+  const inspectorOptions = useMemo(() => {
+    const set = new Set<string>();
+
+    // 호기맵에 저장된 값 기준으로 검사자 수집
+    HO_GI_LIST.forEach((hoGiName) => {
+      const row = hoGiMap[hoGiName];
+      const name = row?.inspector;
+      if (name) {
+        set.add(String(name));
+      }
+    });
+
+    // // 선택된 행에서 추가로 포함
+    // selectedRows.forEach((r) => {
+    //   const name = r.inspector;
+    //   if (name) {
+    //     set.add(String(name));
+    //   }
+    // });
+
+    return Array.from(set);
+  }, [hoGiMap]);
+
+  const handleInspectorSelectChange = (event: SelectChangeEvent<string[]>) => {
+    const value = event.target.value as string[] | string;
+    setSelectedInspectors(typeof value === "string" ? value.split(",") : value);
+  };
+
+  // 엑셀 헤더에 들어갈 검사자
+  const inspectorNameText = useMemo(() => {
+    // 사용자가 직접 선택한 값
+    if (selectedInspectors.length > 0) {
+      return selectedInspectors.join(", ");
+    }
+    // 검사자가 1명일 때 자동으로 적용
+    if (inspectorOptions.length === 1) {
+      return inspectorOptions[0];
+    }
+
+    return "";
+  }, [selectedInspectors, inspectorOptions]);
+
+  // 엑셀 다운로드 전 검사자 선택 체크
+  const handleBeforeExcelDownload = () => {
+    // 검사자가 2명 이상일 때 선택 안한 경우
+    if (inspectorOptions.length >= 2 && !inspectorNameText) {
+      showAlert({
+        message: "검사자를 선택해 주세요.",
+        severity: "warning",
+      });
+      return false;
+    }
+    return true;
+  };
+
   // -------------------- 조회 버튼 --------------------
   async function handleSearch() {
     if (!startDate || !endDate) return;
@@ -397,6 +459,7 @@ export default function PrcsSubWEInspDataGrid() {
       setRawServerData(data ?? []);
       setRowSelectionModel({ type: "include", ids: new Set() });
       setPaginationModel((prev) => ({ ...prev, page: 0 }));
+      setSelectedInspectors([]);
 
       // 조회 다시 할 때 호기 선택/데이터 초기화
       setSelectedHoGi("");
@@ -418,6 +481,7 @@ export default function PrcsSubWEInspDataGrid() {
       });
 
       setRawServerData([]);
+      setSelectedInspectors([]);
     } finally {
       if (reqSeq.current === mySeq) setLoading(false);
     }
@@ -477,6 +541,54 @@ export default function PrcsSubWEInspDataGrid() {
 
           {/* 엑셀 다운로드 (선택행 기준) */}
           <Stack direction="row" alignItems="center" spacing={1}>
+            {/* 검사자 선택 Select + 체크박스 */}
+            {inspectorOptions.length > 0 && (
+              <FormControl size="small" sx={{ minWidth: 220 }}>
+                <InputLabel
+                  id="inspector-select-label"
+                  sx={{ fontSize: "14px" }}
+                >
+                  검사자 선택
+                </InputLabel>
+                <Select
+                  labelId="inspector-select-label"
+                  multiple
+                  label="검사자 선택"
+                  value={selectedInspectors}
+                  onChange={handleInspectorSelectChange}
+                  input={<OutlinedInput label="검사자 선택" />}
+                  renderValue={(selected) => (selected as string[]).join(", ")}
+                  sx={{
+                    fontSize: "14px",
+                    height: "36px",
+                  }}
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        "& .MuiMenuItem-root": {
+                          fontSize: "14px",
+                        },
+                      },
+                    },
+                  }}
+                >
+                  {inspectorOptions.map((name) => (
+                    <MenuItem key={name} value={name}>
+                      <Checkbox
+                        size="small"
+                        checked={selectedInspectors.indexOf(name) > -1}
+                        sx={{ padding: "2px" }}
+                      />
+                      <ListItemText
+                        primary={name}
+                        primaryTypographyProps={{ fontSize: "14px" }}
+                      />
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+
             <ExcelDownloadButton
               data={hoGiSummaryRows}
               columns={selectedColumns}
@@ -484,10 +596,11 @@ export default function PrcsSubWEInspDataGrid() {
               kind="transpose"
               label="엑셀 다운로드"
               buttonProps={{ variant: "contained" }}
+              onBeforeDownload={handleBeforeExcelDownload}
               headerOptions={{
                 title: "순회검사일지(압출)",
                 inspectDateText: formatDateRange(startDate, endDate),
-                inspectorNameText: "",
+                inspectorNameText,
                 showApprovalLine: true,
               }}
             />
