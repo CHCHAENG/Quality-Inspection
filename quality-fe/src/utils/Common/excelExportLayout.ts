@@ -374,7 +374,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
   }
 
   if (ws["!ref"]) {
-    const startRowForWidth = headerOffset > 0 ? headerOffset : range.s.r;
+    const startRowForWidth = bodyStartRow;
 
     const colWidths: { wch: number }[] = [];
 
