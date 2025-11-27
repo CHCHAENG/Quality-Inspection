@@ -60,7 +60,7 @@ function kindFromPath(pathname: string): ItemKind {
 // -------------------- sendData --------------------
 function buildSendDataForST(s: string, e: string) {
   // ITM_GRP=24 (연선)
-  return `${s};${e};24;0;ST-00-01:1!ST-01-01:1!ST-03-01:1!ST-03-02:1!ST-04-01:1!ST-05-01:1!ST-05-01:2!ST-05-01:3!ST-05-01:4!;`;
+  return `${s};${e};24;0;ST-00-01:1!ST-01-01:1!ST-02-01:1!ST-03-01:1!ST-03-02:1!ST-04-01:1!ST-05-01:1!ST-05-01:2!ST-05-01:3!ST-05-01:4!;`;
 }
 function buildSendDataForPVC(s: string, e: string) {
   // ITM_GRP=22 (PVC)
@@ -68,7 +68,7 @@ function buildSendDataForPVC(s: string, e: string) {
 }
 function buildSendDataForSCR(s: string, e: string) {
   // ITM_GRP=21 (SCR)
-  return `${s};${e};21;0;CU-00-01:1!CU-01-01:1!CU-01-01:2!CU-01-01:3!CU-01-01:4!;`;
+  return `${s};${e};21;0;CU-00-01:1!CU-01-01:1!CU-01-01:2!CU-01-01:3!CU-01-01:4!CU-02-01:1!;`;
 }
 
 function buildSendDataString(kind: ItemKind, s: string, e: string) {
@@ -130,6 +130,7 @@ export default function MtrInspDataGrid() {
     () => [
       { field: "appearance", headerName: "외관상태", width: 80 },
       { field: "pitch", headerName: "피치", width: 80, type: "number" },
+      { field: "packing", headerName: "포장상태", width: 80 },
       { field: "strandCount", headerName: "가닥수", width: 80, type: "number" },
       { field: "twistDirection", headerName: "꼬임방향", width: 80 },
       {
@@ -166,6 +167,7 @@ export default function MtrInspDataGrid() {
       { field: "cond2", headerName: "소선경2", width: 90, type: "number" }, // CU-01-02
       { field: "cond3", headerName: "소선경3", width: 90, type: "number" }, // CU-01-03
       { field: "cond4", headerName: "소선경4", width: 90, type: "number" }, // CU-01-04
+      { field: "packing", headerName: "포장상태", width: 90 },
       { field: "vendorRemark", headerName: "비고(업체로트)", width: 160 },
     ],
     []
@@ -192,7 +194,7 @@ export default function MtrInspDataGrid() {
       { field: "barcode", headerName: "LOT NO", width: 260 },
       { field: "itemCode", headerName: "규격", width: 80 },
       { field: "appearance", headerName: "외관", width: 80 },
-      { field: "packing", headerName: "포장상태", width: 160 },
+      { field: "packing", headerName: "포장상태", width: 80 },
       { field: "strandCount", headerName: "소선수", width: 80 },
       { field: "outerDiameter", headerName: "연선외경", width: 80 },
       { field: "pitch", headerName: "피치", width: 80 },
@@ -216,7 +218,7 @@ export default function MtrInspDataGrid() {
       { field: "barcode", headerName: "LOT NO", width: 260 },
       { field: "pvcCheck1", headerName: "외관상태", width: 100 },
       {
-        field: "color_check",
+        field: "pvcCheck2",
         headerName: "색상(한도견본일치할것)",
         width: 100,
       },

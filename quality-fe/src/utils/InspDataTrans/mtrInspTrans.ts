@@ -24,6 +24,7 @@ export type BaseRow = {
 export type STFields = {
   appearance?: string;
   pitch?: number;
+  packing?: string;
   strandCount?: number;
   twistDirection?: string;
   outerDiameter?: number;
@@ -47,6 +48,7 @@ export type SCRFields = {
   cond2?: number;
   cond3?: number;
   cond4?: number;
+  packing?: string;
 };
 
 // 일일 수입검사일지
@@ -108,6 +110,7 @@ export const toStringClean = (v: unknown): string => {
 const ST_FIELD_KEYS = {
   appearance: "ST-00-01-1",
   pitch: "ST-01-01-1",
+  packing: "ST-02-01-1",
   strandCount: "ST-03-01-1",
   twistDirection: "ST-03-02-1",
   outerDiameter: "ST-04-01-1",
@@ -131,6 +134,7 @@ const SCR_FIELD_KEYS = {
     "CU-01-01-3",
     "CU-01-01-4",
   ] as const,
+  packing: "CU-02-01-1",
 } as const;
 
 const DAILY_FIELD_KEYS = {
@@ -200,6 +204,7 @@ export function normalizeServerRow(
   if (kind === "st") {
     const appearance = toStringClean(s[ST_FIELD_KEYS.appearance]);
     const pitch = toNumber(s[ST_FIELD_KEYS.pitch]);
+    const packing = toStringClean(s[ST_FIELD_KEYS.packing]);
     const strandCount = toNumber(s[ST_FIELD_KEYS.strandCount]);
     const twistDirection = toStringClean(s[ST_FIELD_KEYS.twistDirection]);
     const outerDiameter = toNumber(s[ST_FIELD_KEYS.outerDiameter]);
@@ -210,6 +215,7 @@ export function normalizeServerRow(
       ...base,
       appearance,
       pitch,
+      packing,
       strandCount,
       twistDirection,
       outerDiameter,
@@ -231,7 +237,17 @@ export function normalizeServerRow(
   const [c1, c2, c3, c4] = SCR_FIELD_KEYS.conductorDiameters.map((k) =>
     toNumber(s[k])
   );
-  return { ...base, appearance, cond1: c1, cond2: c2, cond3: c3, cond4: c4 };
+  const packing = toStringClean(s[SCR_FIELD_KEYS.packing]);
+
+  return {
+    ...base,
+    appearance,
+    cond1: c1,
+    cond2: c2,
+    cond3: c3,
+    cond4: c4,
+    packing,
+  };
 }
 
 // ===== 개별 행 변환 =====
