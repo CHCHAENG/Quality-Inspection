@@ -29,6 +29,7 @@ export type WXFields = {
   label?: string;
   packing?: string;
   printing?: string;
+  eccentricity_wx?: string;
 
   // 절연외경
   insulationOD1?: number;
@@ -124,6 +125,7 @@ export const WX_FIELD_KEYS = {
   label: "WX-03-01-1",
   packing: "WX-04-01-1",
   printing: "WX-05-01-1",
+  eccentricity_wx: "WX-05-02-1",
 
   // 절연외경
   insulationOD1: "WX-06-01-1",
@@ -250,6 +252,7 @@ export function normalizeServerRow(
     const label = toStringClean(s[WX_FIELD_KEYS.label]);
     const packing = toStringClean(s[WX_FIELD_KEYS.packing]);
     const printing = toStringClean(s[WX_FIELD_KEYS.printing]);
+    const eccentricity_wx = toStringClean(s[WX_FIELD_KEYS.eccentricity_wx]);
     const insulationOD1 = toNumber(s[WX_FIELD_KEYS.insulationOD1]);
     const insulationOD2 = toNumber(s[WX_FIELD_KEYS.insulationOD2]);
     const souterDiameter = toNumber(s[WX_FIELD_KEYS.souterDiameter]);
@@ -264,6 +267,7 @@ export function normalizeServerRow(
       label,
       packing,
       printing,
+      eccentricity_wx,
       insulationOD1,
       insulationOD2,
       souterDiameter,

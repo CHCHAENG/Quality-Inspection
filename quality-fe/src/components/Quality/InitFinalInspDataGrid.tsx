@@ -63,7 +63,7 @@ function kindFromPath(pathname: string): ItemKind {
 // -------------------- sendData --------------------
 function buildSendDataForWX(s: string, e: string) {
   // ITM_GRP=28 (저전압 조사후)
-  return `${s};${e};28;0;WX-01-01:1!WX-02-01:1!WX-03-01:1!WX-04-01:1!WX-05-01:1!WX-06-01:1!WX-06-01:2!WX-07-01:1!WX-09-01:1!WX-09-01:2!WX-09-01:3!WX-09-01:4!;`;
+  return `${s};${e};28;0;WX-01-01:1!WX-02-01:1!WX-03-01:1!WX-04-01:1!WX-05-01:1!WX-05-02:1!WX-06-01:1!WX-06-01:2!WX-07-01:1!WX-09-01:1!WX-09-01:2!WX-09-01:3!WX-09-01:4!;`;
 }
 function buildSendDataForWHEX(s: string, e: string) {
   // ITM_GRP=3C (고전압 쉬즈)
@@ -138,6 +138,7 @@ export default function InitialInspDataGrid() {
       { field: "label", headerName: "라벨상태", width: 100 },
       { field: "packing", headerName: "포장상태", width: 100 },
       { field: "printing", headerName: "인쇄상태", width: 100 },
+      { field: "eccentricity_wx", headerName: "편심률(판정)", width: 100 },
 
       {
         field: "insulationOD1",
@@ -391,7 +392,7 @@ export default function InitialInspDataGrid() {
       { field: "cond2", headerName: "소선경 2", width: 100, type: "number" },
       { field: "cond3", headerName: "소선경 3", width: 100, type: "number" },
       { field: "cond4", headerName: "소선경 4", width: 100, type: "number" },
-      { field: "eccentricity", headerName: "편심율", width: 80 },
+      { field: "eccentricity_wx", headerName: "편심율", width: 80 },
       { field: "s_check", headerName: "시료확인", width: 150 },
       { field: "decision", headerName: "판정", width: 80 },
       { field: "initFinal", headerName: "비고", width: 100 },
@@ -856,6 +857,7 @@ export default function InitialInspDataGrid() {
                   ? "초종품검사(고전압 쉬즈).xlsx"
                   : "초종품검사(고전압 압출).xlsx"
               }
+              kind={effectiveKind === "wx" ? "initialFinal_wx" : ""}
               label="엑셀 다운로드"
               buttonProps={{ variant: "contained" }}
               onBeforeDownload={handleBeforeExcelDownload}

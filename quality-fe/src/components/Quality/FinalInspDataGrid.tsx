@@ -814,7 +814,13 @@ export default function FinalInspDataGrid() {
                   ? "초종품검사(저전압 압출).xlsx"
                   : "초종품검사(저전압 조사후).xlsx"
               }
-              kind={effectiveKind === "whex" ? "final_whex" : ""}
+              kind={
+                effectiveKind === "whex"
+                  ? "final_whex"
+                  : effectiveKind === "we"
+                  ? "final_we"
+                  : ""
+              }
               label="엑셀 다운로드"
               buttonProps={{ variant: "contained" }}
               onBeforeDownload={handleBeforeExcelDownload}

@@ -339,7 +339,6 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
         ...prevStyle,
         border: bodyBorder,
         alignment: {
-          // ✅ 모든 본문 데이터 가운데 정렬
           horizontal: "center",
           vertical: "center",
           wrapText: true,
@@ -373,12 +372,25 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
       .reduce((a, b) => Math.max(a, b), 0);
   }
 
+  const fixedSampleSizeColIndex =
+    kind === "final_we" || kind === "initialFinal_wx"
+      ? columns.findIndex(
+          (c) => (c.headerName ?? String(c.field)) === "시료확인"
+        )
+      : -1;
+
   if (ws["!ref"]) {
     const startRowForWidth = bodyStartRow;
 
     const colWidths: { wch: number }[] = [];
 
     for (let c = range.s.c; c <= range.e.c; c++) {
+      // 👉 시료확인 컬럼이면 폭을 16으로 고정
+      if (c === fixedSampleSizeColIndex) {
+        colWidths[c] = { wch: 15.86 };
+        continue;
+      }
+
       let maxLen = 0;
 
       for (let r = startRowForWidth; r <= range.e.r; r++) {
@@ -390,7 +402,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
         if (len > maxLen) maxLen = len;
       }
 
-      const wch = Math.max(maxLen + 3, 5);
+      const wch = Math.max(maxLen + 4, 5);
       colWidths[c] = { wch };
     }
 
