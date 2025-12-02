@@ -10,6 +10,8 @@ export interface ExportHeaderOptions {
   showApprovalLine?: boolean;
 }
 
+const TEMPLATE_URL = "/test.xlsx";
+
 export function exportToXlsxStyled<T extends Record<string, unknown>>(
   data: T[],
   columns: GridColDef<T>[],
@@ -403,18 +405,27 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
     ws["!merges"] = merges;
   }
 
-  // 7) 저장
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+  // 7) 템플릿 워크북을 읽어서, 첫 번째 시트를 우리가 만든 ws로 교체 후 저장
+  (async () => {
+    try {
+      const res = await fetch(TEMPLATE_URL);
+      if (!res.ok) {
+        throw new Error(`템플릿 로드 실패: ${res.status} ${res.statusText}`);
+      }
+      const arrayBuffer = await res.arrayBuffer();
+      const wb = XLSX.read(arrayBuffer, { type: "array" });
 
-  try {
-    XLSX.writeFile(
-      wb,
-      filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`
-    );
-    onFinished?.(true);
-  } catch (e) {
-    console.error(e);
-    onFinished?.(false);
-  }
+      const sheetName = wb.SheetNames[0]; // 템플릿 첫 번째 시트 사용
+      wb.Sheets[sheetName] = ws; // 시트 교체 (print area, 페이지 설정 등은 Workbook 레벨 설정 그대로 유지)
+
+      XLSX.writeFile(
+        wb,
+        filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`
+      );
+      onFinished?.(true);
+    } catch (e) {
+      console.error(e);
+      onFinished?.(false);
+    }
+  })();
 }
