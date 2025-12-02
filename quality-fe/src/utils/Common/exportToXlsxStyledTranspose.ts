@@ -1,29 +1,26 @@
 import { GridColDef } from "@mui/x-data-grid";
 import * as XLSX from "xlsx-js-style";
+import { ExportHeaderOptions } from "./excelExportLayout";
+import { WEProdStdRow } from "../InspDataTrans/prcsSubInspTrans";
 
 type ExcelCell = string | number | null;
 
-export interface ExportHeaderOptions {
-  title?: string;
-  inspectDateText?: string;
-  inspectorNameText?: string;
-  showApprovalLine?: boolean;
-}
+// weProdStdByHoGi 에 들어오는 1행 타입(검사규격)
+export type WEProdStdByHoGi = Record<string, WEProdStdRow[]>;
 
-export function exportToXlsxStyled<T extends Record<string, unknown>>(
+export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
   data: T[],
   columns: GridColDef<T>[],
   filename: string,
-  kind?: string,
   onFinished?: (success: boolean) => void,
-  headerOptions?: ExportHeaderOptions
+  headerOptions?: ExportHeaderOptions,
+  weProdStdByHoGi?: WEProdStdByHoGi
 ) {
   // 1) 헤더 텍스트 배열 (DataGrid 헤더)
   const headers = columns.map((c) => c.headerName ?? String(c.field));
 
   // 2) 본문 AoA
   const rowsAoA: ExcelCell[][] = [];
-  const printHistoryRowIdxList: number[] = [];
 
   data.forEach((row) => {
     const baseRow: ExcelCell[] = columns.map((c) => {
@@ -36,25 +33,115 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
     });
 
     rowsAoA.push(baseRow);
-
-    // final_whex 용 인쇄이력 행
-    if (kind === "final_whex") {
-      const printHistoryRow: ExcelCell[] = columns.map((_, idx) =>
-        idx === 0 ? "인쇄이력" : ""
-      );
-      rowsAoA.push(printHistoryRow);
-      printHistoryRowIdxList.push(rowsAoA.length - 1); // rowsAoA 기준 index
-    }
   });
 
-  const printHistoryRowIdxSet = new Set(printHistoryRowIdxList);
-
-  // 기본 AoA (헤더 1행 + 본문)
   const baseAoA: ExcelCell[][] = [headers, ...rowsAoA];
-  const finalAoA: ExcelCell[][] = baseAoA;
+
+  // 항상 transpose
+  const rowCount = baseAoA.length;
+  const colCount = baseAoA[0]?.length ?? 0;
+
+  const transposed: ExcelCell[][] = [];
+  for (let c = 0; c < colCount; c++) {
+    const newRow: ExcelCell[] = [];
+    for (let r = 0; r < rowCount; r++) {
+      newRow.push(baseAoA[r]?.[c] ?? null);
+    }
+    transposed.push(newRow);
+  }
+
+  const finalAoA: ExcelCell[][] = transposed;
+
+  // ---------------------------------------
+  // 2-1) weProdStdByHoGi 기반 "규격" 행 삽입
+  // ---------------------------------------
+  if (weProdStdByHoGi && finalAoA.length > 1) {
+    const headerRow = finalAoA[0]; // [ "압출호기", "압출 01 호기", ... ]
+    const colCountForRow = headerRow.length;
+
+    const isNA = (v?: string) => !v || v.toUpperCase() === "N/A" || v === "-";
+
+    // hoGiName: "압출 01 호기" 같은 텍스트
+    const getStdValue = (hoGiName: string, inspCode: string): string => {
+      const list = weProdStdByHoGi[hoGiName];
+      if (!list || list.length === 0) return "";
+
+      const found = list.find((row) => row.inspCode === inspCode);
+      if (!found) return "";
+
+      const min = found.valMin?.trim();
+      const max = found.valMax?.trim();
+
+      if (!isNA(min) && !isNA(max)) return `${min} ~ ${max}`;
+      if (!isNA(min)) return min!;
+      if (!isNA(max)) return max!;
+      return "";
+    };
+
+    const insertSpecRow = (
+      targetLabel: string, // 기준이 되는 측정 행 라벨 (예: "절연외경1")
+      specLabel: string, // 새로 추가할 규격 행 라벨
+      inspCode: string // INSPCD (예: "WE-06-01")
+    ) => {
+      const labelCol = 0;
+
+      const idx = finalAoA.findIndex(
+        (row, i) => i > 0 && row[labelCol] === targetLabel
+      );
+      if (idx <= 0) return; // 못 찾으면 건너뜀
+
+      const newRow: ExcelCell[] = new Array(colCountForRow).fill("");
+      newRow[0] = specLabel;
+
+      // 압출호기별 규격 값 채우기
+      for (let c = 1; c < colCountForRow; c++) {
+        const hoGiName = String(headerRow[c] ?? "");
+        if (!hoGiName) continue;
+
+        const val = getStdValue(hoGiName, inspCode);
+        if (val) newRow[c] = val;
+      }
+
+      // targetLabel 행 위에 끼워 넣기
+      finalAoA.splice(idx, 0, newRow);
+    };
+
+    // 요구한 규칙대로 규격 행들 삽입
+    insertSpecRow("절연외경1", "절연외경 규격", "WE-06-01");
+    insertSpecRow("연선외경", "연선외경 규격", "WE-07-01");
+    insertSpecRow("피치", "피치 규격", "WE-14-01");
+    insertSpecRow("소선경1", "소선경 검사규격", "WE-09-01");
+    insertSpecRow("절연두께1", "절연두께 규격", "WE-10-01");
+    insertSpecRow("편심율", "편심율 규격", "WE-08-01");
+    insertSpecRow("인장강도", "인장강도 규격", "WE-11-01");
+    insertSpecRow("신장율", "신장율 규격", "WE-12-01");
+  }
+
+  // ---------------------------------------
+  // 2-2) 편심율 위에 높이 135인 행 삽입
+  // (규격 행 삽입 후에 처리해야 인덱스가 어긋나지 않음)
+  // ---------------------------------------
+  let eccentricityTallRowIndex: number | null = null;
+  const eccIdx = finalAoA.findIndex((row) => row[0] === "편심율");
+
+  if (eccIdx >= 0) {
+    const colCountForRow = finalAoA[0]?.length ?? 0;
+
+    const tallRow: ExcelCell[] = new Array(colCountForRow).fill("");
+    tallRow[0] = "편심율";
+
+    finalAoA.splice(eccIdx, 0, tallRow);
+    eccentricityTallRowIndex = eccIdx;
+
+    const numericRow = finalAoA[eccIdx + 1];
+    if (numericRow) {
+      // 숫자 있는 행에도 편심율 텍스트 표시
+      numericRow[0] = "편심율";
+    }
+  }
 
   // ================================
-  // 2.5) 상단 "제목/검사일/검사자/결재선" 행 만들기
+  // 2.5) 상단 "제목/검사일/검사자/결재선" 행
   // ================================
   const extraHeaderRows: ExcelCell[][] = [];
   const colCountForHeader = finalAoA[0]?.length ?? 0;
@@ -78,9 +165,10 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
 
     const hasMeta = !!inspectDateText || !!inspectorNameText || useApproval;
 
+    // 1행 빈 줄
     extraHeaderRows.push(makeBlankRow());
 
-    // (1) 제목 행 (2번째 행)
+    // (1) 제목
     if (title) {
       const titleRow = makeBlankRow();
       titleRow[0] = title;
@@ -91,7 +179,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
       extraHeaderRows.push(makeBlankRow());
     }
 
-    // (2) 검사일 / 결재(상단 + 작성/검토/승인)
+    // (2) 검사일 / 결재(상단)
     if (inspectDateText || useApproval) {
       const row = makeBlankRow();
       if (inspectDateText) {
@@ -126,6 +214,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
       extraHeaderRows.push(makeBlankRow());
     }
 
+    // 본문과 헤더 사이 공백 한 줄
     extraHeaderRows.push(makeBlankRow());
   }
 
@@ -133,11 +222,40 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
   const sheetAoA: ExcelCell[][] =
     headerOffset > 0 ? [...extraHeaderRows, ...finalAoA] : finalAoA;
 
-  // 3) AoA -> Sheet
+  // 3) 시트 생성
   const ws = XLSX.utils.aoa_to_sheet(sheetAoA);
 
+  // 편심율 타이틀 행 높이 설정
+  if (eccentricityTallRowIndex !== null) {
+    const wsAny = ws as XLSX.WorkSheet & {
+      "!rows"?: { hpt?: number; hpx?: number }[];
+    };
+
+    const excelRowIndex = headerOffset + eccentricityTallRowIndex;
+
+    wsAny["!rows"] = wsAny["!rows"] ?? [];
+    wsAny["!rows"]![excelRowIndex] = {
+      ...(wsAny["!rows"]![excelRowIndex] || {}),
+      hpt: 135,
+    };
+  }
+
+  // 범위
+  if (!ws["!ref"]) {
+    const wbEmpty = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wbEmpty, ws, "Sheet1");
+    XLSX.writeFile(
+      wbEmpty,
+      filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`
+    );
+    onFinished?.(true);
+    return;
+  }
+
+  const range = XLSX.utils.decode_range(ws["!ref"] as string);
+
   // ================================
-  // 3.5) 상단 제목/결재 영역 병합 설정
+  // 3.5) 병합 (제목/결재선)
   // ================================
   const merges: XLSX.Range[] = ws["!merges"] ?? [];
   if (headerOffset > 0 && colCountForHeader > 0 && headerOptions) {
@@ -189,18 +307,18 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
       });
 
       for (let i = 1; i < approvalCols; i++) {
-        const col = approvalStartCol + i;
-        if (col >= colCountForHeader) break;
+        const c = approvalStartCol + i;
+        if (c >= colCountForHeader) break;
 
         merges.push({
-          s: { r: middle, c: col },
-          e: { r: bottom, c: col },
+          s: { r: middle, c },
+          e: { r: bottom, c },
         });
       }
     }
   }
 
-  // 4) 스타일 설정
+  // 4) 스타일 공통
   const headerStyle = {
     border: {
       top: { style: "thin", color: { rgb: "FF5A6A7D" } },
@@ -213,9 +331,6 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
     alignment: { horizontal: "center", vertical: "center", wrapText: true },
   };
 
-  // 시트 범위
-  const range = XLSX.utils.decode_range(ws["!ref"] as string);
-
   const bodyBorder = {
     top: { style: "thin", color: { rgb: "FF5A6A7D" } },
     right: { style: "thin", color: { rgb: "FF5A6A7D" } },
@@ -223,7 +338,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
     left: { style: "thin", color: { rgb: "FF5A6A7D" } },
   };
 
-  // (4-1) 맨 위 제목/결재 영역 스타일
+  // (4-1) 제목/결재 영역 스타일
   if (headerOffset > 0 && colCountForHeader > 0 && headerOptions) {
     const { title, inspectDateText, inspectorNameText, showApprovalLine } =
       headerOptions;
@@ -291,19 +406,15 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
   }
 
   // (4-2) DataGrid 헤더 행 스타일
-  const headerRowIndex = headerOffset;
+  const headerRowIndex2 = headerOffset;
   for (let c = range.s.c; c <= range.e.c; c++) {
-    const addr = XLSX.utils.encode_cell({ r: headerRowIndex, c });
+    const addr = XLSX.utils.encode_cell({ r: headerRowIndex2, c });
     if (ws[addr]) ws[addr].s = headerStyle;
   }
 
-  // (4-3) 본문 스타일링
-  const bodyStartRow = headerRowIndex + 1;
+  // (4-3) 본문 스타일
+  const bodyStartRow = headerRowIndex2 + 1;
   for (let r = bodyStartRow; r <= range.e.r; r++) {
-    const logicalBodyIdx = r - bodyStartRow;
-    const isPrintHistoryRow =
-      kind === "final_whex" && printHistoryRowIdxSet.has(logicalBodyIdx);
-
     for (let c = range.s.c; c <= range.e.c; c++) {
       const addr = XLSX.utils.encode_cell({ r, c });
       if (!ws[addr]) {
@@ -321,23 +432,11 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
           vertical: "center",
           wrapText: true,
         },
-        ...(isPrintHistoryRow
-          ? {
-              fill: {
-                patternType: "solid",
-                fgColor: { rgb: "FFFFFF00" },
-              },
-              font: {
-                ...(prevStyle.font || {}),
-                bold: true,
-              },
-            }
-          : {}),
       };
     }
   }
 
-  // 5) 열 너비 자동
+  // ---- 5) 열 너비: 본문 기준 + 압출호기 열 통일 ----
   function visualLen(str: unknown) {
     return String(str ?? "")
       .split(/\r?\n/)
@@ -350,25 +449,12 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
       .reduce((a, b) => Math.max(a, b), 0);
   }
 
-  const fixedSampleSizeColIndex =
-    kind === "final_we" || kind === "initialFinal_wx"
-      ? columns.findIndex(
-          (c) => (c.headerName ?? String(c.field)) === "시료확인"
-        )
-      : -1;
-
   if (ws["!ref"]) {
     const startRowForWidth = bodyStartRow;
 
     const colWidths: { wch: number }[] = [];
 
     for (let c = range.s.c; c <= range.e.c; c++) {
-      // 시료확인 컬럼
-      if (c === fixedSampleSizeColIndex) {
-        colWidths[c] = { wch: 15.86 };
-        continue;
-      }
-
       let maxLen = 0;
 
       for (let r = startRowForWidth; r <= range.e.r; r++) {
@@ -384,26 +470,44 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
       colWidths[c] = { wch };
     }
 
-    ws["!cols"] = colWidths;
-  }
-
-  // 6) "인쇄이력" 행 셀 병합 (A열 ~ 마지막 열)
-  if (kind === "final_whex" && printHistoryRowIdxList.length > 0) {
-    for (const idx of printHistoryRowIdxList) {
-      const excelRow = bodyStartRow + idx;
-
-      merges.push({
-        s: { r: excelRow, c: 0 },
-        e: { r: excelRow, c: columns.length - 1 },
+    const hoGiCols: number[] = [];
+    for (let c = range.s.c; c <= range.e.c; c++) {
+      const headerAddr = XLSX.utils.encode_cell({
+        r: headerRowIndex2,
+        c,
       });
+      const headerCell = ws[headerAddr];
+      const text = headerCell?.v;
+
+      if (
+        typeof text === "string" &&
+        (/압출\s*\d+\s*호기/.test(text) || text === "압출호기")
+      ) {
+        hoGiCols.push(c);
+      }
     }
+
+    if (hoGiCols.length > 0) {
+      let maxWch = 0;
+      for (const c of hoGiCols) {
+        const w = colWidths[c]?.wch ?? 0;
+        if (w > maxWch) maxWch = w;
+      }
+      if (maxWch > 0) {
+        for (const c of hoGiCols) {
+          colWidths[c] = { wch: maxWch };
+        }
+      }
+    }
+
+    ws["!cols"] = colWidths;
   }
 
   if (merges.length > 0) {
     ws["!merges"] = merges;
   }
 
-  // 7) 저장
+  // 6) 저장
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
 

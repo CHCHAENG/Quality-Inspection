@@ -23,7 +23,9 @@ import {
 import {
   type ServerRow,
   type FrontRow_WE,
+  type WEProdStdRow,
   transformServerData_WE,
+  transformWEProdStdData,
 } from "../../utils/InspDataTrans/prcsSubInspTrans";
 import dayjs, { Dayjs } from "dayjs";
 import minMax from "dayjs/plugin/minMax";
@@ -31,7 +33,7 @@ import "dayjs/locale/ko";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { prcsSubWE } from "../../api/api";
+import { prcsSubWE, prcsSubWEProd } from "../../api/api";
 import { extractErrorMessage } from "../../utils/Common/extractError";
 import {
   buildPreviewRow,
@@ -44,11 +46,6 @@ import { formatDateRange } from "../../utils/Common/formatDateRange";
 dayjs.locale("ko");
 dayjs.extend(minMax);
 
-type RowSelectionModelV8 = {
-  type: "include" | "exclude";
-  ids: Set<GridRowId>;
-};
-
 // 압출 호기 리스트
 const HO_GI_LIST = [
   "압출 01 호기",
@@ -57,12 +54,22 @@ const HO_GI_LIST = [
   "압출 04 호기",
   "압출 05 호기",
 ] as const;
+
+type RowSelectionModelV8 = {
+  type: "include" | "exclude";
+  ids: Set<GridRowId>;
+};
+
 type processName = (typeof HO_GI_LIST)[number];
 
 // -------------------- sendData --------------------
 function buildSendData(s: string, e: string) {
   // ITM_GRP=27 (압출)
   return `${s};${e};27;0;WE-01-01:1!WE-02-01:1!WE-03-01:1!WE-04-01:1!WE-05-01:1!WE-06-01:1!WE-06-01:2!WE-07-01:1!WE-08-01:1!WE-09-01:1!WE-09-01:2!WE-09-01:3!WE-09-01:4!WE-10-01:1!WE-10-01:2!WE-10-01:3!WE-10-01:4!WE-11-01:1!WE-12-01:1!WE-13-01:1!WE-14-01:1!;`;
+}
+
+function buildSendDataProd(item: string) {
+  return `${item};0;`;
 }
 
 export default function PrcsSubWEInspDataGrid() {
@@ -95,6 +102,15 @@ export default function PrcsSubWEInspDataGrid() {
     "압출 03 호기": undefined,
     "압출 04 호기": undefined,
     "압출 05 호기": undefined,
+  });
+  const [weProdStdByHoGi, setWeProdStdByHoGi] = useState<
+    Record<processName, WEProdStdRow[]>
+  >({
+    "압출 01 호기": [],
+    "압출 02 호기": [],
+    "압출 03 호기": [],
+    "압출 04 호기": [],
+    "압출 05 호기": [],
   });
 
   const { showAlert } = useAlert();
@@ -201,8 +217,8 @@ export default function PrcsSubWEInspDataGrid() {
       { field: "sampleSize", headerName: "시료크기", width: 100 },
       { field: "printing", headerName: "인쇄상태", width: 100 },
       { field: "appearance", headerName: "겉모양", width: 100 },
-      { field: "printing_hi", headerName: "인쇄내역", width: 100 },
-      { field: "conductorConfig", headerName: "도체구성", width: 100 },
+      { field: "printing_his", headerName: "인쇄내역", width: 100 },
+      { field: "subStrandCnt", headerName: "도체구성", width: 100 },
       {
         field: "insulationOD1",
         headerName: "절연외경1",
@@ -327,7 +343,7 @@ export default function PrcsSubWEInspDataGrid() {
           sampleSize: r?.sampleSize,
           printing: r?.printing,
           appearance: r?.appearance,
-          conductorConfig: r?.conductorConfig,
+          subStrandCnt: r?.subStrandCnt,
           insulationOD1: r?.insulationOD1,
           insulationOD2: r?.insulationOD2,
           avg_insultaion: preview?.avg_insultaion,
@@ -353,8 +369,8 @@ export default function PrcsSubWEInspDataGrid() {
     [hoGiMap]
   );
 
-  // 선택한 행을 현재 선택한 압출호기에 저장
-  function handleApplyToHoGi() {
+  // 선택한 행을 현재 선택한 압출호기에 저장 + 검사규격 데이터 저장
+  async function handleApplyToHoGi() {
     if (!selectedHoGi) return;
     if (selectedRows.length === 0) return;
 
@@ -369,20 +385,52 @@ export default function PrcsSubWEInspDataGrid() {
       return;
     }
 
-    setHoGiMap((prev) => ({
-      ...prev,
-      [selectedHoGi]: row,
-    }));
+    if (!row.itemCode) {
+      showAlert({
+        message: "해당 행의 품목코드(itemCode)가 없습니다.",
+        severity: "warning",
+      });
+      return;
+    }
 
-    setRowSelectionModel({
-      type: "include",
-      ids: new Set(),
-    });
+    const mySeq = reqSeq.current;
+    const sendData = buildSendDataProd(row.itemCode);
 
-    showAlert({
-      message: `${selectedHoGi} 값 저장이 완료되었습니다.`,
-      severity: "success",
-    });
+    try {
+      const data = await prcsSubWEProd(sendData);
+      if (reqSeq.current !== mySeq) return;
+
+      const stdRows = transformWEProdStdData(data);
+
+      setWeProdStdByHoGi((prev) => ({
+        ...prev,
+        [selectedHoGi as processName]: stdRows,
+      }));
+
+      setHoGiMap((prev) => ({
+        ...prev,
+        [selectedHoGi]: row,
+      }));
+
+      setRowSelectionModel({
+        type: "include",
+        ids: new Set(),
+      });
+
+      showAlert({
+        message: `${selectedHoGi} 값 저장이 완료되었습니다.`,
+        severity: "success",
+      });
+    } catch (err) {
+      if (reqSeq.current !== mySeq) return;
+
+      const msg = extractErrorMessage(err);
+
+      showAlert({
+        message: msg || "검사규격 조회 중 오류가 발생했습니다.",
+        severity: "error",
+      });
+    }
   }
 
   // -------------------- 선택된 행에서 검사자 목록 추출 --------------------
@@ -470,6 +518,14 @@ export default function PrcsSubWEInspDataGrid() {
         "압출 04 호기": undefined,
         "압출 05 호기": undefined,
       });
+
+      setWeProdStdByHoGi({
+        "압출 01 호기": [],
+        "압출 02 호기": [],
+        "압출 03 호기": [],
+        "압출 04 호기": [],
+        "압출 05 호기": [],
+      });
     } catch (err) {
       if (reqSeq.current !== mySeq) return;
 
@@ -482,6 +538,14 @@ export default function PrcsSubWEInspDataGrid() {
 
       setRawServerData([]);
       setSelectedInspectors([]);
+
+      setWeProdStdByHoGi({
+        "압출 01 호기": [],
+        "압출 02 호기": [],
+        "압출 03 호기": [],
+        "압출 04 호기": [],
+        "압출 05 호기": [],
+      });
     } finally {
       if (reqSeq.current === mySeq) setLoading(false);
     }
@@ -603,6 +667,7 @@ export default function PrcsSubWEInspDataGrid() {
                 inspectorNameText,
                 showApprovalLine: true,
               }}
+              transposeSource={weProdStdByHoGi}
             />
           </Stack>
         </Stack>

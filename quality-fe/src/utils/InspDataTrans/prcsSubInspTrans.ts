@@ -95,6 +95,14 @@ export type WEFields = {
   twistDirection?: string;
 };
 
+// 검사규격
+export type WEProdStdRow = {
+  inspCode: string;
+  inspName: string;
+  valMin: string;
+  valMax: string;
+};
+
 export type FrontRow = BaseRow & STFields & DRFields;
 export type FrontRow_WE = BaseRow_WE & WEFields;
 
@@ -166,6 +174,11 @@ const WE_FIELD_KEYS = {
   elongation: "WE-12-01-1",
   subStrandCnt: "WE-13-01-1",
   pitch: "WE-14-01-1",
+} as const;
+
+const WE_PROD_STD_KEYS = {
+  inspName:
+    "CASE WHEN $i_LANG = '0' THEN B.INSPNM ELSE IFNULL(B.INSPNM_L, B.INSPNM) END",
 } as const;
 
 // ===== 개별 행 변환 (연선, 신선)=====
@@ -337,6 +350,20 @@ export function normalizeServerRow_WE(s: ServerRow, idx: number): FrontRow_WE {
   };
 }
 
+export function normalizeWEProdStdRow(s: ServerRow): WEProdStdRow {
+  const inspCode = toStringClean(s["INSPCD"]);
+  const inspName = toStringClean(s[WE_PROD_STD_KEYS.inspName]);
+  const valMin = toStringClean(s["VALMIN"]);
+  const valMax = toStringClean(s["VALMAX"]);
+
+  return {
+    inspCode,
+    inspName,
+    valMin,
+    valMax,
+  };
+}
+
 // ===== 배열 변환 =====
 export function transformServerData(
   arr: ServerRow[],
@@ -349,4 +376,9 @@ export function transformServerData(
 export function transformServerData_WE(arr: ServerRow[]): FrontRow_WE[] {
   if (!Array.isArray(arr)) return [];
   return arr.map((row, i) => normalizeServerRow_WE(row, i));
+}
+
+export function transformWEProdStdData(arr: ServerRow[]): WEProdStdRow[] {
+  if (!Array.isArray(arr)) return [];
+  return arr.map((row) => normalizeWEProdStdRow(row));
 }

@@ -24,6 +24,12 @@ export async function prcsSubWE(sendData: string) {
   return res.data;
 }
 
+// 순회검사일지 (압출) - 검사규격
+export async function prcsSubWEProd(sendData: string) {
+  const res = await axios.post("/api/prcsSubWE/prod", { sendData });
+  return res.data;
+}
+
 // 완제품검사일지 (고전압선, 저전압 압출, 저전압 조사후)
 export async function finalInsp(sendData: string) {
   const res = await axios.post("/api/finalSub", { sendData });

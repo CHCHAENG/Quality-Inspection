@@ -34,6 +34,12 @@ const routes = [
     proc: "TR52112",
     keys: ["i_SDATE", "i_EDATE", "i_ITM_GRP", "i_LANG", "i_STR"],
   },
+  // 순회검사 일지 (압출) 검사 규격
+  {
+    path: "/api/prcsSubWE/prod",
+    proc: "TR14173",
+    keys: ["i_ITMCD", "i_LANG"],
+  },
 
   // 완제품 검사 (고전압선, 저전압 압출, 저전압 조사후)
   {

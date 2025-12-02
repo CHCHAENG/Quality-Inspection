@@ -5,6 +5,10 @@ import {
   type ExportHeaderOptions,
 } from "../../utils/Common/excelExportLayout";
 import { useAlert } from "../../context/AlertContext";
+import {
+  exportToXlsxStyledTranspose,
+  type WEProdStdByHoGi,
+} from "../../utils/Common/exportToXlsxStyledTranspose";
 
 type ExcelDownloadButtonProps<T extends Record<string, unknown>> = {
   data: T[];
@@ -15,6 +19,7 @@ type ExcelDownloadButtonProps<T extends Record<string, unknown>> = {
   buttonProps?: ButtonProps;
   headerOptions?: ExportHeaderOptions;
   onBeforeDownload?: () => boolean | void;
+  transposeSource?: WEProdStdByHoGi;
 };
 
 export function ExcelDownloadButton<T extends Record<string, unknown>>(
@@ -29,6 +34,7 @@ export function ExcelDownloadButton<T extends Record<string, unknown>>(
     buttonProps,
     headerOptions,
     onBeforeDownload,
+    transposeSource,
   } = props;
 
   const { showAlert } = useAlert();
@@ -50,27 +56,41 @@ export function ExcelDownloadButton<T extends Record<string, unknown>>(
       }
     }
 
+    const callback = (success: boolean) => {
+      if (success) {
+        showAlert({
+          message: "엑셀 파일이 정상적으로 저장되었습니다.",
+          severity: "success",
+        });
+      } else {
+        showAlert({
+          message: "엑셀 파일 저장 중 오류가 발생했습니다.",
+          severity: "error",
+        });
+      }
+    };
+
     try {
-      exportToXlsxStyled(
-        data,
-        columns,
-        filename,
-        kind,
-        (success) => {
-          if (success) {
-            showAlert({
-              message: "엑셀 파일이 정상적으로 저장되었습니다.",
-              severity: "success",
-            });
-          } else {
-            showAlert({
-              message: "엑셀 파일 저장 중 오류가 발생했습니다.",
-              severity: "error",
-            });
-          }
-        },
-        headerOptions
-      );
+      if (kind === "transpose") {
+        // transpose
+        exportToXlsxStyledTranspose(
+          data,
+          columns,
+          filename,
+          callback,
+          headerOptions,
+          transposeSource
+        );
+      } else {
+        exportToXlsxStyled(
+          data,
+          columns,
+          filename,
+          kind,
+          callback,
+          headerOptions
+        );
+      }
     } catch (e) {
       console.error(e);
       showAlert({
