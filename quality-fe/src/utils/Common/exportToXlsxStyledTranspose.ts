@@ -56,10 +56,27 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
   // 2-1) weProdStdByHoGi 기반 "규격" 행 삽입
   // ---------------------------------------
   if (weProdStdByHoGi && finalAoA.length > 1) {
-    const headerRow = finalAoA[0]; // [ "압출호기", "압출 01 호기", ... ]
+    const headerRow = finalAoA[0]; // ["압출호기", "압출 01 호기", ...]
     const colCountForRow = headerRow.length;
 
     const isNA = (v?: string) => !v || v.toUpperCase() === "N/A" || v === "-";
+
+    // 숫자 문자열의 소수점 뒤 0 제거
+    const trimTrailingZero = (raw?: string): string => {
+      if (!raw) return "";
+      const s = raw.trim();
+
+      // 숫자 형식 아니면 그대로
+      if (!/^-?\d+(\.\d+)?$/.test(s)) return s;
+
+      const [intPart, fracPart] = s.split(".");
+      if (fracPart === undefined) return intPart;
+
+      const trimmedFrac = fracPart.replace(/0+$/, "");
+      if (trimmedFrac === "") return intPart;
+
+      return `${intPart}.${trimmedFrac}`;
+    };
 
     // hoGiName: "압출 01 호기" 같은 텍스트
     const getStdValue = (hoGiName: string, inspCode: string): string => {
@@ -69,26 +86,33 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
       const found = list.find((row) => row.inspCode === inspCode);
       if (!found) return "";
 
-      const min = found.valMin?.trim();
-      const max = found.valMax?.trim();
+      const rawMin = found.valMin?.trim();
+      const rawMax = found.valMax?.trim();
 
-      if (!isNA(min) && !isNA(max)) return `${min} ~ ${max}`;
-      if (!isNA(min)) return min!;
-      if (!isNA(max)) return max!;
+      const hasMin = !isNA(rawMin);
+      const hasMax = !isNA(rawMax);
+
+      const min = hasMin ? trimTrailingZero(rawMin) : "";
+      const max = hasMax ? trimTrailingZero(rawMax) : "";
+
+      if (hasMin && hasMax) return `${min} ~ ${max}`;
+      if (hasMin) return min;
+      if (hasMax) return max;
       return "";
     };
 
     const insertSpecRow = (
-      targetLabel: string, // 기준이 되는 측정 행 라벨 (예: "절연외경1")
-      specLabel: string, // 새로 추가할 규격 행 라벨
-      inspCode: string // INSPCD (예: "WE-06-01")
+      targetLabel: string,
+      specLabel: string,
+      inspCode: string
     ) => {
       const labelCol = 0;
 
       const idx = finalAoA.findIndex(
         (row, i) => i > 0 && row[labelCol] === targetLabel
       );
-      if (idx <= 0) return; // 못 찾으면 건너뜀
+
+      if (idx <= 0) return;
 
       const newRow: ExcelCell[] = new Array(colCountForRow).fill("");
       newRow[0] = specLabel;
@@ -106,7 +130,7 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
       finalAoA.splice(idx, 0, newRow);
     };
 
-    // 요구한 규칙대로 규격 행들 삽입
+    // 규격 행 삽입
     insertSpecRow("절연외경1", "절연외경 규격", "WE-06-01");
     insertSpecRow("연선외경", "연선외경 규격", "WE-07-01");
     insertSpecRow("피치", "피치 규격", "WE-14-01");
@@ -119,7 +143,6 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
 
   // ---------------------------------------
   // 2-2) 편심율 위에 높이 135인 행 삽입
-  // (규격 행 삽입 후에 처리해야 인덱스가 어긋나지 않음)
   // ---------------------------------------
   let eccentricityTallRowIndex: number | null = null;
   const eccIdx = finalAoA.findIndex((row) => row[0] === "편심율");
@@ -135,7 +158,6 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
 
     const numericRow = finalAoA[eccIdx + 1];
     if (numericRow) {
-      // 숫자 있는 행에도 편심율 텍스트 표시
       numericRow[0] = "편심율";
     }
   }
