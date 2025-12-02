@@ -51,12 +51,11 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
 
   const printHistoryRowIdxSet = new Set(printHistoryRowIdxList);
 
-  // 기본 AoA (헤더 1행 + 본문)
   const baseAoA: ExcelCell[][] = [headers, ...rowsAoA];
   const finalAoA: ExcelCell[][] = baseAoA;
 
   // ================================
-  // 2.5) 상단 "제목/검사일/검사자/결재선" 행 만들기
+  // 2.5) 상단 "제목/검사일/검사자/결재선"
   // ================================
   const extraHeaderRows: ExcelCell[][] = [];
   const colCountForHeader = finalAoA[0]?.length ?? 0;
@@ -82,7 +81,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
 
     extraHeaderRows.push(makeBlankRow());
 
-    // (1) 제목 행 (2번째 행)
+    // (1) 제목 행
     if (title) {
       const titleRow = makeBlankRow();
       titleRow[0] = title;
@@ -93,7 +92,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
       extraHeaderRows.push(makeBlankRow());
     }
 
-    // (2) 검사일 / 결재(상단 + 작성/검토/승인)
+    // (2) 검사일 / 결재
     if (inspectDateText || useApproval) {
       const row = makeBlankRow();
       if (inspectDateText) {
@@ -339,7 +338,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
     }
   }
 
-  // 5) 열 너비 자동
+  // 5) 열 너비 자동 계산
   function visualLen(str: unknown) {
     return String(str ?? "")
       .split(/\r?\n/)
@@ -389,7 +388,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
     ws["!cols"] = colWidths;
   }
 
-  // 6) "인쇄이력" 행 셀 병합 (A열 ~ 마지막 열)
+  // 6) "인쇄이력" 행 셀 병합
   if (kind === "final_whex" && printHistoryRowIdxList.length > 0) {
     for (const idx of printHistoryRowIdxList) {
       const excelRow = bodyStartRow + idx;
@@ -405,7 +404,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
     ws["!merges"] = merges;
   }
 
-  // 7) 템플릿 워크북을 읽어서, 첫 번째 시트를 우리가 만든 ws로 교체 후 저장
+  // 7) 템플릿 읽기
   (async () => {
     try {
       const res = await fetch(TEMPLATE_URL);
@@ -415,8 +414,8 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
       const arrayBuffer = await res.arrayBuffer();
       const wb = XLSX.read(arrayBuffer, { type: "array" });
 
-      const sheetName = wb.SheetNames[0]; // 템플릿 첫 번째 시트 사용
-      wb.Sheets[sheetName] = ws; // 시트 교체 (print area, 페이지 설정 등은 Workbook 레벨 설정 그대로 유지)
+      const sheetName = wb.SheetNames[0];
+      wb.Sheets[sheetName] = ws;
 
       XLSX.writeFile(
         wb,

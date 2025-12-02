@@ -8,6 +8,9 @@ type ExcelCell = string | number | null;
 // weProdStdByHoGi 에 들어오는 1행 타입(검사규격)
 export type WEProdStdByHoGi = Record<string, WEProdStdRow[]>;
 
+// ✅ 템플릿 경로 (public/test.xlsx)
+const TEMPLATE_URL = "/test.xlsx";
+
 export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
   data: T[],
   columns: GridColDef<T>[],
@@ -262,15 +265,30 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
     };
   }
 
-  // 범위
   if (!ws["!ref"]) {
-    const wbEmpty = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wbEmpty, ws, "Sheet1");
-    XLSX.writeFile(
-      wbEmpty,
-      filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`
-    );
-    onFinished?.(true);
+    // 데이터가 전혀 없는 극단적인 경우 (거의 안 생김)
+    (async () => {
+      try {
+        const res = await fetch(TEMPLATE_URL);
+        if (!res.ok) {
+          throw new Error(`템플릿 로드 실패: ${res.status} ${res.statusText}`);
+        }
+        const arrayBuffer = await res.arrayBuffer();
+        const wb = XLSX.read(arrayBuffer, { type: "array" });
+
+        const sheetName = wb.SheetNames[0];
+        wb.Sheets[sheetName] = ws;
+
+        XLSX.writeFile(
+          wb,
+          filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`
+        );
+        onFinished?.(true);
+      } catch (e) {
+        console.error(e);
+        onFinished?.(false);
+      }
+    })();
     return;
   }
 
@@ -529,18 +547,28 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
     ws["!merges"] = merges;
   }
 
-  // 6) 저장
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+  // 6) 템플릿 읽어서 첫 번째 시트 교체 후 저장
+  (async () => {
+    try {
+      const res = await fetch(TEMPLATE_URL);
+      if (!res.ok) {
+        throw new Error(`템플릿 로드 실패: ${res.status} ${res.statusText}`);
+      }
+      const arrayBuffer = await res.arrayBuffer();
+      const wb = XLSX.read(arrayBuffer, { type: "array" });
 
-  try {
-    XLSX.writeFile(
-      wb,
-      filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`
-    );
-    onFinished?.(true);
-  } catch (e) {
-    console.error(e);
-    onFinished?.(false);
-  }
+      const sheetName = wb.SheetNames[0];
+      // 🔹 템플릿의 첫 번째 시트를 우리가 만든 ws로 교체
+      wb.Sheets[sheetName] = ws;
+
+      XLSX.writeFile(
+        wb,
+        filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`
+      );
+      onFinished?.(true);
+    } catch (e) {
+      console.error(e);
+      onFinished?.(false);
+    }
+  })();
 }
