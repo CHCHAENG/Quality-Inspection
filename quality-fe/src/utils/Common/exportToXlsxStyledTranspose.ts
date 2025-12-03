@@ -8,8 +8,7 @@ type ExcelCell = string | number | null;
 // weProdStdByHoGi 에 들어오는 1행 타입(검사규격)
 export type WEProdStdByHoGi = Record<string, WEProdStdRow[]>;
 
-// ✅ 템플릿 경로 (public/test.xlsx)
-const TEMPLATE_URL = "/test.xlsx";
+const TEMPLATE_URL = "/template.xlsx";
 
 export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
   data: T[],

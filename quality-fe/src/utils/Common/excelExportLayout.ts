@@ -10,7 +10,7 @@ export interface ExportHeaderOptions {
   showApprovalLine?: boolean;
 }
 
-const TEMPLATE_URL = "/test.xlsx";
+const TEMPLATE_URL = "/template.xlsx";
 
 export function exportToXlsxStyled<T extends Record<string, unknown>>(
   data: T[],
@@ -209,7 +209,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
       bottom: { style: "thin", color: { rgb: "FF5A6A7D" } },
       left: { style: "thin", color: { rgb: "FF5A6A7D" } },
     },
-    font: { bold: true, sz: 10, color: { rgb: "FF000000" } },
+    font: { bold: true, sz: 9, color: { rgb: "FF000000" } },
     fill: { patternType: "solid", fgColor: { rgb: "FFC5D9F1" } },
     alignment: { horizontal: "center", vertical: "center", wrapText: true },
   };
