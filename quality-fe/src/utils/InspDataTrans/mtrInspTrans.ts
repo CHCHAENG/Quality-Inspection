@@ -251,10 +251,7 @@ export function normalizeServerRow(
 }
 
 // ===== 개별 행 변환 =====
-export function normalizeServerRow_Daily(
-  s: ServerRow,
-  idx: number
-): DailyInspField {
+export function normalizeServerRow_Daily(s: ServerRow): DailyInspField {
   const vendor = toStringClean(s[DAILY_FIELD_KEYS.vendor]);
   const itemName = toStringClean(s[DAILY_FIELD_KEYS.itemName]);
   const std = toStringClean(s[DAILY_FIELD_KEYS.std]);
@@ -280,7 +277,8 @@ export function normalizeServerRow_Daily(
   const shez_elongation = toNumber(s[DAILY_FIELD_KEYS.shez_elongation]);
   const inspector = toStringClean(s[DAILY_FIELD_KEYS.inspector]);
 
-  const id = lotNo ? `${lotNo || idx + 1}` : idx + 1;
+  // const id = lotNo ? `${lotNo || idx + 1}` : idx + 1;
+  const id = toStringClean(s["NO"]);
 
   return {
     id,
@@ -327,5 +325,5 @@ export function transformServerData(
 
 export function transformServerData_Daliy(arr: ServerRow[]): DailyInspField[] {
   if (!Array.isArray(arr)) return [];
-  return arr.map((row, i) => normalizeServerRow_Daily(row, i));
+  return arr.map((row) => normalizeServerRow_Daily(row));
 }
