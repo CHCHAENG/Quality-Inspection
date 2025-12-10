@@ -176,6 +176,36 @@ const WE_FIELD_KEYS = {
   pitch: "WE-14-01-1",
 } as const;
 
+const WX_FIELD_KEYS = {
+  appearance: "WX-01-01-1",
+  color: "WX-02-01-1",
+  label: "WX-03-01-1",
+  packing: "WX-04-01-1",
+  printing: "WX-05-01-1",
+
+  insulationOD: ["WX-06-01-1", "WX-06-01-2"] as const,
+  souterDiameter: "WX-07-01-1",
+  eccentricity: "WX-08-01-1",
+
+  conductorDiameters: [
+    "WX-09-01-1",
+    "WX-09-01-2",
+    "WX-09-01-3",
+    "WX-09-01-4",
+  ] as const,
+  insulationThickness: [
+    "WX-10-01-1",
+    "WX-10-01-2",
+    "WX-10-01-3",
+    "WX-10-01-4",
+  ] as const,
+
+  tensile: "WX-11-01-1",
+  elongation: "WX-12-01-1",
+  subStrandCnt: "WX-13-01-1",
+  pitch: "WX-14-01-1",
+};
+
 const WE_PROD_STD_KEYS = {
   inspName:
     "CASE WHEN $i_LANG = '0' THEN B.INSPNM ELSE IFNULL(B.INSPNM_L, B.INSPNM) END",
@@ -267,7 +297,6 @@ export function normalizeServerRow(
     cond4: d4,
   };
 }
-
 export function normalizeServerRow_WE(s: ServerRow, idx: number): FrontRow_WE {
   // 공통(좌측)
   const actualDate = (() => {
@@ -300,29 +329,38 @@ export function normalizeServerRow_WE(s: ServerRow, idx: number): FrontRow_WE {
     inspectedAt,
     remark,
   };
-  // ---- 압출(WE) ----
-  const appearance = toStringClean(s[WE_FIELD_KEYS.appearance]);
-  const color = toStringClean(s[WE_FIELD_KEYS.color]);
-  const label = toStringClean(s[WE_FIELD_KEYS.label]);
-  const packing = toStringClean(s[WE_FIELD_KEYS.packing]);
-  const printing = toStringClean(s[WE_FIELD_KEYS.printing]);
 
-  const [insulationOD1, insulationOD2] = WE_FIELD_KEYS.insulationOD.map((k) =>
+  // ---- WE / WX 행 구분 ----
+  // WX 계열 필드가 존재하면 WX, 아니면 WE 로 본다.
+  const isWX =
+    s[WX_FIELD_KEYS.appearance] !== undefined &&
+    s[WX_FIELD_KEYS.appearance] !== null;
+
+  const F = isWX ? WX_FIELD_KEYS : WE_FIELD_KEYS;
+
+  // ---- 압출(WE / WX 공통 로직) ----
+  const appearance = toStringClean(s[F.appearance]);
+  const color = toStringClean(s[F.color]);
+  const label = toStringClean(s[F.label]);
+  const packing = toStringClean(s[F.packing]);
+  const printing = toStringClean(s[F.printing]);
+
+  const [insulationOD1, insulationOD2] = F.insulationOD.map((k) =>
     toNumber(s[k])
   );
-  const souterDiameter = toNumber(s[WE_FIELD_KEYS.souterDiameter]);
-  const eccentricity = toNumber(s[WE_FIELD_KEYS.eccentricity]);
+  const souterDiameter = toNumber(s[F.souterDiameter]);
+  const eccentricity = toNumber(s[F.eccentricity]);
 
-  const [cond1, cond2, cond3, cond4] = WE_FIELD_KEYS.conductorDiameters.map(
-    (k) => toNumber(s[k])
+  const [cond1, cond2, cond3, cond4] = F.conductorDiameters.map((k) =>
+    toNumber(s[k])
   );
   const [insulThk1, insulThk2, insulThk3, insulThk4] =
-    WE_FIELD_KEYS.insulationThickness.map((k) => toNumber(s[k]));
+    F.insulationThickness.map((k) => toNumber(s[k]));
 
-  const tensile = toNumber(s[WE_FIELD_KEYS.tensile]);
-  const elongation = toNumber(s[WE_FIELD_KEYS.elongation]);
-  const subStrandCnt = toNumber(s[WE_FIELD_KEYS.subStrandCnt]);
-  const pitch = toNumber(s[WE_FIELD_KEYS.pitch]);
+  const tensile = toNumber(s[F.tensile]);
+  const elongation = toNumber(s[F.elongation]);
+  const subStrandCnt = toNumber(s[F.subStrandCnt]);
+  const pitch = toNumber(s[F.pitch]);
 
   return {
     ...base,
@@ -375,7 +413,7 @@ export function transformServerData(
 
 export function transformServerData_WE(arr: ServerRow[]): FrontRow_WE[] {
   if (!Array.isArray(arr)) return [];
-  return arr.map((row, i) => normalizeServerRow_WE(row, i));
+  return arr.map((row, id) => normalizeServerRow_WE(row, id));
 }
 
 export function transformWEProdStdData(arr: ServerRow[]): WEProdStdRow[] {

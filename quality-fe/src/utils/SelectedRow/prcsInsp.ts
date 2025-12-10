@@ -7,8 +7,7 @@ export function splitProcessNameStdColorSimple(
 ): BaseRow_WE & { itemName: string; std: string; p_color: string } {
   const raw = (r.itemName ?? "").trim();
 
-  // 예: "AVSSHF 0.3 Y" / "AVSSHF 0.5 Gr" / "AEXF 3.0 W"
-  const m = raw.match(/^(.*?)\s+([\d.]+)\s+([A-Za-z]+)$/);
+  const m = raw.match(/^(.*?)\s+([\d.]+)\s+([A-Za-z]+)(?:\s*\(.*\))?$/);
 
   const itemName = m ? m[1].trim() : raw;
   const std = m ? m[2].trim() : "";
