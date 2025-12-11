@@ -272,6 +272,7 @@ export default function Sidebar({ collapsed, toggleSidebar }: SidebarProps) {
         sx={{
           display: "flex",
           justifyContent: collapsed ? "center" : "flex-end",
+          marginY: "6px",
         }}
       >
         <IconButton
@@ -299,7 +300,7 @@ export default function Sidebar({ collapsed, toggleSidebar }: SidebarProps) {
               <img
                 src="/logo.jpg"
                 style={{
-                  width: "100px",
+                  width: "120px",
                   height: "auto",
                   display: "block",
                   margin: "0 auto",

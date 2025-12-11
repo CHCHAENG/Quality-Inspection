@@ -545,7 +545,7 @@ export default function PrcsSubWEInspDataGrid() {
       </Box>
 
       {/* 압출 호기별 설정 */}
-      <Box sx={{ flex: 1, minWidth: 0, overflow: "auto", mb: 2 }}>
+      <Box sx={{ flex: 1, minWidth: 0, overflow: "auto", mb: 3 }}>
         <Stack
           direction="row"
           alignItems="baseline"

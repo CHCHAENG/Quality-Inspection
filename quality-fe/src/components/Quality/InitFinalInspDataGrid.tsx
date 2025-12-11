@@ -417,7 +417,7 @@ export default function InitialInspDataGrid() {
       </Box>
 
       {/* 선택 행 미리보기 */}
-      <Box sx={{ flex: 1, minWidth: 0, overflow: "auto" }}>
+      <Box sx={{ flex: 1, minWidth: 0, overflow: "auto", mb: 3 }}>
         <Typography variant="subtitle2" sx={{ mb: 1 }}>
           선택한 행 미리보기
         </Typography>
