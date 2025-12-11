@@ -254,14 +254,15 @@ export default function Sidebar({ collapsed, toggleSidebar }: SidebarProps) {
       component="nav"
       aria-label="sidebar"
       sx={{
-        width: collapsed ? 60 : 220,
+        posistion: "fixed",
+        width: collapsed ? 60 : 250,
         transition: "width .2s ease",
-        // height: "100%",
+        height: "100vh",
         alignSelf: "stretch",
         display: "flex",
         flexDirection: "column",
         bgcolor: "#f4f6f8",
-        overflowY: "auto",
+        overflowY: "hidden",
         borderRight: "1px solid #e0e0e0",
       }}
     >

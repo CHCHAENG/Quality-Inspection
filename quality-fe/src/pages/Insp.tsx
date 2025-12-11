@@ -3,11 +3,11 @@ import { useState, type ReactNode } from "react";
 import Sidebar from "../components/Common/Sidebar";
 import { Outlet } from "react-router-dom";
 
-interface PrcsSubInspProps {
+interface InspProps {
   children?: ReactNode;
 }
 
-export default function PrcsSubInsp({ children }: PrcsSubInspProps) {
+export default function Insp({ children }: InspProps) {
   const [collapsed, setCollapsed] = useState(false);
   const toggleSidebar = () => setCollapsed(!collapsed);
 

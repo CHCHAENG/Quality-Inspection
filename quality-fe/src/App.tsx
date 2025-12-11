@@ -5,10 +5,7 @@ import { AlertProvider } from "./context/AlertContext";
 // ---- Lazy import
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const DashboardHome = lazy(() => import("./pages/DashboardHome"));
-const MtrInsp = lazy(() => import("./pages/MtrInsp"));
-const PrcsSubInsp = lazy(() => import("./pages/PrcsSubInsp"));
-const FinalSubInsp = lazy(() => import("./pages/FinalSubInsp"));
-const InitFinalInsp = lazy(() => import("./pages/InitFinalInsp"));
+const Insp = lazy(() => import("./pages/Insp"));
 
 const MtrInspDataGrid = lazy(
   () => import("./components/Quality/MtrInspDataGrid")
@@ -36,18 +33,18 @@ export default function App() {
         <Routes>
           <Route path="/quality" element={<Dashboard />}>
             <Route index element={<DashboardHome />} />
-            <Route path="mtr-insp" element={<MtrInsp />}>
+            <Route path="mtr-insp" element={<Insp />}>
               <Route path="daily" element={<MtrDaliyInspDataGrid />} />
               <Route path=":kind" element={<MtrInspDataGrid />} />
             </Route>
-            <Route path="prcs-insp" element={<PrcsSubInsp />}>
+            <Route path="prcs-insp" element={<Insp />}>
               <Route path="we" element={<PrcsSubWEInspDataGrid />} />
               <Route path=":kind" element={<PrcsSubInspDataGrid />} />
             </Route>
-            <Route path="final-insp" element={<FinalSubInsp />}>
+            <Route path="final-insp" element={<Insp />}>
               <Route path=":kind" element={<FinalInspDataGrid />} />
             </Route>
-            <Route path="initFinal-insp" element={<InitFinalInsp />}>
+            <Route path="initFinal-insp" element={<Insp />}>
               <Route path=":kind" element={<InitFinalInspDataGrid />} />
             </Route>
           </Route>
