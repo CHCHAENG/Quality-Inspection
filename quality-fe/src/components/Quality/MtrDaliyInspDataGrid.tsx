@@ -143,6 +143,24 @@ export default function MtrDaliyInspDataGrid() {
     return true;
   };
 
+  // -------------------- 엑셀 다운로드 + 프리뷰용 선택 행 --------------------
+  const selectedRowsForExcel = useMemo(() => {
+    let base = selectedRows;
+
+    // 특정 검사자를 선택한 경우 필터링
+    if (inspectorOptions.length >= 2 && selectedInspectors.length > 0) {
+      base = selectedRows.filter((r) => {
+        const inspectorKey = String(r.inspector ?? "").trim();
+        return selectedInspectors.includes(inspectorKey);
+      });
+    }
+
+    return base.map((r, idx) => ({
+      ...r,
+      no: idx + 1,
+    }));
+  }, [selectedRows, inspectorOptions.length, selectedInspectors]);
+
   // -------------------- 조회 버튼 --------------------
   async function handleSearch() {
     if (!startDate || !endDate) return;
@@ -291,7 +309,7 @@ export default function MtrDaliyInspDataGrid() {
             )}
 
             <ExcelDownloadButton
-              data={selectedRows}
+              data={selectedRowsForExcel}
               columns={selectedColumns}
               filename={"일일 수입검사일지.xlsx"}
               label="엑셀 다운로드"
@@ -338,7 +356,7 @@ export default function MtrDaliyInspDataGrid() {
           선택한 행 미리보기
         </Typography>
         <DataGrid
-          rows={selectedRows}
+          rows={selectedRowsForExcel}
           columns={selectedColumns}
           pagination
           initialState={{

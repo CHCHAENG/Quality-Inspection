@@ -475,7 +475,7 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
     }
   }
 
-  // ---- 5) 열 너비: 본문 기준 + 압출호기 열 통일 ----
+  // ---- 5) 열 너비: 본문 기준 + 호기 열 통일 ----
   function visualLen(str: unknown) {
     return String(str ?? "")
       .split(/\r?\n/)
@@ -520,7 +520,7 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
 
       if (
         typeof text === "string" &&
-        (/압출\s*\d+\s*호기/.test(text) || text === "압출호기")
+        (/(압출|조사)\s*\d+\s*호기/.test(text) || text === "압출호기")
       ) {
         hoGiCols.push(c);
       }

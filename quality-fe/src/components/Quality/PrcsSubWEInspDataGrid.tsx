@@ -200,6 +200,7 @@ export default function PrcsSubWEInspDataGrid() {
           twistDirection: r?.twistDirection,
           tensile: r?.tensile,
           elongation: r?.elongation,
+          inspector: r ? String(r.inspector ?? "").trim() : "",
         };
       }),
     [hoGiMap]
@@ -278,7 +279,7 @@ export default function PrcsSubWEInspDataGrid() {
       const row = hoGiMap[hoGiName];
       const name = row?.inspector;
       if (name) {
-        set.add(String(name));
+        set.add(String(name).trim());
       }
     });
 
