@@ -254,16 +254,18 @@ export default function Sidebar({ collapsed, toggleSidebar }: SidebarProps) {
       component="nav"
       aria-label="sidebar"
       sx={{
-        posistion: "fixed",
+        position: "fixed",
         width: collapsed ? 60 : 250,
         transition: "width .2s ease",
         height: "100vh",
         alignSelf: "stretch",
         display: "flex",
         flexDirection: "column",
+        flexShrink: 0,
         bgcolor: "#f4f6f8",
-        overflowY: "hidden",
+        overflow: "hidden",
         borderRight: "1px solid #e0e0e0",
+        zIndex: "1200",
       }}
     >
       <Toolbar

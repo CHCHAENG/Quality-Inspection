@@ -11,6 +11,8 @@ export default function Insp({ children }: InspProps) {
   const [collapsed, setCollapsed] = useState(false);
   const toggleSidebar = () => setCollapsed(!collapsed);
 
+  const sidebarWidth = collapsed ? 60 : 250;
+
   return (
     <Box sx={{ display: "flex", width: "100%", height: "100vh" }}>
       {/* 사이드바 */}
@@ -26,6 +28,7 @@ export default function Insp({ children }: InspProps) {
           height: "100%",
           minHeight: 0,
           p: 2,
+          ml: `${sidebarWidth}px`,
           transition: "margin 0.3s",
         }}
       >
