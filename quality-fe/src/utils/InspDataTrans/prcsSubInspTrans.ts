@@ -331,7 +331,6 @@ export function normalizeServerRow_WE(s: ServerRow, idx: number): FrontRow_WE {
   };
 
   // ---- WE / WX 행 구분 ----
-  // WX 계열 필드가 존재하면 WX, 아니면 WE 로 본다.
   const isWX =
     s[WX_FIELD_KEYS.appearance] !== undefined &&
     s[WX_FIELD_KEYS.appearance] !== null;

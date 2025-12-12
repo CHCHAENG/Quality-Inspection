@@ -58,7 +58,7 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
   // 2-1) weProdStdByHoGi 기반 "규격" 행 삽입
   // ---------------------------------------
   if (weProdStdByHoGi && finalAoA.length > 1) {
-    const headerRow = finalAoA[0]; // ["압출호기", "압출 01 호기", ...]
+    const headerRow = finalAoA[0];
     const colCountForRow = headerRow.length;
 
     const isNA = (v?: string) => !v || v.toUpperCase() === "N/A" || v === "-";
@@ -67,8 +67,6 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
     const trimTrailingZero = (raw?: string): string => {
       if (!raw) return "";
       const s = raw.trim();
-
-      // 숫자 형식 아니면 그대로
       if (!/^-?\d+(\.\d+)?$/.test(s)) return s;
 
       const [intPart, fracPart] = s.split(".");
@@ -79,6 +77,18 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
 
       return `${intPart}.${trimmedFrac}`;
     };
+
+    const detectPrefix = (): "WE" | "WX" => {
+      const firstList = Object.values(weProdStdByHoGi).find(
+        (arr) => Array.isArray(arr) && arr.length > 0
+      );
+      const firstCode = firstList?.[0]?.inspCode;
+      const s = String(firstCode ?? "").toUpperCase();
+      if (s.startsWith("WX-")) return "WX";
+      return "WE";
+    };
+
+    const PREFIX = detectPrefix();
 
     // hoGiName: "압출 01 호기" 같은 텍스트
     const getStdValue = (hoGiName: string, inspCode: string): string => {
@@ -133,14 +143,16 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
     };
 
     // 규격 행 삽입
-    insertSpecRow("절연외경1", "절연외경 규격", "WE-06-01");
-    insertSpecRow("연선외경", "연선외경 규격", "WE-07-01");
-    insertSpecRow("피치", "피치 규격", "WE-14-01");
-    insertSpecRow("소선경1", "소선경 검사규격", "WE-09-01");
-    insertSpecRow("절연두께1", "절연두께 규격", "WE-10-01");
-    insertSpecRow("편심율", "편심율 규격", "WE-08-01");
-    insertSpecRow("인장강도", "인장강도 규격", "WE-11-01");
-    insertSpecRow("신장율", "신장율 규격", "WE-12-01");
+    const code = (n: string) => `${PREFIX}-${n}`;
+
+    insertSpecRow("절연외경1", "절연외경 규격", code("06-01"));
+    insertSpecRow("연선외경", "연선외경 규격", code("07-01"));
+    insertSpecRow("피치", "피치 규격", code("14-01"));
+    insertSpecRow("소선경1", "소선경 검사규격", code("09-01"));
+    insertSpecRow("절연두께1", "절연두께 규격", code("10-01"));
+    insertSpecRow("편심율", "편심율 규격", code("08-01"));
+    insertSpecRow("인장강도", "인장강도 규격", code("11-01"));
+    insertSpecRow("신장율", "신장율 규격", code("12-01"));
   }
 
   // ---------------------------------------
