@@ -72,6 +72,8 @@ export default function DashboardHome() {
   const [collapsed, setCollapsed] = useState(false);
   const toggleSidebar = () => setCollapsed(!collapsed);
 
+  const sidebarWidth = collapsed ? 60 : 250;
+
   return (
     <Box sx={{ display: "flex", width: "100%", height: "100vh" }}>
       <Sidebar collapsed={collapsed} toggleSidebar={toggleSidebar} />
@@ -83,6 +85,7 @@ export default function DashboardHome() {
           px: 6,
           maxWidth: 1200,
           mx: "auto",
+          ml: `${sidebarWidth}px`,
         }}
       >
         <Section
