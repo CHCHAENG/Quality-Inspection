@@ -58,8 +58,8 @@ const HO_GI_LIST = [
   "압출 03 호기",
   "압출 04 호기",
   "압출 05 호기",
-  "조사 01 호기",
-  "조사 02 호기",
+  "조사 04 호기",
+  "조사 05 호기",
 ] as const;
 
 type processName = (typeof HO_GI_LIST)[number];
@@ -109,8 +109,8 @@ export default function PrcsSubWEInspDataGrid() {
     "압출 03 호기": undefined,
     "압출 04 호기": undefined,
     "압출 05 호기": undefined,
-    "조사 01 호기": undefined,
-    "조사 02 호기": undefined,
+    "조사 04 호기": undefined,
+    "조사 05 호기": undefined,
   });
   const [weProdStdByHoGi, setWeProdStdByHoGi] = useState<
     Record<processName, WEProdStdRow[]>
@@ -120,8 +120,8 @@ export default function PrcsSubWEInspDataGrid() {
     "압출 03 호기": [],
     "압출 04 호기": [],
     "압출 05 호기": [],
-    "조사 01 호기": [],
-    "조사 02 호기": [],
+    "조사 04 호기": [],
+    "조사 05 호기": [],
   });
 
   const { showAlert } = useAlert();
@@ -351,8 +351,8 @@ export default function PrcsSubWEInspDataGrid() {
         "압출 03 호기": undefined,
         "압출 04 호기": undefined,
         "압출 05 호기": undefined,
-        "조사 01 호기": undefined,
-        "조사 02 호기": undefined,
+        "조사 04 호기": undefined,
+        "조사 05 호기": undefined,
       });
 
       setWeProdStdByHoGi({
@@ -361,8 +361,8 @@ export default function PrcsSubWEInspDataGrid() {
         "압출 03 호기": [],
         "압출 04 호기": [],
         "압출 05 호기": [],
-        "조사 01 호기": [],
-        "조사 02 호기": [],
+        "조사 04 호기": [],
+        "조사 05 호기": [],
       });
     } catch (err) {
       if (reqSeq.current !== mySeq) return;
@@ -383,8 +383,8 @@ export default function PrcsSubWEInspDataGrid() {
         "압출 03 호기": [],
         "압출 04 호기": [],
         "압출 05 호기": [],
-        "조사 01 호기": [],
-        "조사 02 호기": [],
+        "조사 04 호기": [],
+        "조사 05 호기": [],
       });
     } finally {
       if (reqSeq.current === mySeq) setLoading(false);
