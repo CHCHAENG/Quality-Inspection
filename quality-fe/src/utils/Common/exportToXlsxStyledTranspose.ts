@@ -1,6 +1,6 @@
 import { GridColDef } from "@mui/x-data-grid";
 import * as XLSX from "xlsx-js-style";
-import { ExportHeaderOptions } from "./excelExportLayout";
+import { ExportHeaderOptions } from "./exportToXlsxStyled";
 import { WEProdStdRow } from "../InspDataTrans/prcsSubInspTrans";
 
 type ExcelCell = string | number | null;
@@ -63,7 +63,6 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
 
     const isNA = (v?: string) => !v || v.toUpperCase() === "N/A" || v === "-";
 
-    // 숫자 문자열의 소수점 뒤 0 제거
     const trimTrailingZero = (raw?: string): string => {
       if (!raw) return "";
       const s = raw.trim();
@@ -78,24 +77,19 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
       return `${intPart}.${trimmedFrac}`;
     };
 
-    const detectPrefix = (): "WE" | "WX" => {
-      const firstList = Object.values(weProdStdByHoGi).find(
-        (arr) => Array.isArray(arr) && arr.length > 0
-      );
-      const firstCode = firstList?.[0]?.inspCode;
-      const s = String(firstCode ?? "").toUpperCase();
-      if (s.startsWith("WX-")) return "WX";
-      return "WE";
+    const normSpecKey = (code?: string): string => {
+      const s = String(code ?? "")
+        .toUpperCase()
+        .trim();
+      const noOpt = s.split(":")[0];
+      return noOpt.replace(/^(WE|WX)-/, "");
     };
 
-    const PREFIX = detectPrefix();
-
-    // hoGiName: "압출 01 호기" 같은 텍스트
-    const getStdValue = (hoGiName: string, inspCode: string): string => {
+    const getStdValue = (hoGiName: string, specKey: string): string => {
       const list = weProdStdByHoGi[hoGiName];
       if (!list || list.length === 0) return "";
 
-      const found = list.find((row) => row.inspCode === inspCode);
+      const found = list.find((row) => normSpecKey(row.inspCode) === specKey);
       if (!found) return "";
 
       const rawMin = found.valMin?.trim();
@@ -116,43 +110,38 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
     const insertSpecRow = (
       targetLabel: string,
       specLabel: string,
-      inspCode: string
+      specKey: string
     ) => {
       const labelCol = 0;
 
       const idx = finalAoA.findIndex(
         (row, i) => i > 0 && row[labelCol] === targetLabel
       );
-
       if (idx <= 0) return;
 
       const newRow: ExcelCell[] = new Array(colCountForRow).fill("");
       newRow[0] = specLabel;
 
-      // 압출호기별 규격 값 채우기
       for (let c = 1; c < colCountForRow; c++) {
         const hoGiName = String(headerRow[c] ?? "");
         if (!hoGiName) continue;
 
-        const val = getStdValue(hoGiName, inspCode);
+        const val = getStdValue(hoGiName, specKey);
         if (val) newRow[c] = val;
       }
 
-      // targetLabel 행 위에 끼워 넣기
       finalAoA.splice(idx, 0, newRow);
     };
 
     // 규격 행 삽입
-    const code = (n: string) => `${PREFIX}-${n}`;
-
-    insertSpecRow("절연외경1", "절연외경 규격", code("06-01"));
-    insertSpecRow("연선외경", "연선외경 규격", code("07-01"));
-    insertSpecRow("피치", "피치 규격", code("14-01"));
-    insertSpecRow("소선경1", "소선경 검사규격", code("09-01"));
-    insertSpecRow("절연두께1", "절연두께 규격", code("10-01"));
-    insertSpecRow("편심율", "편심율 규격", code("08-01"));
-    insertSpecRow("인장강도", "인장강도 규격", code("11-01"));
-    insertSpecRow("신장율", "신장율 규격", code("12-01"));
+    insertSpecRow("절연외경1", "절연외경 규격", "06-01");
+    insertSpecRow("연선외경", "연선외경 규격", "07-01");
+    insertSpecRow("피치", "피치 규격", "14-01");
+    insertSpecRow("소선경1", "소선경 검사규격", "09-01");
+    insertSpecRow("절연두께1", "절연두께 규격", "10-01");
+    insertSpecRow("편심율", "편심율 규격", "08-01");
+    insertSpecRow("인장강도", "인장강도 규격", "11-01");
+    insertSpecRow("신장율", "신장율 규격", "12-01");
   }
 
   // ---------------------------------------

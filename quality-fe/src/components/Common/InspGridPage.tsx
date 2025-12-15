@@ -76,6 +76,15 @@ export type InspGridPageConfig<
   previewPageSize?: number;
 };
 
+function keepRight15(v: string | number | null | undefined): string {
+  if (v == null) return "";
+  const s = String(v).trim();
+  return s.length > 15 ? s.slice(-15) : s;
+}
+
+function normalizeHeader(v: string | undefined): string {
+  return (v ?? "").toUpperCase().replace(/\s+/g, "");
+}
 export function InspGridPage<
   Kind extends string,
   ServerRow,
@@ -123,6 +132,15 @@ export function InspGridPage<
   const { showAlert } = useAlert();
 
   const [selectedInspectors, setSelectedInspectors] = useState<string[]>([]);
+
+  const approvalWch = useMemo<[number, number, number, number]>(() => {
+    // 수입검사 원자재
+    if (effectiveKind === "st") return [9.1, 9.7, 9.7, 9.7];
+    if (effectiveKind === "pvc") return [6.1, 9.9, 9.9, 9.9];
+    if (effectiveKind === "scr") return [9.1, 9.1, 9.1, 8.1];
+
+    return [10, 10, 10, 10];
+  }, [effectiveKind]);
 
   // -------------------- 최종 컬럼 --------------------
   const columns: GridColDef[] = useMemo(
@@ -210,10 +228,40 @@ export function InspGridPage<
       });
     }
 
+    // pvc / scr 인 경우 LOT NO 오른쪽 15자리 제한
+    if (effectiveKind === "pvc" || effectiveKind === "scr") {
+      const lotCol = selectedColumns.find((c) => {
+        const h = normalizeHeader(
+          typeof c.headerName === "string" ? c.headerName : c.field
+        );
+        return h === "LOTNO";
+      });
+
+      const lotField = lotCol?.field;
+
+      if (lotField) {
+        base = base.map((r) => {
+          const row = r as Record<string, string | number | null | undefined>;
+
+          return {
+            ...r,
+            [lotField]: keepRight15(row[lotField]),
+          };
+        });
+      }
+    }
+
     return base.map((r, idx) =>
       toExcelRow ? toExcelRow(r, idx + 1) : { ...r, no: idx + 1 }
     );
-  }, [selectedRows, inspectorOptions.length, selectedInspectors, toExcelRow]);
+  }, [
+    selectedRows,
+    inspectorOptions.length,
+    selectedInspectors,
+    toExcelRow,
+    effectiveKind,
+    selectedColumns,
+  ]);
 
   // -------------------- 조회 버튼 --------------------
   async function handleSearch() {
@@ -378,6 +426,7 @@ export function InspGridPage<
                 inspectorNameText,
                 showApprovalLine: excel.showApprovalLine ?? true,
               }}
+              approvalWch={approvalWch}
             />
           </Stack>
         </Stack>

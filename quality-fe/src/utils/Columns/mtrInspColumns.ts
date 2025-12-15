@@ -92,7 +92,7 @@ export const MTR_PVC_SELECTED_COLUMNS: GridColDef[] = [
   { field: "vendor", headerName: "업체명", width: 160 },
   { field: "itemName", headerName: "품명", width: 180 },
   { field: "itemColor", headerName: "색상", width: 80 },
-  { field: "barcode", headerName: "LOT NO", width: 260 },
+  { field: "barcode", headerName: "LOT NO", width: 200 },
   { field: "pvcCheck1", headerName: "외관상태", width: 100 },
   {
     field: "pvcCheck2",
@@ -101,15 +101,14 @@ export const MTR_PVC_SELECTED_COLUMNS: GridColDef[] = [
   },
   { field: "pvcCheck3", headerName: "포장상태", width: 100 },
   { field: "decision", headerName: "판정", width: 100 },
-  { field: "vendorRemark", headerName: "비고", width: 160 },
 ];
 
 // -------------------- SCR Selected 컬럼 --------------------
 export const MTR_SCR_SELECTED_COLUMNS: GridColDef[] = [
   { field: "no", headerName: "NO", width: 50 },
   { field: "vendor", headerName: "업체명", width: 160 },
-  { field: "barcode", headerName: "LOT NO", width: 260 },
-  { field: "packing", headerName: "포장상태", width: 160 },
+  { field: "barcode", headerName: "LOT NO", width: 200 },
+  { field: "packing", headerName: "포장상태", width: 100 },
   {
     field: "appearance",
     headerName: "외관(흠.녹.균열이 없을것)",
@@ -120,7 +119,6 @@ export const MTR_SCR_SELECTED_COLUMNS: GridColDef[] = [
   { field: "cond3", headerName: "도체경3", width: 90, type: "number" },
   { field: "cond4", headerName: "도체경4", width: 90, type: "number" },
   { field: "qty", headerName: "입고수량", width: 80, type: "number" },
-  { field: "vendorRemark", headerName: "비고", width: 160 },
 ];
 
 // -------------------- Selected 컬럼 최종 --------------------

@@ -10,6 +10,10 @@ export interface ExportHeaderOptions {
   showApprovalLine?: boolean;
 }
 
+export interface ExportWidthOptions {
+  approvalWch?: [number, number, number, number];
+}
+
 const TEMPLATE_URL = "/template.xlsx";
 
 export function exportToXlsxStyled<T extends Record<string, unknown>>(
@@ -18,7 +22,8 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
   filename: string,
   kind?: string,
   onFinished?: (success: boolean) => void,
-  headerOptions?: ExportHeaderOptions
+  headerOptions?: ExportHeaderOptions,
+  widthOptions?: ExportWidthOptions
 ) {
   // 1) 헤더 텍스트 배열 (DataGrid 헤더)
   const headers = columns.map((c) => c.headerName ?? String(c.field));
@@ -137,10 +142,15 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
   // 3) AoA -> Sheet
   const ws = XLSX.utils.aoa_to_sheet(sheetAoA);
 
+  ws["!rows"] = ws["!rows"] ?? [];
+  ws["!rows"][4] = { hpt: 28.5 };
+  ws["!rows"][5] = { hpt: 28.5 };
+
   // ================================
   // 3.5) 상단 제목/결재 영역 병합 설정
   // ================================
   const merges: XLSX.Range[] = ws["!merges"] ?? [];
+
   if (headerOffset > 0 && colCountForHeader > 0 && headerOptions) {
     const { title, inspectDateText, inspectorNameText, showApprovalLine } =
       headerOptions;
@@ -209,7 +219,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
       bottom: { style: "thin", color: { rgb: "FF5A6A7D" } },
       left: { style: "thin", color: { rgb: "FF5A6A7D" } },
     },
-    font: { bold: true, sz: 9, color: { rgb: "FF000000" } },
+    font: { bold: true, sz: 10, color: { rgb: "FF000000" } },
     fill: { patternType: "solid", fgColor: { rgb: "FFC5D9F1" } },
     alignment: { horizontal: "center", vertical: "center", wrapText: true },
   };
@@ -360,11 +370,38 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
 
   if (ws["!ref"]) {
     const startRowForWidth = bodyStartRow;
-
     const colWidths: { wch: number }[] = [];
 
+    // 결재 칸 너비
+    const aw = widthOptions?.approvalWch;
+    const approvalWch =
+      aw &&
+      aw.length === 4 &&
+      aw.every((n) => typeof n === "number" && Number.isFinite(n) && n > 0)
+        ? aw
+        : undefined;
+
+    const approvalStartCol =
+      headerOptions?.showApprovalLine && colCountForHeader > 0
+        ? Math.max(colCountForHeader - 4, 0)
+        : -1;
+
+    const getApprovalWch = (c: number) => {
+      if (!approvalWch) return undefined;
+      if (approvalStartCol < 0) return undefined;
+      const idx = c - approvalStartCol; // 0..3
+      if (idx < 0 || idx > 3) return undefined;
+      return approvalWch[idx];
+    };
+
     for (let c = range.s.c; c <= range.e.c; c++) {
-      // 시료확인 컬럼
+      const awch = getApprovalWch(c);
+      if (awch !== undefined) {
+        colWidths[c] = { wch: awch };
+        continue;
+      }
+
+      // 시료확인 컬럼 고정
       if (c === fixedSampleSizeColIndex) {
         colWidths[c] = { wch: 15.86 };
         continue;

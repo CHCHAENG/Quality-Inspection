@@ -3,7 +3,8 @@ import { type GridColDef } from "@mui/x-data-grid";
 import {
   exportToXlsxStyled,
   type ExportHeaderOptions,
-} from "../../utils/Common/excelExportLayout";
+  type ExportWidthOptions,
+} from "../../utils/Common/exportToXlsxStyled";
 import { useAlert } from "../../context/AlertContext";
 import {
   exportToXlsxStyledTranspose,
@@ -20,6 +21,7 @@ type ExcelDownloadButtonProps<T extends Record<string, unknown>> = {
   headerOptions?: ExportHeaderOptions;
   onBeforeDownload?: () => boolean | void;
   transposeSource?: WEProdStdByHoGi;
+  approvalWch?: ExportWidthOptions["approvalWch"];
 };
 
 export function ExcelDownloadButton<T extends Record<string, unknown>>(
@@ -35,6 +37,7 @@ export function ExcelDownloadButton<T extends Record<string, unknown>>(
     headerOptions,
     onBeforeDownload,
     transposeSource,
+    approvalWch,
   } = props;
 
   const { showAlert } = useAlert();
@@ -88,7 +91,8 @@ export function ExcelDownloadButton<T extends Record<string, unknown>>(
           filename,
           kind,
           callback,
-          headerOptions
+          headerOptions,
+          approvalWch ? { approvalWch } : undefined
         );
       }
     } catch (e) {
