@@ -70,6 +70,7 @@ export default function InitialInspDataGrid() {
             : "초종품 검사일지(고전압 압출)",
         showApprovalLine: true,
       }}
+      inspectionType={"initFinal"}
     />
   );
 }

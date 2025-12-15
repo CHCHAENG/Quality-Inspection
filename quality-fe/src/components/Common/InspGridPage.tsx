@@ -157,6 +157,19 @@ export function InspGridPage<
       if (effectiveKind === "st") return [7.8, 8.2, 8.2, 8.2];
       if (effectiveKind === "dr") return [10.1, 11.2, 11.2, 11.2];
     }
+
+    // 초종품 검사
+    if (inspectionType === "initFinal") {
+      // if (effectiveKind === "wx") return [8.5, 8.5, 8.5, 8.5];
+      if (effectiveKind === "whex") return [10.7, 10.7, 10.7, 10.7];
+      if (effectiveKind === "whbs") return [8.5, 8.5, 8.5, 8.5];
+    }
+
+    // 완제품 검사
+    if (inspectionType === "final") {
+      if (effectiveKind === "wx") return [8.2, 8.2, 8.2, 8.2];
+      if (effectiveKind === "we") return [5.8, 10.7, 10.7, 10.7];
+    }
     return [10, 10, 10, 10];
   }, [effectiveKind, inspectionType]);
 

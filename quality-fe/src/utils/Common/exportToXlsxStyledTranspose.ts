@@ -289,7 +289,6 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
   }
 
   if (!ws["!ref"]) {
-    // 데이터가 전혀 없는 극단적인 경우 (거의 안 생김)
     (async () => {
       try {
         const res = await fetch(TEMPLATE_URL);

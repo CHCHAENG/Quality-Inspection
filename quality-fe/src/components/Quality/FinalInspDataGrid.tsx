@@ -45,9 +45,7 @@ export default function FinalInspDataGrid() {
       transformRows={transformServerData}
       getColumns={getFinalColumns}
       getSelectedColumns={getFinalSelectedColumns}
-      // exclude에서만 파싱 돌리던 부분 그대로 유지
       mapExcludedRow={(row) => splitProcessNameStdColor(row)}
-      // kind별 추가 가공
       mapSelectedBase={(rows, kind) =>
         kind === "whex" ? rows.map(getBraidedShieldValue) : rows
       }
@@ -68,6 +66,7 @@ export default function FinalInspDataGrid() {
             : "초종품 검사일지(조사공정)",
         showApprovalLine: true,
       }}
+      inspectionType="final"
     />
   );
 }

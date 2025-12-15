@@ -26,7 +26,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
   widthOptions?: ExportWidthOptions
 ) {
   // 1) 헤더 텍스트 배열 (DataGrid 헤더)
-  const headers = columns.map((c) => c.headerName ?? String(c.field));
+  let headers = columns.map((c) => c.headerName ?? String(c.field));
 
   // 2) 본문 AoA
   const rowsAoA: ExcelCell[][] = [];
@@ -55,6 +55,25 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
   });
 
   const printHistoryRowIdxSet = new Set(printHistoryRowIdxList);
+  const sampleHeaderName = "시료확인";
+  const sampleColIndexRaw = headers.findIndex((h) => h === sampleHeaderName);
+
+  if (kind === "final_we" && sampleColIndexRaw >= 0) {
+    headers = [
+      ...headers.slice(0, sampleColIndexRaw + 1),
+      "",
+      ...headers.slice(sampleColIndexRaw + 1),
+    ];
+
+    for (let i = 0; i < rowsAoA.length; i++) {
+      const r = rowsAoA[i];
+      rowsAoA[i] = [
+        ...r.slice(0, sampleColIndexRaw + 1),
+        "",
+        ...r.slice(sampleColIndexRaw + 1),
+      ];
+    }
+  }
 
   const baseAoA: ExcelCell[][] = [headers, ...rowsAoA];
   const finalAoA: ExcelCell[][] = baseAoA;
@@ -69,16 +88,25 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
   let inspectorRowIndex = -1;
   let approvalBottomRowIndex = -1;
 
+  const getApprovalStartCol = (colCount: number) => {
+    const useApproval = !!headerOptions?.showApprovalLine;
+    if (!useApproval) return colCount;
+
+    const approvalCols = 4;
+
+    if (kind === "final_we" && sampleColIndexRaw >= 0) {
+      return Math.min(sampleColIndexRaw, Math.max(colCount - approvalCols, 0));
+    }
+
+    return Math.max(colCount - approvalCols, 0);
+  };
+
   if (colCountForHeader > 0 && headerOptions) {
     const { title, inspectDateText, inspectorNameText, showApprovalLine } =
       headerOptions;
 
     const useApproval = !!showApprovalLine;
-    const approvalCols = useApproval ? 4 : 0;
-    const approvalStartCol =
-      approvalCols > 0
-        ? Math.max(colCountForHeader - approvalCols, 0)
-        : colCountForHeader;
+    const approvalStartCol = getApprovalStartCol(colCountForHeader);
 
     const makeBlankRow = () => new Array<ExcelCell>(colCountForHeader).fill("");
 
@@ -100,9 +128,8 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
     // (2) 검사일 / 결재
     if (inspectDateText || useApproval) {
       const row = makeBlankRow();
-      if (inspectDateText) {
-        row[0] = `검사일 : ${inspectDateText}`;
-      }
+      if (inspectDateText) row[0] = `검사일 : ${inspectDateText}`;
+
       if (useApproval && approvalStartCol < colCountForHeader) {
         row[approvalStartCol] = "결재";
         if (approvalStartCol + 1 < colCountForHeader)
@@ -112,6 +139,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
         if (approvalStartCol + 3 < colCountForHeader)
           row[approvalStartCol + 3] = "승인";
       }
+
       inspectRowIndex = extraHeaderRows.length;
       extraHeaderRows.push(row);
     }
@@ -119,9 +147,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
     // (3) 검사자
     if (inspectorNameText || useApproval) {
       const row = makeBlankRow();
-      if (inspectorNameText) {
-        row[0] = `검사자 : ${inspectorNameText}`;
-      }
+      if (inspectorNameText) row[0] = `검사자 : ${inspectorNameText}`;
       inspectorRowIndex = extraHeaderRows.length;
       extraHeaderRows.push(row);
     }
@@ -157,10 +183,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
 
     const useApproval = !!showApprovalLine;
     const approvalCols = useApproval ? 4 : 0;
-    const approvalStartCol =
-      approvalCols > 0
-        ? Math.max(colCountForHeader - approvalCols, 0)
-        : colCountForHeader;
+    const approvalStartCol = getApprovalStartCol(colCountForHeader);
 
     if (title) {
       merges.push({
@@ -241,10 +264,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
 
     const useApproval = !!showApprovalLine;
     const approvalCols = useApproval ? 4 : 0;
-    const approvalStartCol =
-      approvalCols > 0
-        ? Math.max(colCountForHeader - approvalCols, 0)
-        : colCountForHeader;
+    const approvalStartCol = getApprovalStartCol(colCountForHeader);
 
     const hasMeta =
       !!inspectDateText || !!inspectorNameText || !!showApprovalLine;
@@ -264,9 +284,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
       r++;
     }
 
-    if (hasMeta) {
-      r++;
-    }
+    if (hasMeta) r++;
 
     const metaRowsSet = new Set<number>();
     if (inspectRowIndex >= 0) metaRowsSet.add(inspectRowIndex);
@@ -278,9 +296,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
     for (const rowIdx of metaRows) {
       for (let c = 0; c < colCountForHeader; c++) {
         const addr = XLSX.utils.encode_cell({ r: rowIdx, c });
-        if (!ws[addr]) {
-          ws[addr] = { t: "s", v: "" };
-        }
+        if (!ws[addr]) ws[addr] = { t: "s", v: "" };
 
         const isApprovalBlock =
           useApproval &&
@@ -317,9 +333,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
 
     for (let c = range.s.c; c <= range.e.c; c++) {
       const addr = XLSX.utils.encode_cell({ r, c });
-      if (!ws[addr]) {
-        ws[addr] = { t: "s", v: "" };
-      }
+      if (!ws[addr]) ws[addr] = { t: "s", v: "" };
 
       const cell = ws[addr];
       const prevStyle = cell.s || {};
@@ -334,14 +348,8 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
         },
         ...(isPrintHistoryRow
           ? {
-              fill: {
-                patternType: "solid",
-                fgColor: { rgb: "FFFFFF00" },
-              },
-              font: {
-                ...(prevStyle.font || {}),
-                bold: true,
-              },
+              fill: { patternType: "solid", fgColor: { rgb: "FFFFFF00" } },
+              font: { ...(prevStyle.font || {}), bold: true },
             }
           : {}),
       };
@@ -361,12 +369,8 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
       .reduce((a, b) => Math.max(a, b), 0);
   }
 
-  const fixedSampleSizeColIndex =
-    kind === "final_we" || kind === "initialFinal_wx"
-      ? columns.findIndex(
-          (c) => (c.headerName ?? String(c.field)) === "시료확인"
-        )
-      : -1;
+  // 시료확인 컬럼 index (final_we에서 더미 컬럼 추가했으면 그대로 sampleColIndexRaw 사용)
+  const fixedSampleStartColIndex = kind === "final_we" ? sampleColIndexRaw : -1;
 
   if (ws["!ref"]) {
     const startRowForWidth = bodyStartRow;
@@ -383,7 +387,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
 
     const approvalStartCol =
       headerOptions?.showApprovalLine && colCountForHeader > 0
-        ? Math.max(colCountForHeader - 4, 0)
+        ? getApprovalStartCol(colCountForHeader)
         : -1;
 
     const getApprovalWch = (c: number) => {
@@ -401,14 +405,19 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
         continue;
       }
 
-      // 시료확인 컬럼 고정
-      if (c === fixedSampleSizeColIndex) {
-        colWidths[c] = { wch: 15.86 };
-        continue;
+      // final_we: 시료확인(시작col) + 병합파트너(col+1) 너비 처리
+      if (kind === "final_we" && fixedSampleStartColIndex >= 0) {
+        if (c === fixedSampleStartColIndex) {
+          colWidths[c] = { wch: 15.86 };
+          continue;
+        }
+        if (c === fixedSampleStartColIndex + 1) {
+          colWidths[c] = { wch: 2 }; // 병합 파트너는 좁게
+          continue;
+        }
       }
 
       let maxLen = 0;
-
       for (let r = startRowForWidth; r <= range.e.r; r++) {
         const addr = XLSX.utils.encode_cell({ r, c });
         const cell = ws[addr];
@@ -432,7 +441,25 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
 
       merges.push({
         s: { r: excelRow, c: 0 },
-        e: { r: excelRow, c: columns.length - 1 },
+        e: { r: excelRow, c: headers.length - 1 },
+      });
+    }
+  }
+
+  // =========================================================
+  // 6-1) final_we : 시료확인(S~T) 8행부터 가로 병합
+  // - 이제 더미 컬럼이 "실제로 존재"하므로
+  //   초/종품, 판정이 U, V로 정상 표시됨
+  // =========================================================
+  if (kind === "final_we" && sampleColIndexRaw >= 0) {
+    const START_EXCEL_ROW = 7; // 엑셀 8행(0-based)
+    const c1 = sampleColIndexRaw;
+    const c2 = sampleColIndexRaw + 1;
+
+    for (let r = START_EXCEL_ROW; r <= range.e.r; r++) {
+      merges.push({
+        s: { r, c: c1 },
+        e: { r, c: c2 },
       });
     }
   }
