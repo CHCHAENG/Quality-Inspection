@@ -60,6 +60,7 @@ export default function MtrInspDataGrid() {
             : "원자재 수입검사 일지(연선)",
         showApprovalLine: true,
       }}
+      inspectionType={"mtr"}
     />
   );
 }

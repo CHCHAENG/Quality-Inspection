@@ -24,10 +24,24 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
   // 2) 본문 AoA
   const rowsAoA: ExcelCell[][] = [];
 
+  const normalize = (v: unknown) =>
+    String(v ?? "")
+      .replace(/\s+/g, "")
+      .toUpperCase();
+
   data.forEach((row) => {
     const baseRow: ExcelCell[] = columns.map((c) => {
       const field = c.field as keyof T;
+      const header = normalize(c.headerName ?? c.field);
       const v = row[field];
+
+      if (header === "꼬임방향") {
+        return "S";
+      }
+
+      if (header === "검사결과") {
+        return "합격";
+      }
 
       if (v === null || v === undefined) return null;
       if (typeof v === "number") return v;
@@ -165,6 +179,15 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
     }
   }
 
+  const yellowRowIdxSet = new Set<number>();
+
+  for (let i = 0; i < finalAoA.length; i++) {
+    const label = String(finalAoA[i]?.[0] ?? "").trim();
+    if (label === "편심율 규격" || label === "검사결과") {
+      yellowRowIdxSet.add(i);
+    }
+  }
+
   // ================================
   // 2.5) 상단 "제목/검사일/검사자/결재선" 행
   // ================================
@@ -261,7 +284,7 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
     wsAny["!rows"] = wsAny["!rows"] ?? [];
     wsAny["!rows"]![excelRowIndex] = {
       ...(wsAny["!rows"]![excelRowIndex] || {}),
-      hpt: 135,
+      hpt: 85,
     };
   }
 
@@ -454,7 +477,11 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
 
   // (4-3) 본문 스타일
   const bodyStartRow = headerRowIndex2 + 1;
+
   for (let r = bodyStartRow; r <= range.e.r; r++) {
+    const finalAoAIdx = r - headerOffset;
+    const isYellowRow = finalAoAIdx >= 0 && yellowRowIdxSet.has(finalAoAIdx);
+
     for (let c = range.s.c; c <= range.e.c; c++) {
       const addr = XLSX.utils.encode_cell({ r, c });
       if (!ws[addr]) {
@@ -472,6 +499,15 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
           vertical: "center",
           wrapText: true,
         },
+
+        ...(isYellowRow
+          ? {
+              fill: {
+                patternType: "solid",
+                fgColor: { rgb: "FFFFFF00" },
+              },
+            }
+          : {}),
       };
     }
   }

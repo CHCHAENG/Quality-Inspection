@@ -37,7 +37,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
       const field = c.field as keyof T;
       const v = row[field];
 
-      if (v === null || v === undefined) return null;
+      if (v === null || v === undefined) return "-";
       if (typeof v === "number") return v;
       return String(v);
     });

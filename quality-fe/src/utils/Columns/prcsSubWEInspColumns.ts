@@ -94,7 +94,6 @@ export const PRCS_WE_HOGI_COLUMNS: GridColDef[] = [
   { field: "std", headerName: "규격", width: 90 },
   { field: "p_color", headerName: "색상", width: 70 },
   { field: "inspLot", headerName: "집합선LOT", width: 150 },
-  { field: "sampleSize", headerName: "시료크기", width: 100 },
   { field: "printing", headerName: "인쇄상태", width: 100 },
   { field: "appearance", headerName: "겉모양", width: 100 },
   { field: "printing_his", headerName: "인쇄내역", width: 100 },
@@ -134,12 +133,6 @@ export const PRCS_WE_HOGI_COLUMNS: GridColDef[] = [
   { field: "cond2", headerName: "소선경2", width: 100, type: "number" },
   { field: "cond3", headerName: "소선경3", width: 100, type: "number" },
   { field: "cond4", headerName: "소선경4", width: 100, type: "number" },
-  {
-    field: "avg_cond",
-    headerName: "소선경평균",
-    width: 120,
-    type: "number",
-  },
   {
     field: "insulThk1",
     headerName: "절연두께1",

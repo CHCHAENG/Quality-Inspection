@@ -43,6 +43,7 @@ export default function PrcsSubInspDataGrid() {
           kind === "dr" ? "순회검사일지 신선" : "순회검사일지 연선",
         showApprovalLine: true,
       }}
+      inspectionType={"prcs"}
     />
   );
 }

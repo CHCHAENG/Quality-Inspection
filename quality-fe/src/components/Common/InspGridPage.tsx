@@ -74,7 +74,16 @@ export type InspGridPageConfig<
   // 그리드 옵션
   pageSize?: number;
   previewPageSize?: number;
+
+  inspectionType?: InspectionType;
 };
+
+type InspectionType =
+  | "mtr" // 수입검사(원자재)
+  | "prcs" // 순회검사
+  | "final" // 완제품
+  | "initFinal" // 초종품
+  | "other";
 
 function keepRight15(v: string | number | null | undefined): string {
   if (v == null) return "";
@@ -133,14 +142,23 @@ export function InspGridPage<
 
   const [selectedInspectors, setSelectedInspectors] = useState<string[]>([]);
 
+  const inspectionType = props.inspectionType ?? "other";
+
   const approvalWch = useMemo<[number, number, number, number]>(() => {
     // 수입검사 원자재
-    if (effectiveKind === "st") return [9.1, 9.7, 9.7, 9.7];
-    if (effectiveKind === "pvc") return [6.1, 9.9, 9.9, 9.9];
-    if (effectiveKind === "scr") return [9.1, 9.1, 9.1, 8.1];
+    if (inspectionType === "mtr") {
+      if (effectiveKind === "st") return [9.1, 9.7, 9.7, 9.7];
+      if (effectiveKind === "pvc") return [6.1, 9.9, 9.9, 9.9];
+      if (effectiveKind === "scr") return [9.1, 9.1, 9.1, 8.1];
+    }
 
+    // 순회검사
+    if (inspectionType === "prcs") {
+      if (effectiveKind === "st") return [7.8, 8.2, 8.2, 8.2];
+      if (effectiveKind === "dr") return [10.1, 11.2, 11.2, 11.2];
+    }
     return [10, 10, 10, 10];
-  }, [effectiveKind]);
+  }, [effectiveKind, inspectionType]);
 
   // -------------------- 최종 컬럼 --------------------
   const columns: GridColDef[] = useMemo(

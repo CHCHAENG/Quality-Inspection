@@ -94,7 +94,6 @@ export const PRCS_ST_SELECTED_COLUMNS: GridColDef[] = [
   { field: "cond4", headerName: "소선경 4", width: 110, type: "number" },
   { field: "twistDirection", headerName: "꼬임방향", width: 100 },
   { field: "decision", headerName: "판정", width: 90 },
-  { field: "remark", headerName: "비고", width: 160 },
 ];
 
 // -------------------- 신선(DR) Selected 컬럼 --------------------
@@ -129,7 +128,6 @@ export const PRCS_DR_SELECTED_COLUMNS: GridColDef[] = [
     type: "number",
   },
   { field: "decision", headerName: "판정", width: 90 },
-  { field: "remark", headerName: "비고", width: 160 },
 ];
 
 // -------------------- Selected 컬럼 헬퍼 --------------------

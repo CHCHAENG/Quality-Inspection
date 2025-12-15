@@ -53,7 +53,6 @@ dayjs.extend(minMax);
 
 // 압출 호기 리스트
 const HO_GI_LIST = [
-  "압출 01 호기",
   "압출 02 호기",
   "압출 03 호기",
   "압출 04 호기",
@@ -104,7 +103,6 @@ export default function PrcsSubWEInspDataGrid() {
   const [hoGiMap, setHoGiMap] = useState<
     Record<processName, FrontRow_WE | undefined>
   >({
-    "압출 01 호기": undefined,
     "압출 02 호기": undefined,
     "압출 03 호기": undefined,
     "압출 04 호기": undefined,
@@ -115,7 +113,6 @@ export default function PrcsSubWEInspDataGrid() {
   const [weProdStdByHoGi, setWeProdStdByHoGi] = useState<
     Record<processName, WEProdStdRow[]>
   >({
-    "압출 01 호기": [],
     "압출 02 호기": [],
     "압출 03 호기": [],
     "압출 04 호기": [],
@@ -346,7 +343,6 @@ export default function PrcsSubWEInspDataGrid() {
       // 조회 다시 할 때 호기 선택/데이터 초기화
       setSelectedHoGi("");
       setHoGiMap({
-        "압출 01 호기": undefined,
         "압출 02 호기": undefined,
         "압출 03 호기": undefined,
         "압출 04 호기": undefined,
@@ -356,7 +352,6 @@ export default function PrcsSubWEInspDataGrid() {
       });
 
       setWeProdStdByHoGi({
-        "압출 01 호기": [],
         "압출 02 호기": [],
         "압출 03 호기": [],
         "압출 04 호기": [],
@@ -378,7 +373,6 @@ export default function PrcsSubWEInspDataGrid() {
       setSelectedInspectors([]);
 
       setWeProdStdByHoGi({
-        "압출 01 호기": [],
         "압출 02 호기": [],
         "압출 03 호기": [],
         "압출 04 호기": [],
