@@ -10,13 +10,6 @@ export interface ExportHeaderOptions {
   showApprovalLine?: boolean;
 }
 
-/**
- * transposeMerged:
- * - 샘플 1개당 2열(B~C, D~E...) 병합해서 값 표시
- * - 단, "엑셀 13번째 행부터"는 샘플 2열 병합을 하지 않음
- *   => 왼쪽 셀(값)은 채우고, 오른쪽 셀은 항상 빈칸 유지
- * - 상단 헤더(제목/검사일/검사자/결재선)는 첫 번째 코드 스타일
- */
 export function exportToXlsxStyledTransposedMerged<
   T extends Record<string, unknown>
 >(
@@ -27,10 +20,8 @@ export function exportToXlsxStyledTransposedMerged<
   onFinished?: (success: boolean) => void
 ) {
   try {
-    // ====== 병합 중단 기준(엑셀 행번호 13부터 병합X) ======
-    const MERGE_STOP_EXCEL_ROW = 13; // 1-base
-    const MERGE_STOP_R0 = MERGE_STOP_EXCEL_ROW - 1; // 0-base r
-    // =======================================================
+    const MERGE_STOP_EXCEL_ROW = 13;
+    const MERGE_STOP_R0 = MERGE_STOP_EXCEL_ROW - 1;
 
     // ----------------------------
     // 0) 입력 정리
@@ -67,7 +58,6 @@ export function exportToXlsxStyledTransposedMerged<
     for (let i = 0; i < sampleCount; i++) {
       const cStart = 1 + i * 2;
       tableHeaderRow[cStart] = i + 1;
-      // 오른쪽 셀은 빈칸 유지
       tableHeaderRow[cStart + 1] = "";
     }
 
@@ -79,13 +69,10 @@ export function exportToXlsxStyledTransposedMerged<
       const colDef = labelCols[li];
 
       for (let si = 0; si < sampleCount; si++) {
-        const cStart = 1 + si * 2; // 병합쌍의 첫칸(왼쪽)
-        const cSecond = cStart + 1; // 병합쌍의 두번째칸(오른쪽)
-
-        // 왼쪽 셀에 값
+        const cStart = 1 + si * 2;
+        const cSecond = cStart + 1;
         row[cStart] = getCellValue(safeData[si], colDef);
 
-        // ✅ 오른쪽 셀은 항상 빈칸 (13행 이후도 포함)
         row[cSecond] = "";
       }
 
@@ -150,25 +137,19 @@ export function exportToXlsxStyledTransposedMerged<
         inspectorRowIndex = extraHeaderRows.length;
         extraHeaderRows.push(row);
       }
-
       if (useApproval) {
-        approvalBottomRowIndex = extraHeaderRows.length;
         extraHeaderRows.push(makeBlankRow());
+        extraHeaderRows.push(makeBlankRow());
+        approvalBottomRowIndex = extraHeaderRows.length - 1;
       }
-
-      extraHeaderRows.push(makeBlankRow());
     }
 
     const headerOffset = extraHeaderRows.length;
     const sheetAoA =
       headerOffset > 0 ? [...extraHeaderRows, ...mainAoA] : mainAoA;
 
-    // 메인 테이블의 실제 시작 r(0-index)
     const tableHeaderExcelRow = headerOffset + 0;
     const firstBodyExcelRow = headerOffset + 1;
-
-    // ✅ 여기에서 "13행부터 오른쪽 칸에 값 복사" 로직을 제거함
-    // (오른쪽 칸은 원래 AoA 생성 단계에서 이미 ""로 채워져 있음)
 
     // ----------------------------
     // 3) Sheet 생성
@@ -222,12 +203,11 @@ export function exportToXlsxStyledTransposedMerged<
       }
     }
 
-    // ✅ 메인 테이블: 샘플 2열 병합(헤더 + 데이터) BUT 13행부터는 병합 금지
+    // 메인 테이블
     for (let i = 0; i < sampleCount; i++) {
       const cStart = 1 + i * 2;
       const cEnd = cStart + 1;
 
-      // 테이블 헤더(번호) 병합은 유지 (원하면 이것도 끊을 수 있음)
       if (tableHeaderExcelRow < MERGE_STOP_R0) {
         merges.push({
           s: { r: tableHeaderExcelRow, c: cStart },
@@ -235,12 +215,63 @@ export function exportToXlsxStyledTransposedMerged<
         });
       }
 
-      // 데이터 영역 병합: r < 13 행까지만
       for (let li = 0; li < labelCols.length; li++) {
         const r = firstBodyExcelRow + li;
         if (r >= MERGE_STOP_R0) continue;
 
         merges.push({ s: { r, c: cStart }, e: { r, c: cEnd } });
+      }
+    }
+
+    // 엑셀 기준 1-base → 0-base
+    const RIGHT_MERGE_1_START = 13 - 1;
+    const RIGHT_MERGE_1_END = 20 - 1;
+    const RIGHT_MERGE_2_START = 21 - 1;
+
+    const lastRow = firstBodyExcelRow + labelCols.length - 1;
+
+    for (let si = 0; si < sampleCount; si++) {
+      const cRight = 1 + si * 2 + 1;
+
+      // 13 ~ 20 병합
+      if (RIGHT_MERGE_1_START <= lastRow) {
+        merges.push({
+          s: {
+            r: Math.max(RIGHT_MERGE_1_START, firstBodyExcelRow),
+            c: cRight,
+          },
+          e: {
+            r: Math.min(RIGHT_MERGE_1_END, lastRow),
+            c: cRight,
+          },
+        });
+      }
+
+      // 21 ~ 마지막 병합
+      if (RIGHT_MERGE_2_START <= lastRow) {
+        merges.push({
+          s: {
+            r: Math.max(RIGHT_MERGE_2_START, firstBodyExcelRow),
+            c: cRight,
+          },
+          e: {
+            r: lastRow,
+            c: cRight,
+          },
+        });
+      }
+    }
+
+    const PRINT_HISTORY_ROW = 13 - 1;
+
+    for (let si = 0; si < sampleCount; si++) {
+      const cRight = 1 + si * 2 + 1;
+      const r = Math.max(PRINT_HISTORY_ROW, firstBodyExcelRow);
+
+      if (r <= lastRow) {
+        const addr = XLSX.utils.encode_cell({ r, c: cRight });
+        if (!ws[addr]) ws[addr] = { t: "s", v: "" };
+        ws[addr].v = "인쇄이력";
       }
     }
 
@@ -340,14 +371,12 @@ export function exportToXlsxStyledTransposedMerged<
     for (let li = 0; li < labelCols.length; li++) {
       const r = firstBodyExcelRow + li;
 
-      // 라벨(A열)
       {
         const addr = XLSX.utils.encode_cell({ r, c: 0 });
         if (!ws[addr]) ws[addr] = { t: "s", v: "" };
         ws[addr].s = labelStyle;
       }
 
-      // 값(샘플 영역)
       for (let c = 1; c < totalCols; c++) {
         const addr = XLSX.utils.encode_cell({ r, c });
         if (!ws[addr]) ws[addr] = { t: "s", v: "" };
