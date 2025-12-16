@@ -43,15 +43,6 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
     });
 
     rowsAoA.push(baseRow);
-
-    // final_whex 용 인쇄이력 행
-    if (kind === "final_whex") {
-      const printHistoryRow: ExcelCell[] = columns.map((_, idx) =>
-        idx === 0 ? "인쇄이력" : ""
-      );
-      rowsAoA.push(printHistoryRow);
-      printHistoryRowIdxList.push(rowsAoA.length - 1); // rowsAoA 기준 index
-    }
   });
 
   const printHistoryRowIdxSet = new Set(printHistoryRowIdxList);
@@ -432,18 +423,6 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
     }
 
     ws["!cols"] = colWidths;
-  }
-
-  // 6) "인쇄이력" 행 셀 병합
-  if (kind === "final_whex" && printHistoryRowIdxList.length > 0) {
-    for (const idx of printHistoryRowIdxList) {
-      const excelRow = bodyStartRow + idx;
-
-      merges.push({
-        s: { r: excelRow, c: 0 },
-        e: { r: excelRow, c: headers.length - 1 },
-      });
-    }
   }
 
   // =========================================================

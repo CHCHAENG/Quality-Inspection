@@ -57,7 +57,7 @@ export default function FinalInspDataGrid() {
             ? "초종품검사(저전압 압출).xlsx"
             : "초종품검사(저전압 조사후).xlsx",
         kindProp: (kind) =>
-          kind === "whex" ? "final_whex" : kind === "we" ? "final_we" : "",
+          kind === "whex" ? "transposeMerged" : kind === "we" ? "final_we" : "",
         headerTitle: (kind) =>
           kind === "whex"
             ? "고전압 완제품 검사일지"

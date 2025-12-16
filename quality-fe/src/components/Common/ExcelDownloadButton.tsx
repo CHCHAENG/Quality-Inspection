@@ -10,6 +10,7 @@ import {
   exportToXlsxStyledTranspose,
   type WEProdStdByHoGi,
 } from "../../utils/Common/exportToXlsxStyledTranspose";
+import { exportToXlsxStyledTransposedMerged } from "../../utils/Common/exportToXlsxStyledTransposedMerged";
 
 type ExcelDownloadButtonProps<T extends Record<string, unknown>> = {
   data: T[];
@@ -83,6 +84,14 @@ export function ExcelDownloadButton<T extends Record<string, unknown>>(
           callback,
           headerOptions,
           transposeSource
+        );
+      } else if (kind === "transposeMerged") {
+        exportToXlsxStyledTransposedMerged(
+          data,
+          columns,
+          filename,
+          headerOptions,
+          callback
         );
       } else {
         exportToXlsxStyled(
