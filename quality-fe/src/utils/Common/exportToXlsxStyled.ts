@@ -165,6 +165,12 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
   // 3) AoA -> Sheet
   const ws = XLSX.utils.aoa_to_sheet(sheetAoA);
 
+  ws["!pageSetup"] = {
+    orientation: "landscape",
+    paper: 9, // A4
+    scale: 59, // 템플릿과 동일
+  };
+
   ws["!rows"] = ws["!rows"] ?? [];
   ws["!rows"][4] = { hpt: 28.5 };
   ws["!rows"][5] = { hpt: 28.5 };
