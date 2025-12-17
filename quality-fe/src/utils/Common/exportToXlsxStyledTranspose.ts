@@ -5,7 +5,6 @@ import { WEProdStdRow } from "../InspDataTrans/prcsSubInspTrans";
 
 type ExcelCell = string | number | null;
 
-// weProdStdByHoGi 에 들어오는 1행 타입(검사규격)
 export type WEProdStdByHoGi = Record<string, WEProdStdRow[]>;
 
 const TEMPLATE_URL = "/template.xlsx";
@@ -18,7 +17,7 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
   headerOptions?: ExportHeaderOptions,
   weProdStdByHoGi?: WEProdStdByHoGi
 ) {
-  // 1) 헤더 텍스트 배열 (DataGrid 헤더)
+  // 1) 헤더 텍스트 배열
   const headers = columns.map((c) => c.headerName ?? String(c.field));
 
   // 2) 본문 AoA
@@ -53,7 +52,6 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
 
   const baseAoA: ExcelCell[][] = [headers, ...rowsAoA];
 
-  // 항상 transpose
   const rowCount = baseAoA.length;
   const colCount = baseAoA[0]?.length ?? 0;
 
@@ -69,7 +67,7 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
   const finalAoA: ExcelCell[][] = transposed;
 
   // ---------------------------------------
-  // 2-1) weProdStdByHoGi 기반 "규격" 행 삽입
+  // 2-1) 규격 행 삽입
   // ---------------------------------------
   if (weProdStdByHoGi && finalAoA.length > 1) {
     const headerRow = finalAoA[0];
@@ -159,7 +157,7 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
   }
 
   // ---------------------------------------
-  // 2-2) 편심율 위에 높이 135인 행 삽입
+  // 2-2) 편심율 위에 행 삽입
   // ---------------------------------------
   let eccentricityTallRowIndex: number | null = null;
   const eccIdx = finalAoA.findIndex((row) => row[0] === "편심율");
@@ -213,10 +211,8 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
 
     const hasMeta = !!inspectDateText || !!inspectorNameText || useApproval;
 
-    // 1행 빈 줄
     extraHeaderRows.push(makeBlankRow());
 
-    // (1) 제목
     if (title) {
       const titleRow = makeBlankRow();
       titleRow[0] = title;
@@ -227,7 +223,6 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
       extraHeaderRows.push(makeBlankRow());
     }
 
-    // (2) 검사일 / 결재(상단)
     if (inspectDateText || useApproval) {
       const row = makeBlankRow();
       if (inspectDateText) {
@@ -246,7 +241,6 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
       extraHeaderRows.push(row);
     }
 
-    // (3) 검사자
     if (inspectorNameText || useApproval) {
       const row = makeBlankRow();
       if (inspectorNameText) {
@@ -256,13 +250,11 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
       extraHeaderRows.push(row);
     }
 
-    // (4) 결재 박스 3번째 행
     if (useApproval) {
       approvalBottomRowIndex = extraHeaderRows.length;
       extraHeaderRows.push(makeBlankRow());
     }
 
-    // 본문과 헤더 사이 공백 한 줄
     extraHeaderRows.push(makeBlankRow());
   }
 
@@ -381,23 +373,18 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
   }
 
   // 4) 스타일 공통
-  const headerStyle = {
-    border: {
-      top: { style: "thin", color: { rgb: "FF5A6A7D" } },
-      right: { style: "thin", color: { rgb: "FF5A6A7D" } },
-      bottom: { style: "thin", color: { rgb: "FF5A6A7D" } },
-      left: { style: "thin", color: { rgb: "FF5A6A7D" } },
-    },
-    font: { bold: true, sz: 10, color: { rgb: "FF000000" } },
-    fill: { patternType: "solid", fgColor: { rgb: "FFC5D9F1" } },
-    alignment: { horizontal: "center", vertical: "center", wrapText: true },
-  };
-
   const bodyBorder = {
     top: { style: "thin", color: { rgb: "FF5A6A7D" } },
     right: { style: "thin", color: { rgb: "FF5A6A7D" } },
     bottom: { style: "thin", color: { rgb: "FF5A6A7D" } },
     left: { style: "thin", color: { rgb: "FF5A6A7D" } },
+  };
+
+  const headerStyle = {
+    border: bodyBorder,
+    font: { bold: true, sz: 10, color: { rgb: "FF000000" } },
+    fill: { patternType: "solid", fgColor: { rgb: "FFC5D9F1" } },
+    alignment: { horizontal: "center", vertical: "center", wrapText: true },
   };
 
   // (4-1) 제목/결재 영역 스타일
@@ -511,7 +498,7 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
     }
   }
 
-  // ---- 5) 열 너비: 본문 기준 + 호기 열 통일 ----
+  // 5) 열 너비
   function visualLen(str: unknown) {
     return String(str ?? "")
       .split(/\r?\n/)
@@ -582,7 +569,7 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
     ws["!merges"] = merges;
   }
 
-  // 6) 템플릿 읽어서 첫 번째 시트 교체 후 저장
+  // 6) 템플릿 읽은 후 저장
   (async () => {
     try {
       const res = await fetch(TEMPLATE_URL);
@@ -593,7 +580,6 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
       const wb = XLSX.read(arrayBuffer, { type: "array" });
 
       const sheetName = wb.SheetNames[0];
-      // 🔹 템플릿의 첫 번째 시트를 우리가 만든 ws로 교체
       wb.Sheets[sheetName] = ws;
 
       XLSX.writeFile(

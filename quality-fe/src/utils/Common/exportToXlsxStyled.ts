@@ -49,7 +49,10 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
   const sampleHeaderName = "시료확인";
   const sampleColIndexRaw = headers.findIndex((h) => h === sampleHeaderName);
 
-  if (kind === "final_we" && sampleColIndexRaw >= 0) {
+  if (
+    (kind === "final_we" || kind === "initialFinal_wx") &&
+    sampleColIndexRaw >= 0
+  ) {
     headers = [
       ...headers.slice(0, sampleColIndexRaw + 1),
       "",
@@ -85,7 +88,10 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
 
     const approvalCols = 4;
 
-    if (kind === "final_we" && sampleColIndexRaw >= 0) {
+    if (
+      (kind === "final_we" || kind === "initialFinal_wx") &&
+      sampleColIndexRaw >= 0
+    ) {
       return Math.min(sampleColIndexRaw, Math.max(colCount - approvalCols, 0));
     }
 
@@ -226,20 +232,6 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
   }
 
   // 4) 스타일 설정
-  const headerStyle = {
-    border: {
-      top: { style: "thin", color: { rgb: "FF5A6A7D" } },
-      right: { style: "thin", color: { rgb: "FF5A6A7D" } },
-      bottom: { style: "thin", color: { rgb: "FF5A6A7D" } },
-      left: { style: "thin", color: { rgb: "FF5A6A7D" } },
-    },
-    font: { bold: true, sz: 10, color: { rgb: "FF000000" } },
-    fill: { patternType: "solid", fgColor: { rgb: "FFC5D9F1" } },
-    alignment: { horizontal: "center", vertical: "center", wrapText: true },
-  };
-
-  // 시트 범위
-  const range = XLSX.utils.decode_range(ws["!ref"] as string);
 
   const bodyBorder = {
     top: { style: "thin", color: { rgb: "FF5A6A7D" } },
@@ -247,6 +239,16 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
     bottom: { style: "thin", color: { rgb: "FF5A6A7D" } },
     left: { style: "thin", color: { rgb: "FF5A6A7D" } },
   };
+
+  const headerStyle = {
+    border: bodyBorder,
+    font: { bold: true, sz: 10, color: { rgb: "FF000000" } },
+    fill: { patternType: "solid", fgColor: { rgb: "FFC5D9F1" } },
+    alignment: { horizontal: "center", vertical: "center", wrapText: true },
+  };
+
+  // 시트 범위
+  const range = XLSX.utils.decode_range(ws["!ref"] as string);
 
   // (4-1) 맨 위 제목/결재 영역 스타일
   if (headerOffset > 0 && colCountForHeader > 0 && headerOptions) {
@@ -360,8 +362,8 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
       .reduce((a, b) => Math.max(a, b), 0);
   }
 
-  // 시료확인 컬럼 index (final_we에서 더미 컬럼 추가했으면 그대로 sampleColIndexRaw 사용)
-  const fixedSampleStartColIndex = kind === "final_we" ? sampleColIndexRaw : -1;
+  const fixedSampleStartColIndex =
+    kind === "final_we" || kind === "initialFinal_wx" ? sampleColIndexRaw : -1;
 
   if (ws["!ref"]) {
     const startRowForWidth = bodyStartRow;
@@ -384,7 +386,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
     const getApprovalWch = (c: number) => {
       if (!approvalWch) return undefined;
       if (approvalStartCol < 0) return undefined;
-      const idx = c - approvalStartCol; // 0..3
+      const idx = c - approvalStartCol;
       if (idx < 0 || idx > 3) return undefined;
       return approvalWch[idx];
     };
@@ -396,14 +398,16 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
         continue;
       }
 
-      // final_we: 시료확인(시작col) + 병합파트너(col+1) 너비 처리
-      if (kind === "final_we" && fixedSampleStartColIndex >= 0) {
+      if (
+        (kind === "final_we" || kind === "initialFinal_wx") &&
+        fixedSampleStartColIndex >= 0
+      ) {
         if (c === fixedSampleStartColIndex) {
           colWidths[c] = { wch: 15.86 };
           continue;
         }
         if (c === fixedSampleStartColIndex + 1) {
-          colWidths[c] = { wch: 2 }; // 병합 파트너는 좁게
+          colWidths[c] = { wch: 2 };
           continue;
         }
       }
@@ -418,7 +422,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
         if (len > maxLen) maxLen = len;
       }
 
-      const wch = Math.max(maxLen + 4, 5);
+      const wch = Math.max(maxLen + 3, 5);
       colWidths[c] = { wch };
     }
 
@@ -426,12 +430,13 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
   }
 
   // =========================================================
-  // 6-1) final_we : 시료확인(S~T) 8행부터 가로 병합
-  // - 이제 더미 컬럼이 "실제로 존재"하므로
-  //   초/종품, 판정이 U, V로 정상 표시됨
+  // 6-1) final_we : 시료확인
   // =========================================================
-  if (kind === "final_we" && sampleColIndexRaw >= 0) {
-    const START_EXCEL_ROW = 7; // 엑셀 8행(0-based)
+  if (
+    (kind === "final_we" || kind === "initialFinal_wx") &&
+    sampleColIndexRaw >= 0
+  ) {
+    const START_EXCEL_ROW = 7;
     const c1 = sampleColIndexRaw;
     const c2 = sampleColIndexRaw + 1;
 

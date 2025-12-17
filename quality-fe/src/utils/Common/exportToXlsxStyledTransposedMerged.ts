@@ -366,7 +366,6 @@ export function exportToXlsxStyledTransposedMerged<
                 wrapText: true,
               },
               font: {
-                bold: r === top,
                 sz: 10,
                 color: { rgb: "FF000000" },
               },

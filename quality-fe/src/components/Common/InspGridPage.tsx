@@ -79,7 +79,7 @@ export type InspGridPageConfig<
 };
 
 type InspectionType =
-  | "mtr" // 수입검사(원자재)
+  | "mtr" // 원자재 수입검사
   | "prcs" // 순회검사
   | "final" // 완제품
   | "initFinal" // 초종품
@@ -145,7 +145,7 @@ export function InspGridPage<
   const inspectionType = props.inspectionType ?? "other";
 
   const approvalWch = useMemo<[number, number, number, number]>(() => {
-    // 수입검사 원자재
+    // 원자재 수입검사
     if (inspectionType === "mtr") {
       if (effectiveKind === "st") return [9.1, 9.7, 9.7, 9.7];
       if (effectiveKind === "pvc") return [6.1, 9.9, 9.9, 9.9];
@@ -160,7 +160,7 @@ export function InspGridPage<
 
     // 초종품 검사
     if (inspectionType === "initFinal") {
-      // if (effectiveKind === "wx") return [8.5, 8.5, 8.5, 8.5];
+      if (effectiveKind === "wx") return [9.7, 9.7, 9.7, 9.7];
       if (effectiveKind === "whex") return [10.7, 10.7, 10.7, 10.7];
       if (effectiveKind === "whbs") return [8.5, 8.5, 8.5, 8.5];
     }
