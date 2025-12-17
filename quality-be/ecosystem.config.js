@@ -8,7 +8,7 @@ module.exports = {
 
       // ── 프로덕션 클러스터 설정 ───────────────────────────────
       exec_mode: "cluster",
-      instances: "max", // 코어 수만큼 워커
+      instances: 1, // 코어 수만큼 워커
       node_args: [], // 필요시 "--max-old-space-size=1024"
       watch: false, // 운영에선 비활성 권장
       max_memory_restart: "512M", // 메모리 초과 시 재시작
@@ -34,7 +34,6 @@ module.exports = {
 
       // PM2가 종료 신호 보낼 때 종료를 기다리도록(선택)
       kill_timeout: 10000,
-      
     },
   ],
 };

@@ -1,3 +1,4 @@
 /nginx-1.24.0
 /quality-be/node_modules
 /quality-be/.env
+/quality-be/logs/
