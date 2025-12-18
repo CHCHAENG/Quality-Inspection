@@ -37,64 +37,47 @@ const jsonFormat = winston.format.combine(
   winston.format.json()
 );
 
-const devConsoleFormat = winston.format.combine(
-  winston.format.colorize(),
-  winston.format.timestamp({ format: "HH:mm:ss.SSS" }),
-  winston.format.errors({ stack: true }),
-  injectContext(),
-  redactFormat(),
-  winston.format.printf((info) => {
-    const { timestamp, level, message, requestId, stack, ...rest } = info;
-    const ctx = requestId ? ` rid=${requestId}` : "";
-    const meta = Object.keys(rest).length ? ` ${JSON.stringify(rest)}` : "";
-    const msg = stack ? `${message}\n${stack}` : message;
-    return `${timestamp} ${level}${ctx} ${msg}${meta}`;
-  })
-);
-
 const rotateCommon = {
   dirname: path.join(LOG_DIR, "%DATE%"),
   datePattern: "YYYY-MM-DD",
   zippedArchive: true,
-  maxSize: "20m", // 같은 날짜 안에서도 20MB 넘으면 분할
+  maxSize: "20m", // 20MB 넘으면 분할
 };
 
 const appFile = new DailyRotateFile({
   ...rotateCommon,
-  filename: "app-%DATE%.log",
-  level: "info",
+  filename: "app.log",
+  level: "http",
   maxFiles: "14d",
+  auditFile: path.join(LOG_DIR, ".audit-app.json"),
 });
 
 const errFile = new DailyRotateFile({
   ...rotateCommon,
-  filename: "error-%DATE%.log",
+  filename: "error.log",
   level: "error",
-  maxFiles: "30d",
+  maxFiles: "14d",
+  auditFile: path.join(LOG_DIR, ".audit-app.json"),
 });
 
 const exceptionFile = new DailyRotateFile({
   ...rotateCommon,
-  filename: "exceptions-%DATE%.log",
-  maxFiles: "30d",
+  filename: "exceptions.log",
+  maxFiles: "14d",
+  auditFile: path.join(LOG_DIR, ".audit-app.json"),
 });
 
 const rejectionFile = new DailyRotateFile({
   ...rotateCommon,
-  filename: "rejections-%DATE%.log",
-  maxFiles: "30d",
+  filename: "rejections.log",
+  maxFiles: "14d",
+  auditFile: path.join(LOG_DIR, ".audit-app.json"),
 });
 
 const logger = winston.createLogger({
-  level: isProd ? "info" : "debug",
+  level: isProd ? "http" : "debug",
   format: jsonFormat,
-  transports: [
-    appFile,
-    errFile,
-    ...(isProd
-      ? []
-      : [new winston.transports.Console({ format: devConsoleFormat })]),
-  ],
+  transports: [appFile, errFile, ...[]],
   exceptionHandlers: [exceptionFile],
   rejectionHandlers: [rejectionFile],
 });

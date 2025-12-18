@@ -1,30 +1,26 @@
 const express = require("express");
 const cors = require("cors");
 const { randomUUID } = require("crypto");
-
 const { makeProcHandler } = require("./src/makeProcHandler");
-
-// ✅ winston logger (내가 전에 준 파일 기준)
-const { logger } = require("./src/logger"); // 경로가 다르면 수정: "./src/logger" 등
-const { runWithContext } = require("./src/logger/requestContext"); // 경로 수정 가능
+const { logger } = require("./src/logger");
+const { runWithContext } = require("./src/logger/requestContext");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 // =====================================================
-// 1) requestId 컨텍스트 (요청 단위 추적)
+// 1) requestId context
 // =====================================================
 app.use((req, res, next) => {
   const rid = req.headers["x-request-id"] || randomUUID();
-  // 응답 헤더에도 넣어주면, 프론트/프록시에서 추적 쉬움
   res.setHeader("X-Request-Id", rid);
 
   runWithContext({ requestId: rid }, () => next());
 });
 
 // =====================================================
-// 2) HTTP 접근 로그 (http-YYYY-MM-DD.log로 저장됨)
+// 2) HTTP 로그
 // =====================================================
 app.use((req, res, next) => {
   const start = Date.now();
@@ -32,9 +28,7 @@ app.use((req, res, next) => {
   res.on("finish", () => {
     const ms = Date.now() - start;
 
-    logger.log({
-      level: "http",
-      message: "HTTP",
+    logger.http("HTTP", {
       method: req.method,
       url: req.originalUrl,
       status: res.statusCode,
@@ -100,14 +94,13 @@ const routes = [
 ];
 
 // =====================================================
-// 4) 라우트 등록 (프로시저 핸들러를 로그 래핑)
-//    - 요청/응답 과정에서 proc/path를 로그로 남김
+// 4) 라우트 등록
 // =====================================================
 for (const r of routes) {
   const baseHandler = makeProcHandler(r);
 
   app.post(r.path, async (req, res, next) => {
-    // ✅ “프로시저 호출 시작” 로그 (원치 않으면 이 블록 삭제)
+    // 프로시저 호출 시작
     logger.info("proc request", {
       path: r.path,
       proc: r.proc,
@@ -134,8 +127,7 @@ for (const r of routes) {
 }
 
 // =====================================================
-// 5) Express 에러 핸들러 (마지막에 있어야 함)
-//    - next(err)로 넘어온 에러를 최종 기록
+// 5) Express 에러 핸들러
 // =====================================================
 app.use((err, req, res, next) => {
   logger.error("unhandled express error", {

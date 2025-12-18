@@ -29,6 +29,7 @@ module.exports = {
       env: {
         NODE_ENV: "production",
         PORT: 4000,
+        LOG_DIR: "logs",
         // .env 사용 중이면 DB_HOST/USER/PASS/NAME 등은 index.js에서 dotenv로 로드됨
       },
 

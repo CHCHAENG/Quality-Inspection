@@ -19,6 +19,7 @@ import {
   type GridColDef,
   type GridRowId,
   type GridPaginationModel,
+  type GridSortModel,
 } from "@mui/x-data-grid";
 import dayjs, { Dayjs } from "dayjs";
 import minMax from "dayjs/plugin/minMax";
@@ -38,6 +39,14 @@ dayjs.extend(minMax);
 
 type WithId = { id: string | number };
 type WithInspector = { inspector?: unknown };
+type SortableRow = { id: string | number; [key: string]: unknown };
+type ValueGetterParams<Row extends SortableRow> = {
+  id: Row["id"];
+  field: string;
+  row: Row;
+  value: unknown;
+  api?: unknown;
+};
 
 export type InspGridPageConfig<
   Kind extends string,
@@ -94,6 +103,95 @@ function keepRight15(v: string | number | null | undefined): string {
 function normalizeHeader(v: string | undefined): string {
   return (v ?? "").toUpperCase().replace(/\s+/g, "");
 }
+
+function isNumberLike(v: unknown) {
+  if (v == null) return false;
+  const s = String(v).trim();
+  if (!s) return false;
+  return !Number.isNaN(Number(s));
+}
+
+function compareValues(a: unknown, b: unknown) {
+  if (a == null && b == null) return 0;
+  if (a == null) return 1;
+  if (b == null) return -1;
+
+  if (isNumberLike(a) && isNumberLike(b)) {
+    const na = Number(String(a).trim());
+    const nb = Number(String(b).trim());
+    return na === nb ? 0 : na < nb ? -1 : 1;
+  }
+
+  if (a instanceof Date && b instanceof Date) {
+    const ta = a.getTime();
+    const tb = b.getTime();
+    return ta === tb ? 0 : ta < tb ? -1 : 1;
+  }
+
+  return String(a).localeCompare(String(b), "ko");
+}
+
+function getSortValue<Row extends SortableRow>(
+  row: Row,
+  col: GridColDef
+): unknown {
+  const raw = row[col.field];
+
+  const vg = col.valueGetter;
+  if (typeof vg !== "function") return raw;
+
+  const fn = vg as unknown as (...args: unknown[]) => unknown;
+
+  const params: ValueGetterParams<Row> = {
+    id: row.id,
+    field: col.field,
+    row,
+    value: raw,
+    api: undefined,
+  };
+
+  try {
+    if (fn.length >= 2) {
+      return fn(raw, row, col, undefined);
+    }
+    return fn(params);
+  } catch {
+    return raw;
+  }
+}
+
+function sortRowsByModel<Row extends SortableRow>(
+  rows: readonly Row[],
+  sortModel: GridSortModel,
+  columns: readonly GridColDef[]
+): Row[] {
+  if (sortModel.length === 0) return [...rows];
+
+  const columnMap = new Map<string, GridColDef>(
+    columns.map((c) => [c.field, c])
+  );
+
+  const indexed = rows.map((row, index) => ({ row, index }));
+
+  indexed.sort((a, b) => {
+    for (const { field, sort } of sortModel) {
+      const col = columnMap.get(field);
+      if (!col) continue;
+
+      const av = getSortValue(a.row, col);
+      const bv = getSortValue(b.row, col);
+
+      const cmp = compareValues(av, bv);
+      if (cmp !== 0) {
+        return sort === "desc" ? -cmp : cmp;
+      }
+    }
+    return a.index - b.index;
+  });
+
+  return indexed.map((x) => x.row);
+}
+
 export function InspGridPage<
   Kind extends string,
   ServerRow,
@@ -131,6 +229,8 @@ export function InspGridPage<
       type: "include",
       ids: new Set(),
     });
+  const [previewSortModel, setPreviewSortModel] = useState<GridSortModel>([]);
+
   const [startDate, setStartDate] = useState<Dayjs | null>(
     dayjs().startOf("month")
   );
@@ -248,10 +348,10 @@ export function InspGridPage<
   };
 
   // -------------------- 엑셀 다운로드 + 프리뷰용 선택 행 --------------------
-  const selectedRowsForExcel = useMemo(() => {
-    let base = selectedRows;
+  const selectedRowsForExcelBase = useMemo<SortableRow[]>(() => {
+    let base: SortableRow[] = selectedRows;
 
-    // 특정 검사자를 선택한 경우 필터링
+    // 특정 검사자 필터
     if (inspectorOptions.length >= 2 && selectedInspectors.length > 0) {
       base = selectedRows.filter((r) => {
         const inspectorKey = String(r.inspector ?? "").trim();
@@ -259,7 +359,6 @@ export function InspGridPage<
       });
     }
 
-    // pvc / scr 인 경우 LOT NO 오른쪽 15자리 제한
     if (effectiveKind === "pvc" || effectiveKind === "scr") {
       const lotCol = selectedColumns.find((c) => {
         const h = normalizeHeader(
@@ -271,28 +370,37 @@ export function InspGridPage<
       const lotField = lotCol?.field;
 
       if (lotField) {
-        base = base.map((r) => {
-          const row = r as Record<string, string | number | null | undefined>;
-
-          return {
-            ...r,
-            [lotField]: keepRight15(row[lotField]),
-          };
-        });
+        base = base.map((r) => ({
+          ...r,
+          [lotField]: keepRight15(
+            (r as Record<string, string | number | null | undefined>)[lotField]
+          ),
+        }));
       }
     }
 
-    return base.map((r, idx) =>
-      toExcelRow ? toExcelRow(r, idx + 1) : { ...r, no: idx + 1 }
-    );
+    return base;
   }, [
     selectedRows,
     inspectorOptions.length,
     selectedInspectors,
-    toExcelRow,
     effectiveKind,
     selectedColumns,
   ]);
+
+  const selectedRowsForExcelSorted = useMemo(() => {
+    return sortRowsByModel(
+      selectedRowsForExcelBase,
+      previewSortModel,
+      selectedColumns
+    );
+  }, [selectedRowsForExcelBase, previewSortModel, selectedColumns]);
+
+  const selectedRowsForExcel = useMemo(() => {
+    return selectedRowsForExcelSorted.map((r, idx) =>
+      toExcelRow ? toExcelRow(r, idx + 1) : { ...r, no: idx + 1 }
+    );
+  }, [selectedRowsForExcelSorted, toExcelRow]);
 
   // -------------------- 조회 버튼 --------------------
   async function handleSearch() {
@@ -343,6 +451,10 @@ export function InspGridPage<
   useEffect(() => {
     setSelectedInspectors([]);
   }, [selectedRows.length]);
+
+  useEffect(() => {
+    setPreviewSortModel([]);
+  }, [effectiveKind]);
 
   return (
     <Box
@@ -496,6 +608,9 @@ export function InspGridPage<
           rows={selectedRowsForExcel}
           columns={selectedColumns}
           pagination
+          sortModel={previewSortModel}
+          onSortModelChange={setPreviewSortModel}
+          sortingMode="client"
           initialState={{
             pagination: {
               paginationModel: { page: 0, pageSize: previewPageSize },
