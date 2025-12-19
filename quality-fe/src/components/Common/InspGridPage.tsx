@@ -39,14 +39,7 @@ dayjs.extend(minMax);
 
 type WithId = { id: string | number };
 type WithInspector = { inspector?: unknown };
-type SortableRow = { id: string | number; [key: string]: unknown };
-type ValueGetterParams<Row extends SortableRow> = {
-  id: Row["id"];
-  field: string;
-  row: Row;
-  value: unknown;
-  api?: unknown;
-};
+type SortableRowBase = WithId & Record<string, unknown>;
 
 export type InspGridPageConfig<
   Kind extends string,
@@ -131,7 +124,7 @@ function compareValues(a: unknown, b: unknown) {
   return String(a).localeCompare(String(b), "ko");
 }
 
-function getSortValue<Row extends SortableRow>(
+function getSortValue<Row extends SortableRowBase>(
   row: Row,
   col: GridColDef
 ): unknown {
@@ -142,35 +135,30 @@ function getSortValue<Row extends SortableRow>(
 
   const fn = vg as unknown as (...args: unknown[]) => unknown;
 
-  const params: ValueGetterParams<Row> = {
+  const params = {
     id: row.id,
     field: col.field,
     row,
     value: raw,
-    api: undefined,
+    api: undefined as unknown,
   };
 
   try {
-    if (fn.length >= 2) {
-      return fn(raw, row, col, undefined);
-    }
+    if (fn.length >= 2) return fn(raw, row, col, undefined);
     return fn(params);
   } catch {
     return raw;
   }
 }
 
-function sortRowsByModel<Row extends SortableRow>(
+function sortRowsByModel<Row extends SortableRowBase>(
   rows: readonly Row[],
   sortModel: GridSortModel,
   columns: readonly GridColDef[]
 ): Row[] {
   if (sortModel.length === 0) return [...rows];
 
-  const columnMap = new Map<string, GridColDef>(
-    columns.map((c) => [c.field, c])
-  );
-
+  const columnMap = new Map(columns.map((c) => [c.field, c]));
   const indexed = rows.map((row, index) => ({ row, index }));
 
   indexed.sort((a, b) => {
@@ -182,9 +170,7 @@ function sortRowsByModel<Row extends SortableRow>(
       const bv = getSortValue(b.row, col);
 
       const cmp = compareValues(av, bv);
-      if (cmp !== 0) {
-        return sort === "desc" ? -cmp : cmp;
-      }
+      if (cmp !== 0) return sort === "desc" ? -cmp : cmp;
     }
     return a.index - b.index;
   });
@@ -213,6 +199,8 @@ export function InspGridPage<
     pageSize = 5,
     previewPageSize = 5,
   } = props;
+
+  type ExcelSortableRow = ExcelRow & Record<string, unknown>;
 
   const effectiveKind = useMemo(
     () => kindFromPath(pathname),
@@ -348,12 +336,11 @@ export function InspGridPage<
   };
 
   // -------------------- 엑셀 다운로드 + 프리뷰용 선택 행 --------------------
-  const selectedRowsForExcelBase = useMemo<SortableRow[]>(() => {
-    let base: SortableRow[] = selectedRows;
+  const selectedRowsForExcelBase = useMemo<ExcelSortableRow[]>(() => {
+    let base: ExcelSortableRow[] = selectedRows as ExcelSortableRow[];
 
-    // 특정 검사자 필터
     if (inspectorOptions.length >= 2 && selectedInspectors.length > 0) {
-      base = selectedRows.filter((r) => {
+      base = (selectedRows as ExcelSortableRow[]).filter((r) => {
         const inspectorKey = String(r.inspector ?? "").trim();
         return selectedInspectors.includes(inspectorKey);
       });
@@ -388,7 +375,7 @@ export function InspGridPage<
     selectedColumns,
   ]);
 
-  const selectedRowsForExcelSorted = useMemo(() => {
+  const selectedRowsForExcelSorted = useMemo<ExcelSortableRow[]>(() => {
     return sortRowsByModel(
       selectedRowsForExcelBase,
       previewSortModel,

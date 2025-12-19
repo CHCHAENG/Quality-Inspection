@@ -237,7 +237,7 @@ export const WX_EXTRA_COLUMNS: GridColDef[] = [
 export const WHEX_SELECTED_COLUMNS: GridColDef[] = [
   { field: "no", headerName: "NO", width: 50 },
   { field: "itemName", headerName: "품명", width: 120 },
-  { field: "std", headerName: "규격", width: 80 },
+  { field: "std", headerName: "규격", width: 80, type: "number" },
   { field: "p_color", headerName: "색상", width: 60 },
   { field: "lotNo", headerName: "LOT NO", width: 130 },
   { field: "appearance", headerName: "외관", width: 60 },
@@ -352,7 +352,7 @@ export const WHEX_SELECTED_COLUMNS: GridColDef[] = [
 export const WE_SELECTED_COLUMNS: GridColDef[] = [
   { field: "no", headerName: "NO", width: 50 },
   { field: "itemName", headerName: "품명", width: 120 },
-  { field: "std", headerName: "규격", width: 80 },
+  { field: "std", headerName: "규격", width: 80, type: "number" },
   { field: "p_color", headerName: "색상", width: 60 },
   { field: "lotNo", headerName: "LOT NO", width: 130 },
   { field: "appearance", headerName: "외관", width: 60 },
@@ -391,7 +391,7 @@ export const WE_SELECTED_COLUMNS: GridColDef[] = [
 export const WX_SELECTED_COLUMNS: GridColDef[] = [
   { field: "no", headerName: "NO", width: 50 },
   { field: "itemName", headerName: "품명", width: 120 },
-  { field: "std", headerName: "규격", width: 80 },
+  { field: "std", headerName: "규격", width: 80, type: "number" },
   { field: "p_color", headerName: "색상", width: 60 },
   { field: "lotNo", headerName: "LOT NO", width: 130 },
   { field: "appearance", headerName: "외관", width: 60 },
