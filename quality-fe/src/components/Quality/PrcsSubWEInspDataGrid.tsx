@@ -501,6 +501,20 @@ export default function PrcsSubWEInspDataGrid() {
                 showApprovalLine: true,
               }}
               transposeSource={weProdStdByHoGi}
+              excelOptions_trnas={{
+                widthOptions: {
+                  colWchByIndex: {
+                    0: 19.1,
+                    1: 16.1,
+                    2: 16.1,
+                    3: 16.1,
+                    4: 16.1,
+                    5: 16.1,
+                    6: 16.1,
+                  },
+                },
+                heightOptions: { headerHpt: 20.3, bodyHpt: 20.3 },
+              }}
             />
           </Stack>
         </Stack>

@@ -22,6 +22,16 @@ export type ExcelOptions = {
   };
 };
 
+export type TransposeExcelOptions = {
+  widthOptions?: {
+    colWchByIndex: Record<number, number>;
+  };
+  heightOptions?: {
+    headerHpt?: number;
+    bodyHpt?: number;
+  };
+};
+
 type ExcelDownloadButtonProps<T extends Record<string, unknown>> = {
   data: T[];
   columns: GridColDef<T>[];
@@ -33,6 +43,7 @@ type ExcelDownloadButtonProps<T extends Record<string, unknown>> = {
   onBeforeDownload?: () => boolean | void;
   transposeSource?: WEProdStdByHoGi;
   excelOptions?: ExcelOptions;
+  excelOptions_trnas?: TransposeExcelOptions;
 };
 
 export function ExcelDownloadButton<T extends Record<string, unknown>>(
@@ -49,6 +60,7 @@ export function ExcelDownloadButton<T extends Record<string, unknown>>(
     onBeforeDownload,
     transposeSource,
     excelOptions,
+    excelOptions_trnas,
   } = props;
 
   const { showAlert } = useAlert();
@@ -90,7 +102,9 @@ export function ExcelDownloadButton<T extends Record<string, unknown>>(
           filename,
           callback,
           headerOptions,
-          transposeSource
+          transposeSource,
+          excelOptions_trnas?.widthOptions,
+          excelOptions_trnas?.heightOptions
         );
         return;
       }
