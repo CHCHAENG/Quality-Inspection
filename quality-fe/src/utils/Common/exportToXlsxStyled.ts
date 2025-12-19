@@ -14,6 +14,11 @@ export interface ExportWidthOptions {
   approvalWch?: [number, number, number, number];
 }
 
+export interface ExportRowHeightOptions {
+  headerHpt?: number;
+  bodyHpt?: number;
+}
+
 const TEMPLATE_URL = "/template.xlsx";
 
 export function exportToXlsxStyled<T extends Record<string, unknown>>(
@@ -23,7 +28,8 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
   kind?: string,
   onFinished?: (success: boolean) => void,
   headerOptions?: ExportHeaderOptions,
-  widthOptions?: ExportWidthOptions
+  widthOptions?: ExportWidthOptions,
+  heightOptions?: ExportRowHeightOptions
 ) {
   // 1) 헤더 텍스트 배열 (DataGrid 헤더)
   let headers = columns.map((c) => c.headerName ?? String(c.field));
@@ -165,11 +171,27 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
   // 3) AoA -> Sheet
   const ws = XLSX.utils.aoa_to_sheet(sheetAoA);
 
-  ws["!pageSetup"] = {
-    orientation: "landscape",
-    paper: 9, // A4
-    scale: 59, // 템플릿과 동일
+  const range = XLSX.utils.decode_range(ws["!ref"] as string);
+
+  const f_headerRowIndex = headerOffset;
+  const f_bodyStartRow = f_headerRowIndex + 1;
+
+  const headerHpt = heightOptions?.headerHpt ?? 33;
+  const bodyHpt = heightOptions?.bodyHpt ?? 18;
+
+  const wsAny = ws as XLSX.WorkSheet & { "!rows"?: { hpt?: number }[] };
+  wsAny["!rows"] = wsAny["!rows"] ?? [];
+
+  // 필드명 행 높이
+  wsAny["!rows"][f_headerRowIndex] = {
+    ...(wsAny["!rows"][f_headerRowIndex] || {}),
+    hpt: headerHpt,
   };
+
+  // 본문 행 높이
+  for (let r = f_bodyStartRow; r <= range.e.r; r++) {
+    wsAny["!rows"][r] = { ...(wsAny["!rows"][r] || {}), hpt: bodyHpt };
+  }
 
   ws["!rows"] = ws["!rows"] ?? [];
   ws["!rows"][4] = { hpt: 28.5 };
@@ -252,9 +274,6 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
     fill: { patternType: "solid", fgColor: { rgb: "FFC5D9F1" } },
     alignment: { horizontal: "center", vertical: "center", wrapText: true },
   };
-
-  // 시트 범위
-  const range = XLSX.utils.decode_range(ws["!ref"] as string);
 
   // (4-1) 맨 위 제목/결재 영역 스타일
   if (headerOffset > 0 && colCountForHeader > 0 && headerOptions) {
@@ -428,7 +447,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
         if (len > maxLen) maxLen = len;
       }
 
-      const wch = Math.max(maxLen + 3, 5);
+      const wch = Math.max(maxLen + 3.1, 5);
       colWidths[c] = { wch };
     }
 

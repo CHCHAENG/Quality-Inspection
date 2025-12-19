@@ -87,6 +87,8 @@ type InspectionType =
   | "initFinal" // 초종품
   | "other";
 
+type ExcelRowHeights = { headerHpt: number; bodyHpt: number };
+
 function keepRight15(v: string | number | null | undefined): string {
   if (v == null) return "";
   const s = String(v).trim();
@@ -235,9 +237,9 @@ export function InspGridPage<
   const approvalWch = useMemo<[number, number, number, number]>(() => {
     // 원자재 수입검사
     if (inspectionType === "mtr") {
-      if (effectiveKind === "st") return [9.1, 9.7, 9.7, 9.7];
-      if (effectiveKind === "pvc") return [6.1, 9.9, 9.9, 9.9];
-      if (effectiveKind === "scr") return [9.1, 9.1, 9.1, 8.1];
+      if (effectiveKind === "st") return [9.2, 9.7, 9.7, 9.7];
+      if (effectiveKind === "pvc") return [6.2, 9.8, 9.8, 9.8];
+      if (effectiveKind === "scr") return [9.2, 9.2, 9.2, 8.2];
     }
 
     // 순회검사
@@ -259,6 +261,38 @@ export function InspGridPage<
       if (effectiveKind === "we") return [5.8, 10.7, 10.7, 10.7];
     }
     return [10, 10, 10, 10];
+  }, [effectiveKind, inspectionType]);
+
+  const excelRowHeights = useMemo<ExcelRowHeights>(() => {
+    const base: ExcelRowHeights = { headerHpt: 25, bodyHpt: 25 };
+
+    // 원자재 수입검사
+    if (inspectionType === "mtr") {
+      if (effectiveKind === "st") return { headerHpt: 24.9, bodyHpt: 24.9 };
+      if (effectiveKind === "pvc") return { headerHpt: 24.9, bodyHpt: 24.9 };
+      if (effectiveKind === "scr") return { headerHpt: 72, bodyHpt: 24.9 };
+    }
+
+    // 순회검사
+    if (inspectionType === "prcs") {
+      if (effectiveKind === "st") return { headerHpt: 33, bodyHpt: 18 };
+      if (effectiveKind === "dr") return { headerHpt: 36, bodyHpt: 24.9 };
+    }
+
+    // 초종품 검사
+    if (inspectionType === "initFinal") {
+      if (effectiveKind === "wx") return { headerHpt: 33, bodyHpt: 18 };
+      if (effectiveKind === "whex") return { headerHpt: 33, bodyHpt: 18 };
+      if (effectiveKind === "whbs") return { headerHpt: 33, bodyHpt: 18 };
+    }
+
+    // 완제품 검사
+    if (inspectionType === "final") {
+      if (effectiveKind === "wx") return { headerHpt: 33, bodyHpt: 18 };
+      if (effectiveKind === "we") return { headerHpt: 33, bodyHpt: 18 };
+    }
+
+    return base;
   }, [effectiveKind, inspectionType]);
 
   // -------------------- 최종 컬럼 --------------------
@@ -557,6 +591,7 @@ export function InspGridPage<
                 showApprovalLine: excel.showApprovalLine ?? true,
               }}
               approvalWch={approvalWch}
+              rowHeights={excelRowHeights}
             />
           </Stack>
         </Stack>

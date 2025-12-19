@@ -23,6 +23,7 @@ type ExcelDownloadButtonProps<T extends Record<string, unknown>> = {
   onBeforeDownload?: () => boolean | void;
   transposeSource?: WEProdStdByHoGi;
   approvalWch?: ExportWidthOptions["approvalWch"];
+  rowHeights?: { headerHpt: number; bodyHpt: number };
 };
 
 export function ExcelDownloadButton<T extends Record<string, unknown>>(
@@ -39,6 +40,7 @@ export function ExcelDownloadButton<T extends Record<string, unknown>>(
     onBeforeDownload,
     transposeSource,
     approvalWch,
+    rowHeights,
   } = props;
 
   const { showAlert } = useAlert();
@@ -101,7 +103,8 @@ export function ExcelDownloadButton<T extends Record<string, unknown>>(
           kind,
           callback,
           headerOptions,
-          approvalWch ? { approvalWch } : undefined
+          approvalWch ? { approvalWch } : undefined,
+          rowHeights
         );
       }
     } catch (e) {
