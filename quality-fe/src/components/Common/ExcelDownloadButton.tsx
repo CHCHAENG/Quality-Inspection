@@ -3,7 +3,6 @@ import { type GridColDef } from "@mui/x-data-grid";
 import {
   exportToXlsxStyled,
   type ExportHeaderOptions,
-  type ExportWidthOptions,
 } from "../../utils/Common/exportToXlsxStyled";
 import { useAlert } from "../../context/AlertContext";
 import {
@@ -11,6 +10,17 @@ import {
   type WEProdStdByHoGi,
 } from "../../utils/Common/exportToXlsxStyledTranspose";
 import { exportToXlsxStyledTransposedMerged } from "../../utils/Common/exportToXlsxStyledTransposedMerged";
+
+export type ExcelOptions = {
+  widthOptions: {
+    approvalWch: [number, number, number, number];
+    colWchByField: Record<string, number>;
+  };
+  heightOptions: {
+    headerHpt: number;
+    bodyHpt: number;
+  };
+};
 
 type ExcelDownloadButtonProps<T extends Record<string, unknown>> = {
   data: T[];
@@ -22,8 +32,7 @@ type ExcelDownloadButtonProps<T extends Record<string, unknown>> = {
   headerOptions?: ExportHeaderOptions;
   onBeforeDownload?: () => boolean | void;
   transposeSource?: WEProdStdByHoGi;
-  approvalWch?: ExportWidthOptions["approvalWch"];
-  rowHeights?: { headerHpt: number; bodyHpt: number };
+  excelOptions?: ExcelOptions;
 };
 
 export function ExcelDownloadButton<T extends Record<string, unknown>>(
@@ -39,8 +48,7 @@ export function ExcelDownloadButton<T extends Record<string, unknown>>(
     headerOptions,
     onBeforeDownload,
     transposeSource,
-    approvalWch,
-    rowHeights,
+    excelOptions,
   } = props;
 
   const { showAlert } = useAlert();
@@ -57,9 +65,7 @@ export function ExcelDownloadButton<T extends Record<string, unknown>>(
     // 엑셀 다운로드 전 검사자 선택
     if (onBeforeDownload) {
       const result = onBeforeDownload();
-      if (result === false) {
-        return;
-      }
+      if (result === false) return;
     }
 
     const callback = (success: boolean) => {
@@ -78,7 +84,6 @@ export function ExcelDownloadButton<T extends Record<string, unknown>>(
 
     try {
       if (kind === "transpose") {
-        // transpose
         exportToXlsxStyledTranspose(
           data,
           columns,
@@ -87,7 +92,10 @@ export function ExcelDownloadButton<T extends Record<string, unknown>>(
           headerOptions,
           transposeSource
         );
-      } else if (kind === "transposeMerged") {
+        return;
+      }
+
+      if (kind === "transposeMerged") {
         exportToXlsxStyledTransposedMerged(
           data,
           columns,
@@ -95,18 +103,19 @@ export function ExcelDownloadButton<T extends Record<string, unknown>>(
           headerOptions,
           callback
         );
-      } else {
-        exportToXlsxStyled(
-          data,
-          columns,
-          filename,
-          kind,
-          callback,
-          headerOptions,
-          approvalWch ? { approvalWch } : undefined,
-          rowHeights
-        );
+        return;
       }
+
+      exportToXlsxStyled(
+        data,
+        columns,
+        filename,
+        kind,
+        callback,
+        headerOptions,
+        excelOptions?.widthOptions,
+        excelOptions?.heightOptions
+      );
     } catch (e) {
       console.error(e);
       showAlert({

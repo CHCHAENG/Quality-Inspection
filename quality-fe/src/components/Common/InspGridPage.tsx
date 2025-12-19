@@ -40,6 +40,7 @@ dayjs.extend(minMax);
 type WithId = { id: string | number };
 type WithInspector = { inspector?: unknown };
 type SortableRowBase = WithId & Record<string, unknown>;
+type ColWchByField = Record<string, number>;
 
 export type InspGridPageConfig<
   Kind extends string,
@@ -87,7 +88,16 @@ type InspectionType =
   | "initFinal" // 초종품
   | "other";
 
-type ExcelRowHeights = { headerHpt: number; bodyHpt: number };
+type ExcelOptions = {
+  widthOptions: {
+    approvalWch: [number, number, number, number];
+    colWchByField: ColWchByField;
+  };
+  heightOptions: {
+    headerHpt: number;
+    bodyHpt: number;
+  };
+};
 
 function keepRight15(v: string | number | null | undefined): string {
   if (v == null) return "";
@@ -204,11 +214,6 @@ export function InspGridPage<
 
   type ExcelSortableRow = ExcelRow & Record<string, unknown>;
 
-  const effectiveKind = useMemo(
-    () => kindFromPath(pathname),
-    [kindFromPath, pathname]
-  );
-
   const [rawServerData, setRawServerData] = useState<ServerRow[]>([]);
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
     page: 0,
@@ -232,74 +237,19 @@ export function InspGridPage<
 
   const [selectedInspectors, setSelectedInspectors] = useState<string[]>([]);
 
+  // -------------------- 기준값 --------------------
+  const effectiveKind = useMemo(
+    () => kindFromPath(pathname),
+    [kindFromPath, pathname]
+  );
   const inspectionType = props.inspectionType ?? "other";
 
-  const approvalWch = useMemo<[number, number, number, number]>(() => {
-    // 원자재 수입검사
-    if (inspectionType === "mtr") {
-      if (effectiveKind === "st") return [9.2, 9.7, 9.7, 9.7];
-      if (effectiveKind === "pvc") return [6.2, 9.8, 9.8, 9.8];
-      if (effectiveKind === "scr") return [9.2, 9.2, 9.2, 8.2];
-    }
-
-    // 순회검사
-    if (inspectionType === "prcs") {
-      if (effectiveKind === "st") return [7.8, 8.2, 8.2, 8.2];
-      if (effectiveKind === "dr") return [10.1, 11.2, 11.2, 11.2];
-    }
-
-    // 초종품 검사
-    if (inspectionType === "initFinal") {
-      if (effectiveKind === "wx") return [9.7, 9.7, 9.7, 9.7];
-      if (effectiveKind === "whex") return [10.7, 10.7, 10.7, 10.7];
-      if (effectiveKind === "whbs") return [8.5, 8.5, 8.5, 8.5];
-    }
-
-    // 완제품 검사
-    if (inspectionType === "final") {
-      if (effectiveKind === "wx") return [8.2, 8.2, 8.2, 8.2];
-      if (effectiveKind === "we") return [5.8, 10.7, 10.7, 10.7];
-    }
-    return [10, 10, 10, 10];
-  }, [effectiveKind, inspectionType]);
-
-  const excelRowHeights = useMemo<ExcelRowHeights>(() => {
-    const base: ExcelRowHeights = { headerHpt: 25, bodyHpt: 25 };
-
-    // 원자재 수입검사
-    if (inspectionType === "mtr") {
-      if (effectiveKind === "st") return { headerHpt: 24.9, bodyHpt: 24.9 };
-      if (effectiveKind === "pvc") return { headerHpt: 24.9, bodyHpt: 24.9 };
-      if (effectiveKind === "scr") return { headerHpt: 72, bodyHpt: 24.9 };
-    }
-
-    // 순회검사
-    if (inspectionType === "prcs") {
-      if (effectiveKind === "st") return { headerHpt: 33, bodyHpt: 18 };
-      if (effectiveKind === "dr") return { headerHpt: 36, bodyHpt: 24.9 };
-    }
-
-    // 초종품 검사
-    if (inspectionType === "initFinal") {
-      if (effectiveKind === "wx") return { headerHpt: 33, bodyHpt: 18 };
-      if (effectiveKind === "whex") return { headerHpt: 33, bodyHpt: 18 };
-      if (effectiveKind === "whbs") return { headerHpt: 33, bodyHpt: 18 };
-    }
-
-    // 완제품 검사
-    if (inspectionType === "final") {
-      if (effectiveKind === "wx") return { headerHpt: 33, bodyHpt: 18 };
-      if (effectiveKind === "we") return { headerHpt: 33, bodyHpt: 18 };
-    }
-
-    return base;
-  }, [effectiveKind, inspectionType]);
-
-  // -------------------- 최종 컬럼 --------------------
+  // -------------------- 컬럼  --------------------
   const columns: GridColDef[] = useMemo(
     () => getColumns(effectiveKind),
     [getColumns, effectiveKind]
   );
+
   const selectedColumns: GridColDef[] = useMemo(
     () => getSelectedColumns(effectiveKind),
     [getSelectedColumns, effectiveKind]
@@ -380,6 +330,7 @@ export function InspGridPage<
       });
     }
 
+    // pvc/scr LOTNO 15자리
     if (effectiveKind === "pvc" || effectiveKind === "scr") {
       const lotCol = selectedColumns.find((c) => {
         const h = normalizeHeader(
@@ -422,6 +373,253 @@ export function InspGridPage<
       toExcelRow ? toExcelRow(r, idx + 1) : { ...r, no: idx + 1 }
     );
   }, [selectedRowsForExcelSorted, toExcelRow]);
+
+  // -------------------- 엑셀 옵션--------------------
+  const excelOptions = useMemo<ExcelOptions>(() => {
+    // --------------------
+    // 1) approvalWch (결재선 너비)
+    // --------------------
+    const approvalWch: [number, number, number, number] = (() => {
+      if (inspectionType === "mtr") {
+        if (effectiveKind === "st") return [9.2, 9.7, 9.7, 9.7];
+        if (effectiveKind === "pvc") return [6.2, 9.8, 9.8, 9.8];
+        if (effectiveKind === "scr") return [9.2, 9.2, 9.2, 8.2];
+      }
+
+      if (inspectionType === "prcs") {
+        if (effectiveKind === "st") return [7.8, 8.2, 8.2, 8.2];
+        if (effectiveKind === "dr") return [10.1, 11.2, 11.2, 11.2];
+      }
+
+      if (inspectionType === "initFinal") {
+        if (effectiveKind === "wx") return [9.7, 9.7, 9.7, 9.7];
+        if (effectiveKind === "whex") return [10.7, 10.7, 10.7, 10.7];
+        if (effectiveKind === "whbs") return [8.5, 8.5, 8.5, 8.5];
+      }
+
+      if (inspectionType === "final") {
+        if (effectiveKind === "wx") return [8.2, 8.2, 8.2, 8.2];
+        if (effectiveKind === "we") return [5.8, 10.7, 10.7, 10.7];
+      }
+
+      return [10, 10, 10, 10];
+    })();
+
+    // --------------------
+    // 2) rowHeights (행 높이)
+    // --------------------
+    const heightOptions: ExcelOptions["heightOptions"] = (() => {
+      const base = { headerHpt: 25, bodyHpt: 25 };
+
+      if (inspectionType === "mtr") {
+        if (effectiveKind === "st") return { headerHpt: 24.9, bodyHpt: 24.9 };
+        if (effectiveKind === "pvc") return { headerHpt: 24.9, bodyHpt: 24.9 };
+        if (effectiveKind === "scr") return { headerHpt: 72, bodyHpt: 24.9 };
+      }
+
+      if (inspectionType === "prcs") {
+        if (effectiveKind === "st") return { headerHpt: 24.9, bodyHpt: 24.9 };
+        if (effectiveKind === "dr") return { headerHpt: 36, bodyHpt: 24.9 };
+      }
+
+      if (inspectionType === "initFinal") {
+        if (effectiveKind === "wx") return { headerHpt: 24.9, bodyHpt: 24.9 };
+        if (effectiveKind === "whex") return { headerHpt: 30.8, bodyHpt: 22.5 };
+        if (effectiveKind === "whbs") return { headerHpt: 38.3, bodyHpt: 22.5 };
+      }
+
+      if (inspectionType === "final") {
+        if (effectiveKind === "we") return { headerHpt: 24.9, bodyHpt: 24.9 };
+        if (effectiveKind === "wx") return { headerHpt: 22.5, bodyHpt: 22.5 };
+      }
+
+      return base;
+    })();
+
+    // --------------------
+    // 3) 필드별 너비
+    // --------------------
+
+    const colWchByField = ((): ColWchByField => {
+      if (inspectionType === "mtr") {
+        if (effectiveKind === "st")
+          return {
+            no: 6.1,
+            vendor: 19.1,
+            barcode: 32.1,
+            itemCode: 14.1,
+            appearnce: 5.1,
+            packing: 5.1,
+            strandCount: 6.1,
+            outerDiameter: 8.1,
+            pitch: 5.1,
+            cond1: 8.1,
+          };
+        if (effectiveKind === "pvc")
+          return {
+            no: 5.1,
+            vendor: 17.1,
+            itemName: 20.1,
+            itemColor: 5.1,
+            barcode: 18.1,
+          };
+        if (effectiveKind === "scr")
+          return {
+            no: 5.1,
+            vendor: 19.1,
+            barcode: 18.1,
+            packing: 6.8,
+            appearance: 6.8,
+            cond1: 8.1,
+          };
+      }
+
+      if (inspectionType === "prcs") {
+        if (effectiveKind === "st")
+          return {
+            no: 3.5,
+            itemCode: 8.8,
+            lotNo: 14.7,
+            appearance: 6.1,
+            strandCount: 6.1,
+            outerDiameter: 8.2,
+            cond1: 7.8,
+            cond2: 7.8,
+          };
+        if (effectiveKind === "dr")
+          return {
+            no: 3.5,
+            itemCode: 8.7,
+            lotNo: 15.2,
+            appearance: 4.6,
+            strandCount: 5.1,
+            cond1: 10.1,
+          };
+      }
+
+      if (inspectionType === "initFinal") {
+        if (effectiveKind === "wx")
+          return {
+            no: 6.1,
+            itemName: 8.1,
+            std: 7.1,
+            p_color: 6.1,
+            lotNo: 16.1,
+            appearance: 4.6,
+            color: 4.6,
+            label: 4.6,
+            packing: 4.6,
+            printing: 4.6,
+            insulationOD1: 9.7,
+            insulationOD2: 9.7,
+            souterDiameter: 8.3,
+            cond1: 7.8,
+            cond2: 7.8,
+            cond3: 7.8,
+            cond4: 7.8,
+            eccentricity_wx: 6.1,
+          };
+        if (effectiveKind === "whex")
+          return {
+            no: 3.5,
+            itemName: 8.5,
+            std: 4.6,
+            p_color: 4.6,
+            lotNo: 14.5,
+            insulationOD1: 7.6,
+            insulationOD2: 7.6,
+            oDiameter1: 7.6,
+            oDiameter2: 7.6,
+            oDiameter3: 7.6,
+            oDiameter4: 6.5,
+            shezThk1: 6.5,
+            shezThk2: 6.5,
+            shezThk3: 6.5,
+            shezThk4: 6.5,
+            s_cond1: 8.7,
+            s_cond2: 8.7,
+          };
+        if (effectiveKind === "whbs")
+          return {
+            no: 5.1,
+            itemName: 6.8,
+            std: 4.6,
+            p_color: 4.6,
+            lotNo: 14.5,
+            subStrandCnt: 6.5,
+            insulationOD1: 7.1,
+            insulationOD2: 7.1,
+            insulationOD3: 7.1,
+            insulationOD4: 7.1,
+            souterDiameter: 7.1,
+            cond1: 7.1,
+            cond2: 7.1,
+            cond3: 7.1,
+            cond4: 7.1,
+            avg_insulThk: 7.1,
+            insulThk1: 7.1,
+            insulThk2: 7.1,
+            insulThk3: 7.1,
+            insulThk4: 7.1,
+            insulThk5: 7.1,
+          };
+      }
+
+      if (inspectionType === "final") {
+        if (effectiveKind === "we")
+          return {
+            no: 5.1,
+            itemName: 7.7,
+            std: 4.6,
+            p_color: 4.6,
+            lotNo: 16.1,
+            appearance: 6.1,
+            color: 6.1,
+            label: 6.1,
+            packing: 6.1,
+            printing: 6.1,
+            subStrandCnt: 6.1,
+            insulationOD1: 8.3,
+            souterDiameter: 8.3,
+            cond1: 7.8,
+            cond2: 7.8,
+            cond3: 7.8,
+            cond4: 7.8,
+            eccentricity: 6.1,
+          };
+        if (effectiveKind === "wx")
+          return {
+            no: 5.1,
+            itemName: 10.2,
+            std: 4.6,
+            p_color: 4.6,
+            lotNo: 17.7,
+            appearance: 4.6,
+            color: 4.6,
+            label: 4.6,
+            packing: 4.6,
+            printing: 4.6,
+            subStrandCnt: 6.5,
+            insulationOD1: 9.7,
+            insulationOD2: 9.7,
+            souterDiameter: 8.3,
+            cond1: 7.8,
+            cond2: 7.8,
+            cond3: 7.8,
+          };
+      }
+
+      return {};
+    })();
+
+    return {
+      widthOptions: {
+        approvalWch,
+        colWchByField,
+      },
+      heightOptions,
+    };
+  }, [inspectionType, effectiveKind]);
 
   // -------------------- 조회 버튼 --------------------
   async function handleSearch() {
@@ -590,8 +788,7 @@ export function InspGridPage<
                 inspectorNameText,
                 showApprovalLine: excel.showApprovalLine ?? true,
               }}
-              approvalWch={approvalWch}
-              rowHeights={excelRowHeights}
+              excelOptions={excelOptions}
             />
           </Stack>
         </Stack>

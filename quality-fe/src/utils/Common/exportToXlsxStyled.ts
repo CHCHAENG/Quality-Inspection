@@ -1,5 +1,6 @@
 import { GridColDef } from "@mui/x-data-grid";
 import * as XLSX from "xlsx-js-style";
+import { visualLen } from "./visualLen";
 
 type ExcelCell = string | number | null;
 
@@ -12,6 +13,8 @@ export interface ExportHeaderOptions {
 
 export interface ExportWidthOptions {
   approvalWch?: [number, number, number, number];
+  colWchByField?: Record<string, number>;
+  colWchByIndex?: Record<number, number>;
 }
 
 export interface ExportRowHeightOptions {
@@ -54,6 +57,8 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
   const printHistoryRowIdxSet = new Set(printHistoryRowIdxList);
   const sampleHeaderName = "시료확인";
   const sampleColIndexRaw = headers.findIndex((h) => h === sampleHeaderName);
+
+  const fieldKeys = columns.map((c) => String(c.field));
 
   if (
     (kind === "final_we" || kind === "initialFinal_wx") &&
@@ -374,19 +379,6 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
     }
   }
 
-  // 5) 열 너비 자동 계산
-  function visualLen(str: unknown) {
-    return String(str ?? "")
-      .split(/\r?\n/)
-      .map((line) =>
-        [...line].reduce(
-          (acc, ch) => acc + (ch.charCodeAt(0) > 0xff ? 2 : 1),
-          0
-        )
-      )
-      .reduce((a, b) => Math.max(a, b), 0);
-  }
-
   const fixedSampleStartColIndex =
     kind === "final_we" || kind === "initialFinal_wx" ? sampleColIndexRaw : -1;
 
@@ -416,7 +408,22 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
       return approvalWch[idx];
     };
 
+    const widthByField = widthOptions?.colWchByField;
+    const widthByIndex = widthOptions?.colWchByIndex;
+
     for (let c = range.s.c; c <= range.e.c; c++) {
+      if (widthByIndex && widthByIndex[c] != null) {
+        colWidths[c] = { wch: widthByIndex[c] };
+        continue;
+      }
+
+      const field = fieldKeys[c]; // c번 엑셀 컬럼이 어떤 field인지
+      const fw = field && widthByField ? widthByField[field] : undefined;
+      if (fw != null && Number.isFinite(fw) && fw > 0) {
+        colWidths[c] = { wch: fw };
+        continue;
+      }
+
       const awch = getApprovalWch(c);
       if (awch !== undefined) {
         colWidths[c] = { wch: awch };

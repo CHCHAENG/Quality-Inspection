@@ -412,7 +412,7 @@ export function exportToXlsxStyledTransposedMerged<
     // ----------------------------
     // 6) 열 너비
     // ----------------------------
-    const cols = new Array<{ wch: number }>(totalCols).fill({ wch: 7 });
+    const cols = new Array<{ wch: number }>(totalCols).fill({ wch: 6.6 });
     cols[0] = { wch: 10.8 };
     ws["!cols"] = cols;
 
@@ -421,7 +421,7 @@ export function exportToXlsxStyledTransposedMerged<
 
     for (let r = 0; r <= range.e.r; r++) {
       if (r >= 7) {
-        rows[r] = { hpt: 20 };
+        rows[r] = { hpt: 20.3 };
       }
     }
 

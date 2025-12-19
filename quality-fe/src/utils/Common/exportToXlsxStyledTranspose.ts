@@ -2,6 +2,7 @@ import { GridColDef } from "@mui/x-data-grid";
 import * as XLSX from "xlsx-js-style";
 import { ExportHeaderOptions } from "./exportToXlsxStyled";
 import { WEProdStdRow } from "../InspDataTrans/prcsSubInspTrans";
+import { visualLen } from "./visualLen";
 
 type ExcelCell = string | number | null;
 
@@ -496,19 +497,6 @@ export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
           : {}),
       };
     }
-  }
-
-  // 5) 열 너비
-  function visualLen(str: unknown) {
-    return String(str ?? "")
-      .split(/\r?\n/)
-      .map((line) =>
-        [...line].reduce(
-          (acc, ch) => acc + (ch.charCodeAt(0) > 0xff ? 2 : 1),
-          0
-        )
-      )
-      .reduce((a, b) => Math.max(a, b), 0);
   }
 
   if (ws["!ref"]) {
