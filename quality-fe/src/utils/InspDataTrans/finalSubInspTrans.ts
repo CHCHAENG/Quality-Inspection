@@ -177,7 +177,7 @@ export const WE_FIELD_KEYS = {
   eccentricity: "WE-05-02-1",
 
   // 절연외경
-  insulationOD1: "WE-06-01-1",
+  insulationOD: ["WE-06-01-1", "WE-06-01-2"] as const,
   // 연선외경
   souterDiameter: "WE-07-01-1",
 
@@ -331,7 +331,9 @@ export function normalizeServerRow(
     const packing = toStringClean(s[WE_FIELD_KEYS.packing]);
     const printing = toStringClean(s[WE_FIELD_KEYS.printing]);
     const eccentricity = toStringClean(s[WE_FIELD_KEYS.eccentricity]);
-    const insulationOD1 = toNumber(s[WE_FIELD_KEYS.insulationOD1]);
+    const [insulationOD1, insulationOD2] = (
+      WE_FIELD_KEYS.insulationOD as readonly string[]
+    ).map((k) => toNumber(s[k]));
     const souterDiameter = toNumber(s[WE_FIELD_KEYS.souterDiameter]);
     const [cond1, cond2, cond3, cond4] = (
       WE_FIELD_KEYS.cond as readonly string[]
@@ -347,6 +349,7 @@ export function normalizeServerRow(
       printing,
       eccentricity,
       insulationOD1,
+      insulationOD2,
       souterDiameter,
       cond1,
       cond2,

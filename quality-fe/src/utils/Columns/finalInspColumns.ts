@@ -171,7 +171,13 @@ export const WE_EXTRA_COLUMNS: GridColDef[] = [
 
   {
     field: "insulationOD1",
-    headerName: "절연외경",
+    headerName: "절연외경 1",
+    width: 110,
+    type: "number",
+  },
+  {
+    field: "insulationOD2",
+    headerName: "절연외경 2",
     width: 110,
     type: "number",
   },
@@ -368,7 +374,13 @@ export const WE_SELECTED_COLUMNS: GridColDef[] = [
   },
   {
     field: "insulationOD1",
-    headerName: "절연외경",
+    headerName: "절연외경 1",
+    width: 100,
+    type: "number",
+  },
+  {
+    field: "insulationOD2",
+    headerName: "절연외경 2",
     width: 100,
     type: "number",
   },

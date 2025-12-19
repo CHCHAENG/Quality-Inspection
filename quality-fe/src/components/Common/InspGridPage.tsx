@@ -580,6 +580,7 @@ export function InspGridPage<
             printing: 6.1,
             subStrandCnt: 6.1,
             insulationOD1: 8.3,
+            insulationOD2: 8.3,
             souterDiameter: 8.3,
             cond1: 7.8,
             cond2: 7.8,
