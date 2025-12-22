@@ -76,7 +76,7 @@ export const MTR_ST_SELECTED_COLUMNS: GridColDef[] = [
   { field: "appearance", headerName: "외관", width: 80 },
   { field: "packing", headerName: "포장상태", width: 80 },
   { field: "strandCount", headerName: "소선수", width: 80 },
-  { field: "outerDiameter", headerName: "연선외경", width: 80 },
+  { field: "outerDiameter", headerName: "연선외경", width: 80, type: "number" },
   { field: "pitch", headerName: "피치", width: 80 },
   { field: "cond1", headerName: "도체경1", width: 100, type: "number" },
   { field: "cond2", headerName: "도체경2", width: 100, type: "number" },

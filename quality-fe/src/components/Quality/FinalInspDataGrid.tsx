@@ -62,8 +62,8 @@ export default function FinalInspDataGrid() {
           kind === "whex"
             ? "고전압 완제품 검사일지"
             : kind === "we"
-            ? "초종품 검사일지(압출공정)"
-            : "초종품 검사일지(조사공정)",
+            ? "압출 초종품 검사일지(조사전)"
+            : "초종품 검사일지(저전압 조사후)",
         showApprovalLine: true,
       }}
       inspectionType="final"

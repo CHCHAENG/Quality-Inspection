@@ -413,7 +413,7 @@ export function exportToXlsxStyledTransposedMerged<
     // 6) 열 너비
     // ----------------------------
     const cols = new Array<{ wch: number }>(totalCols).fill({ wch: 6.6 });
-    cols[0] = { wch: 10.8 };
+    cols[0] = { wch: 10.7 };
     ws["!cols"] = cols;
 
     const range = XLSX.utils.decode_range(ws["!ref"] || "A1");

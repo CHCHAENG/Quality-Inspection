@@ -462,7 +462,7 @@ export const WHBS_SELECTED_COLUMNS: GridColDef[] = [
     type: "number",
   },
 
-  { field: "eccentricity", headerName: "편심", width: 80 },
+  { field: "eccentricity", headerName: "편심", width: 80, type: "number" },
   { field: "initFinal", headerName: "구분", width: 100 },
   { field: "decision", headerName: "판정", width: 80 },
 ];
