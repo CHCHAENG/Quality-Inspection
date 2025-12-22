@@ -448,11 +448,11 @@ export const WX_SELECTED_COLUMNS: GridColDef[] = [
 export function getFinalColumns(kind: ItemKind): GridColDef[] {
   if (kind === "wx") return [...COMMON_COLUMNS, ...WX_EXTRA_COLUMNS];
   if (kind === "we") return [...COMMON_COLUMNS, ...WE_EXTRA_COLUMNS];
-  return [...COMMON_COLUMNS, ...WHEX_EXTRA_COLUMNS]; // 기본: whex
+  return [...COMMON_COLUMNS, ...WHEX_EXTRA_COLUMNS];
 }
 
 export function getFinalSelectedColumns(kind: ItemKind): GridColDef[] {
   if (kind === "wx") return [...WX_SELECTED_COLUMNS];
   if (kind === "we") return [...WE_SELECTED_COLUMNS];
-  return [...WHEX_SELECTED_COLUMNS]; // 기본: whex
+  return [...WHEX_SELECTED_COLUMNS];
 }

@@ -66,15 +66,6 @@ export const PRCS_DR_EXTRA_COLUMNS: GridColDef[] = [
   },
 ];
 
-// -------------------- 메인 그리드 컬럼 헬퍼 --------------------
-export function getPrcsSubColumns(kind: ItemKind): GridColDef[] {
-  if (kind === "dr") {
-    return [...PRCS_COMMON_COLUMNS, ...PRCS_DR_EXTRA_COLUMNS];
-  }
-  // 기본 ST
-  return [...PRCS_COMMON_COLUMNS, ...PRCS_ST_EXTRA_COLUMNS];
-}
-
 // -------------------- 연선(ST) Selected 컬럼 --------------------
 export const PRCS_ST_SELECTED_COLUMNS: GridColDef[] = [
   { field: "no", headerName: "NO", width: 50 },
@@ -130,7 +121,14 @@ export const PRCS_DR_SELECTED_COLUMNS: GridColDef[] = [
   { field: "decision", headerName: "판정", width: 90 },
 ];
 
-// -------------------- Selected 컬럼 헬퍼 --------------------
+// -------------------- kind 기반 컬럼 조립 함수 --------------------
+export function getPrcsSubColumns(kind: ItemKind): GridColDef[] {
+  if (kind === "dr") {
+    return [...PRCS_COMMON_COLUMNS, ...PRCS_DR_EXTRA_COLUMNS];
+  }
+  return [...PRCS_COMMON_COLUMNS, ...PRCS_ST_EXTRA_COLUMNS];
+}
+
 export function getPrcsSubSelectedColumns(kind: ItemKind): GridColDef[] {
   if (kind === "dr") {
     return [...PRCS_DR_SELECTED_COLUMNS];

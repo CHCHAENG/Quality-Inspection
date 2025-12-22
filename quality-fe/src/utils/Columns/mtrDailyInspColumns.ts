@@ -291,7 +291,6 @@ export const MTR_DAILY_SELECTED_COLUMNS: GridColDef[] = [
   { field: "inspector", headerName: "검사자", width: 100 },
 ];
 
-// 필요하면 나중에 복사 방지하려고 함수로 래핑해서 사용
 export function getMtrDailyColumns(): GridColDef[] {
   return [...MTR_DAILY_COLUMNS];
 }

@@ -46,26 +46,14 @@ export const MTR_PVC_EXTRA_COLUMNS: GridColDef[] = [
 
 // -------------------- SCR 메인 그리드 추가 컬럼 --------------------
 export const MTR_SCR_EXTRA_COLUMNS: GridColDef[] = [
-  { field: "appearance", headerName: "외관상태", width: 80 }, // CU-00-01
-  { field: "cond1", headerName: "소선경1", width: 90, type: "number" }, // CU-01-01
-  { field: "cond2", headerName: "소선경2", width: 90, type: "number" }, // CU-01-02
-  { field: "cond3", headerName: "소선경3", width: 90, type: "number" }, // CU-01-03
-  { field: "cond4", headerName: "소선경4", width: 90, type: "number" }, // CU-01-04
+  { field: "appearance", headerName: "외관상태", width: 80 },
+  { field: "cond1", headerName: "소선경1", width: 90, type: "number" },
+  { field: "cond2", headerName: "소선경2", width: 90, type: "number" },
+  { field: "cond3", headerName: "소선경3", width: 90, type: "number" },
+  { field: "cond4", headerName: "소선경4", width: 90, type: "number" },
   { field: "packing", headerName: "포장상태", width: 90 },
   { field: "vendorRemark", headerName: "비고(업체로트)", width: 160 },
 ];
-
-// -------------------- 메인 그리드 최종 컬럼 --------------------
-export function getMtrInspColumns(kind: ItemKind): GridColDef[] {
-  if (kind === "pvc") {
-    return [...MTR_COMMON_COLUMNS, ...MTR_PVC_EXTRA_COLUMNS];
-  }
-  if (kind === "scr") {
-    return [...MTR_COMMON_COLUMNS, ...MTR_SCR_EXTRA_COLUMNS];
-  }
-  // 기본 ST
-  return [...MTR_COMMON_COLUMNS, ...MTR_ST_EXTRA_COLUMNS];
-}
 
 // -------------------- ST(연선) Selected 컬럼 --------------------
 export const MTR_ST_SELECTED_COLUMNS: GridColDef[] = [
@@ -121,7 +109,17 @@ export const MTR_SCR_SELECTED_COLUMNS: GridColDef[] = [
   { field: "qty", headerName: "입고수량", width: 80, type: "number" },
 ];
 
-// -------------------- Selected 컬럼 최종 --------------------
+// -------------------- kind 기반 컬럼 조립 함수 --------------------
+export function getMtrInspColumns(kind: ItemKind): GridColDef[] {
+  if (kind === "pvc") {
+    return [...MTR_COMMON_COLUMNS, ...MTR_PVC_EXTRA_COLUMNS];
+  }
+  if (kind === "scr") {
+    return [...MTR_COMMON_COLUMNS, ...MTR_SCR_EXTRA_COLUMNS];
+  }
+  return [...MTR_COMMON_COLUMNS, ...MTR_ST_EXTRA_COLUMNS];
+}
+
 export function getMtrInspSelectedColumns(kind: ItemKind): GridColDef[] {
   if (kind === "pvc") {
     return [...MTR_PVC_SELECTED_COLUMNS];

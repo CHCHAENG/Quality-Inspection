@@ -175,7 +175,7 @@ export const PRCS_WE_HOGI_COLUMNS: GridColDef[] = [
   { field: "result", headerName: "검사결과", width: 100 },
 ];
 
-// -------------------- 헬퍼 함수 --------------------
+// -------------------- kind 기반 컬럼 조립 함수 --------------------
 export function getPrcsSubWEMainColumns(): GridColDef[] {
   return [...PRCS_WE_MAIN_COLUMNS];
 }
