@@ -47,9 +47,57 @@ import {
   getPrcsSubWEHoGiColumns,
 } from "../../utils/Columns/prcsSubWEInspColumns";
 import { RowSelectionModelV8 } from "../../types/common";
+import { withDecimalFormatter } from "../../utils/Common/numberFormat";
 
 dayjs.locale("ko");
 dayjs.extend(minMax);
+
+function buildDecimalScaleMapFromRows(
+  columns: GridColDef[],
+  rows: Record<string, unknown>[]
+): Record<string, number> {
+  const map: Record<string, number> = {};
+
+  for (const col of columns) {
+    if (col.type !== "number") continue;
+
+    let max = 0;
+    for (const r of rows) {
+      const v = r[col.field];
+      if (typeof v === "number" && Number.isFinite(v)) {
+        const s = String(v);
+        const idx = s.indexOf(".");
+        if (idx >= 0) max = Math.max(max, s.length - idx - 1);
+      }
+    }
+
+    if (max > 0) map[col.field] = max;
+  }
+
+  return map;
+}
+
+function formatRowsForExcelDecimal(
+  rows: Record<string, unknown>[],
+  scaleMap: Record<string, number>
+): Record<string, unknown>[] {
+  const fields = Object.keys(scaleMap);
+  if (fields.length === 0) return rows;
+
+  return rows.map((r) => {
+    const out: Record<string, unknown> = { ...r };
+
+    for (const field of fields) {
+      const scale = scaleMap[field] ?? 0;
+      const v = out[field];
+
+      out[field] =
+        typeof v === "number" && Number.isFinite(v) ? v.toFixed(scale) : "";
+    }
+
+    return out;
+  });
+}
 
 // 압출 호기 리스트
 const HO_GI_LIST = [
@@ -125,17 +173,6 @@ export default function PrcsSubWEInspDataGrid() {
 
   const [selectedInspectors, setSelectedInspectors] = useState<string[]>([]);
 
-  // -------------------- 컬럼 (헬퍼에서 가져오기) --------------------
-  const mainColumns: GridColDef[] = useMemo(
-    () => getPrcsSubWEMainColumns(),
-    []
-  );
-
-  const hoGiColumns: GridColDef[] = useMemo(
-    () => getPrcsSubWEHoGiColumns(),
-    []
-  );
-
   // -------------------- rows 변환 --------------------
   const rows = useMemo<FrontRow_WE[]>(
     () => transformServerData_WE(rawServerData),
@@ -202,6 +239,37 @@ export default function PrcsSubWEInspDataGrid() {
       }),
     [hoGiMap]
   );
+
+  // -------------------- 컬럼 (헬퍼에서 가져오기) --------------------
+  const mainColumns: GridColDef[] = useMemo(() => {
+    const base = getPrcsSubWEMainColumns();
+    return withDecimalFormatter(
+      base,
+      rows as unknown as Record<string, unknown>[]
+    );
+  }, [rows]);
+
+  const hoGiColumns: GridColDef[] = useMemo(() => {
+    const base = getPrcsSubWEHoGiColumns();
+    return withDecimalFormatter(
+      base,
+      hoGiSummaryRows as unknown as Record<string, unknown>[]
+    );
+  }, [hoGiSummaryRows]);
+
+  const hoGiExcelScaleMap = useMemo(() => {
+    return buildDecimalScaleMapFromRows(
+      hoGiColumns,
+      hoGiSummaryRows as unknown as Record<string, unknown>[]
+    );
+  }, [hoGiColumns, hoGiSummaryRows]);
+
+  const formattedHoGiSummaryRows = useMemo(() => {
+    return formatRowsForExcelDecimal(
+      hoGiSummaryRows as unknown as Record<string, unknown>[],
+      hoGiExcelScaleMap
+    ) as unknown as typeof hoGiSummaryRows;
+  }, [hoGiSummaryRows, hoGiExcelScaleMap]);
 
   // 선택한 행을 현재 선택한 압출호기에 저장 + 검사규격 데이터 저장
   async function handleApplyToHoGi() {
@@ -487,7 +555,7 @@ export default function PrcsSubWEInspDataGrid() {
             )}
 
             <ExcelDownloadButton
-              data={hoGiSummaryRows}
+              data={formattedHoGiSummaryRows}
               columns={hoGiColumns}
               filename="순회검사_압출.xlsx"
               kind="transpose"
