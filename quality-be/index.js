@@ -104,15 +104,12 @@ for (const r of routes) {
     logger.info("proc request", {
       path: r.path,
       proc: r.proc,
-      // 필요한 값만 남겨 (req.body 통째는 위험할 수 있음)
       bodyKeys: req.body ? Object.keys(req.body) : [],
     });
 
     try {
-      // makeProcHandler가 async가 아닐 수도 있으니 Promise.resolve로 감쌈
       await Promise.resolve(baseHandler(req, res, next));
     } catch (err) {
-      // ✅ 여기서 잡히는 에러는 error-YYYY-MM-DD.log로 감
       logger.error("proc handler error", {
         path: r.path,
         proc: r.proc,
@@ -122,8 +119,6 @@ for (const r of routes) {
       next(err);
     }
   });
-
-  // logger.info(`POST ${r.path} -> CALL ${r.proc}(${r.keys.join(", ")})`);
 }
 
 // =====================================================
