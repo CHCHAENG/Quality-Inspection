@@ -1,24 +1,6 @@
-// src/contexts/AlertContext.tsx
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useState,
-  type ReactNode,
-} from "react";
+import { useCallback, useState, type ReactNode } from "react";
 import { Snackbar, Alert, type AlertColor } from "@mui/material";
-
-export type AlertOptions = {
-  message: string;
-  severity?: AlertColor;
-  duration?: number;
-};
-
-type AlertContextValue = {
-  showAlert: (options: AlertOptions | string) => void;
-};
-
-const AlertContext = createContext<AlertContextValue | undefined>(undefined);
+import { AlertContext, type AlertOptions } from "./AlertContext";
 
 export function AlertProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -59,13 +41,4 @@ export function AlertProvider({ children }: { children: ReactNode }) {
       </Snackbar>
     </AlertContext.Provider>
   );
-}
-
-// eslint-disable-next-line react-refresh/only-export-components
-export function useAlert() {
-  const ctx = useContext(AlertContext);
-  if (!ctx) {
-    throw new Error("useAlert는 AlertProvider 하위에서만 사용할 수 있습니다.");
-  }
-  return ctx;
 }

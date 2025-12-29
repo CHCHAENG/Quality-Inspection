@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { lazy } from "react";
-import { AlertProvider } from "./context/AlertContext";
+import { AlertProvider } from "./context/AlertContextProvider";
 
 // ---- Lazy import
 const Dashboard = lazy(() => import("./pages/Dashboard"));
