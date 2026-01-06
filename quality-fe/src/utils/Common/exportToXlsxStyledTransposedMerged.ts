@@ -20,7 +20,7 @@ export function exportToXlsxStyledTransposedMerged<
   onFinished?: (success: boolean) => void
 ) {
   try {
-    const MERGE_STOP_EXCEL_ROW = 13;
+    const MERGE_STOP_EXCEL_ROW = 15;
     const MERGE_STOP_R0 = MERGE_STOP_EXCEL_ROW - 1;
 
     // ----------------------------
@@ -91,6 +91,9 @@ export function exportToXlsxStyledTransposedMerged<
     let approvalBottomRowIndex = -1;
     let approvalStartCol = -1;
 
+    let inspectBelowRowIndex = -1;
+    let inspectorBelowRowIndex = -1;
+
     if (headerOptions) {
       const { title, inspectDateText, inspectorNameText, showApprovalLine } =
         headerOptions;
@@ -115,11 +118,10 @@ export function exportToXlsxStyledTransposedMerged<
 
       if (hasMeta) extraHeaderRows.push(makeBlankRow());
 
-      if (inspectDateText || useApproval) {
+      if (useApproval) {
         const row = makeBlankRow();
-        if (inspectDateText) row[0] = `검사일 : ${inspectDateText}`;
 
-        if (useApproval && approvalStartCol >= 0) {
+        if (approvalStartCol >= 0) {
           const base = approvalStartCol;
 
           row[base + 0] = "결재";
@@ -138,18 +140,28 @@ export function exportToXlsxStyledTransposedMerged<
         extraHeaderRows.push(row);
       }
 
-      if (inspectorNameText || useApproval) {
+      {
         const row = makeBlankRow();
-        if (inspectorNameText) row[0] = `검사자 : ${inspectorNameText}`;
-
         inspectorRowIndex = extraHeaderRows.length;
         extraHeaderRows.push(row);
       }
 
-      if (useApproval) {
-        extraHeaderRows.push(makeBlankRow());
-        extraHeaderRows.push(makeBlankRow());
-        approvalBottomRowIndex = extraHeaderRows.length - 1;
+      extraHeaderRows.push(makeBlankRow());
+      extraHeaderRows.push(makeBlankRow());
+      approvalBottomRowIndex = extraHeaderRows.length - 1;
+
+      if (inspectDateText) {
+        const row = makeBlankRow();
+        row[0] = `검사일 : ${inspectDateText}`;
+        inspectBelowRowIndex = extraHeaderRows.length;
+        extraHeaderRows.push(row);
+      }
+
+      if (inspectorNameText) {
+        const row = makeBlankRow();
+        row[0] = `검사자 : ${inspectorNameText}`;
+        inspectorBelowRowIndex = extraHeaderRows.length;
+        extraHeaderRows.push(row);
       }
     }
 
@@ -232,6 +244,10 @@ export function exportToXlsxStyledTransposedMerged<
       }
     }
 
+    // 검사일자, 검사자
+    merges.push({ s: { r: 7, c: 0 }, e: { r: 7, c: 4 } });
+    merges.push({ s: { r: 8, c: 0 }, e: { r: 8, c: 4 } });
+
     // 메인 테이블
     for (let i = 0; i < sampleCount; i++) {
       const cStart = 1 + i * 2;
@@ -252,9 +268,9 @@ export function exportToXlsxStyledTransposedMerged<
     }
 
     // 인쇄이력
-    const RIGHT_MERGE_1_START = 13 - 1;
-    const RIGHT_MERGE_1_END = 20 - 1;
-    const RIGHT_MERGE_2_START = 21 - 1;
+    const RIGHT_MERGE_1_START = 15 - 1;
+    const RIGHT_MERGE_1_END = 22 - 1;
+    const RIGHT_MERGE_2_START = 23 - 1;
 
     const lastRow = firstBodyExcelRow + labelCols.length - 1;
 
@@ -277,7 +293,7 @@ export function exportToXlsxStyledTransposedMerged<
     }
 
     // 인쇄이력
-    const PRINT_HISTORY_ROW = 13 - 1;
+    const PRINT_HISTORY_ROW = 15 - 1;
     for (let si = 0; si < sampleCount; si++) {
       const cRight = 1 + si * 2 + 1;
       const r = Math.max(PRINT_HISTORY_ROW, firstBodyExcelRow);
@@ -338,13 +354,16 @@ export function exportToXlsxStyledTransposedMerged<
       alignment: { horizontal: "left", vertical: "center", wrapText: true },
       font: { sz: 11, color: { rgb: "FF000000" } },
     };
-    if (inspectRowIndex >= 0) {
-      const addr = XLSX.utils.encode_cell({ r: inspectRowIndex, c: 0 });
-      if (ws[addr]) ws[addr].s = metaLeftStyle;
+
+    if (inspectBelowRowIndex >= 0) {
+      const addr = XLSX.utils.encode_cell({ r: inspectBelowRowIndex, c: 0 });
+      if (!ws[addr]) ws[addr] = { t: "s", v: "" };
+      ws[addr].s = metaLeftStyle;
     }
-    if (inspectorRowIndex >= 0) {
-      const addr = XLSX.utils.encode_cell({ r: inspectorRowIndex, c: 0 });
-      if (ws[addr]) ws[addr].s = metaLeftStyle;
+    if (inspectorBelowRowIndex >= 0) {
+      const addr = XLSX.utils.encode_cell({ r: inspectorBelowRowIndex, c: 0 });
+      if (!ws[addr]) ws[addr] = { t: "s", v: "" };
+      ws[addr].s = metaLeftStyle;
     }
 
     // 결재 박스
@@ -424,6 +443,9 @@ export function exportToXlsxStyledTransposedMerged<
         rows[r] = { hpt: 20.3 };
       }
     }
+
+    rows[7] = { ...(rows[7] || {}), hpt: 25 };
+    rows[8] = { ...(rows[8] || {}), hpt: 25 };
 
     ws["!rows"] = rows;
     // ----------------------------

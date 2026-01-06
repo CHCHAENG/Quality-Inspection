@@ -131,7 +131,7 @@ export const WHEX_FIELD_KEYS = {
   // 절연외경(2포인트)
   insulationOD: ["WHEX-08-01-1", "WHEX-08-01-2"] as const,
   // 연선외경
-  souterDiameter: "WHEX-09-01-1",
+  souterDiameter: "WHEX-09-02-1",
   // 도체경(1~4)
   cond: [
     "WHEX-10-01-1",
