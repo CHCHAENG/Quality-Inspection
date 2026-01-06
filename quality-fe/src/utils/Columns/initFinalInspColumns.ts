@@ -419,12 +419,7 @@ export const WHBS_SELECTED_COLUMNS: GridColDef[] = [
   { field: "cond2", headerName: "도체경 2", width: 100, type: "number" },
   { field: "cond3", headerName: "도체경 3", width: 100, type: "number" },
   { field: "cond4", headerName: "도체경 4", width: 100, type: "number" },
-  {
-    field: "avg_insulThk",
-    headerName: "절연평균",
-    width: 100,
-    type: "number",
-  },
+
   {
     field: "insulThk1",
     headerName: "절연두께 1",
