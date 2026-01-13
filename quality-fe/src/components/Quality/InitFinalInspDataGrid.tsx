@@ -46,14 +46,15 @@ export default function InitialInspDataGrid() {
       transformRows={transformServerData}
       getColumns={getInitialFinalColumns}
       getSelectedColumns={getInitialFinalSelectedColumns}
-      mapExcludedRow={(row, kind) =>
-        (kind === "wx"
-          ? splitProcessNameStdColor_WX
-          : splitProcessNameStdColor_WH)(row)
-      }
-      mapSelectedBase={(rows, kind) =>
-        kind === "whbs" ? rows.map(buildPreviewRow) : rows
-      }
+      mapSelectedBase={(rows, kind) => {
+        const splitter =
+          kind === "wx"
+            ? splitProcessNameStdColor_WX
+            : splitProcessNameStdColor_WH;
+
+        const parsed = rows.map(splitter);
+        return kind === "whbs" ? parsed.map(buildPreviewRow) : parsed;
+      }}
       excel={{
         filename: (kind) =>
           kind === "wx"

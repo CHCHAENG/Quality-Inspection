@@ -45,10 +45,12 @@ export default function FinalInspDataGrid() {
       transformRows={transformServerData}
       getColumns={getFinalColumns}
       getSelectedColumns={getFinalSelectedColumns}
-      mapExcludedRow={(row) => splitProcessNameStdColor(row)}
-      mapSelectedBase={(rows, kind) =>
-        kind === "whex" ? rows.map(getBraidedShieldValue) : rows
-      }
+      mapSelectedBase={(rows, kind) => {
+        const parsed = rows.map(splitProcessNameStdColor);
+        if (kind === "whex") return parsed.map(getBraidedShieldValue);
+
+        return parsed;
+      }}
       excel={{
         filename: (kind) =>
           kind === "whex"

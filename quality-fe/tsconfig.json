@@ -13,8 +13,11 @@
       "@/*": ["./src/*"],
       "@/api/*": ["./src/api/*"],
       "@/components/*": ["./src/components/*"],
+      "@/context/*": ["./src/context/*"],
+      "@/model/*": ["./src/model/*"],
       "@/pages/*": ["./src/pages/*"],
-      "@/model/*": ["./src/model/*"]
+      "@/types/*": ["./src/types/*"],
+      "@/utils/*": ["./src/utils/*"]
     }
   }
 }

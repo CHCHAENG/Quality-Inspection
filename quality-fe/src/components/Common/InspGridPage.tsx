@@ -64,7 +64,6 @@ export function InspGridPage<
     transformRows,
     getColumns,
     getSelectedColumns,
-    mapExcludedRow,
     mapSelectedBase,
     toExcelRow,
     excel,
@@ -132,11 +131,7 @@ export function InspGridPage<
     const baseSelected =
       rowSelectionModel.type === "include"
         ? rows.filter((r) => rowSelectionModel.ids.has(r.id as GridRowId))
-        : rows
-            .filter((r) => !rowSelectionModel.ids.has(r.id as GridRowId))
-            .map((r) =>
-              mapExcludedRow ? mapExcludedRow(r, effectiveKind) : r
-            );
+        : rows.filter((r) => !rowSelectionModel.ids.has(r.id as GridRowId));
 
     const afterKind = mapSelectedBase
       ? mapSelectedBase(baseSelected, effectiveKind)
@@ -145,14 +140,7 @@ export function InspGridPage<
     return afterKind.map((r, idx) =>
       toExcelRow ? toExcelRow(r, idx + 1) : { ...r, no: idx + 1 }
     );
-  }, [
-    rows,
-    rowSelectionModel,
-    effectiveKind,
-    mapExcludedRow,
-    mapSelectedBase,
-    toExcelRow,
-  ]);
+  }, [rows, rowSelectionModel, effectiveKind, mapSelectedBase, toExcelRow]);
 
   // -------------------- 선택된 행에서 검사자 목록 추출 --------------------
   const inspectorOptions = useMemo(() => {
