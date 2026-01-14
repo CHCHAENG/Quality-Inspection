@@ -20,5 +20,9 @@ export function extractErrorMessage(error: unknown): string {
   }
 
   // AxiosError가 아니거나 message가 없는 경우
-  return (error as any)?.message || "알 수 없는 오류가 발생했습니다.";
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "알 수 없는 오류가 발생했습니다.";
 }

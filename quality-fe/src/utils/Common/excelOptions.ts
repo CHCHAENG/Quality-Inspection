@@ -62,7 +62,7 @@ export function excelOptions(
     return base;
   })();
 
-  // 3) colWchByField (✅ InspGridPage 내용 전부 반영)
+  // 3) colWchByField
   const colWchByField: ColWchByField = {};
 
   if (inspectionType === "mtr") {

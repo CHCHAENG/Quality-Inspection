@@ -23,7 +23,7 @@ interface SidebarProps {
   toggleSidebar: () => void;
 }
 
-export interface MenuNode {
+interface MenuNode {
   id: string;
   label: string;
   path?: string;

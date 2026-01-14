@@ -99,18 +99,6 @@ function formatRowsForExcelDecimal(
   });
 }
 
-// 압출 호기 리스트
-const HO_GI_LIST = [
-  "압출 02 호기",
-  "압출 03 호기",
-  "압출 04 호기",
-  "압출 05 호기",
-  "조사 04 호기",
-  "조사 05 호기",
-] as const;
-
-type processName = (typeof HO_GI_LIST)[number];
-
 // -------------------- sendData --------------------
 function buildSendData(s: string, e: string) {
   // ITM_GRP=27 (압출-일반선)
@@ -125,6 +113,18 @@ function buildSendData2(s: string, e: string) {
 function buildSendDataProd(item: string) {
   return `${item};0;`;
 }
+
+// 압출 호기 리스트
+const HO_GI_LIST = [
+  "압출 02 호기",
+  "압출 03 호기",
+  "압출 04 호기",
+  "압출 05 호기",
+  "조사 04 호기",
+  "조사 05 호기",
+] as const;
+
+type processName = (typeof HO_GI_LIST)[number];
 
 export default function PrcsSubWEInspDataGrid() {
   // 원본

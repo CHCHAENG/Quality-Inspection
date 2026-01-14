@@ -1,36 +1,15 @@
 import { Button, type ButtonProps } from "@mui/material";
 import { type GridColDef } from "@mui/x-data-grid";
-import {
-  exportToXlsxStyled,
-  type ExportHeaderOptions,
-} from "../../utils/Common/exportToXlsxStyled";
+import { exportToXlsxStyled } from "../../utils/Common/exportToXlsxStyled";
 import { useAlert } from "../../context/AlertContext";
-import {
-  exportToXlsxStyledTranspose,
-  type WEProdStdByHoGi,
-} from "../../utils/Common/exportToXlsxStyledTranspose";
+import { exportToXlsxStyledTranspose } from "../../utils/Common/exportToXlsxStyledTranspose";
 import { exportToXlsxStyledTransposedMerged } from "../../utils/Common/exportToXlsxStyledTransposedMerged";
-
-export type ExcelOptions = {
-  widthOptions: {
-    approvalWch: [number, number, number, number];
-    colWchByField: Record<string, number>;
-  };
-  heightOptions: {
-    headerHpt: number;
-    bodyHpt: number;
-  };
-};
-
-export type TransposeExcelOptions = {
-  widthOptions?: {
-    colWchByIndex: Record<number, number>;
-  };
-  heightOptions?: {
-    headerHpt?: number;
-    bodyHpt?: number;
-  };
-};
+import {
+  ExcelOptions,
+  ExportHeaderOptions,
+  TransposeExcelOptions,
+  WEProdStdByHoGi,
+} from "../../types/common";
 
 type ExcelDownloadButtonProps<T extends Record<string, unknown>> = {
   data: T[];

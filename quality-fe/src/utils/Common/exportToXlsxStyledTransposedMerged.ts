@@ -1,14 +1,8 @@
 import { GridColDef } from "@mui/x-data-grid";
 import * as XLSX from "xlsx-js-style";
+import { ExportHeaderOptions } from "../../types/common";
 
 type ExcelCell = string | number | null;
-
-export interface ExportHeaderOptions {
-  title?: string;
-  inspectDateText?: string;
-  inspectorNameText?: string;
-  showApprovalLine?: boolean;
-}
 
 export function exportToXlsxStyledTransposedMerged<
   T extends Record<string, unknown>

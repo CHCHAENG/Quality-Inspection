@@ -1,26 +1,13 @@
 import { GridColDef } from "@mui/x-data-grid";
 import * as XLSX from "xlsx-js-style";
 import { visualLen } from "./visualLen";
+import {
+  ExportHeaderOptions,
+  ExportRowHeightOptions,
+  ExportWidthOptions,
+} from "../../types/common";
 
 type ExcelCell = string | number | null;
-
-export interface ExportHeaderOptions {
-  title?: string;
-  inspectDateText?: string;
-  inspectorNameText?: string;
-  showApprovalLine?: boolean;
-}
-
-export interface ExportWidthOptions {
-  approvalWch?: [number, number, number, number];
-  colWchByField?: Record<string, number>;
-  colWchByIndex?: Record<number, number>;
-}
-
-export interface ExportRowHeightOptions {
-  headerHpt?: number;
-  bodyHpt?: number;
-}
 
 const TEMPLATE_URL = "/template.xlsx";
 

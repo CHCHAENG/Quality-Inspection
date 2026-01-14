@@ -1,22 +1,18 @@
 import { GridColDef } from "@mui/x-data-grid";
 import * as XLSX from "xlsx-js-style";
-import { ExportHeaderOptions } from "./exportToXlsxStyled";
-import { WEProdStdRow } from "../InspDataTrans/prcsSubInspTrans";
+import {
+  ExportHeaderOptions,
+  ExportRowHeightOptions,
+  WEProdStdByHoGi,
+} from "../../types/common";
 
 type ExcelCell = string | number | null;
 
-export type WEProdStdByHoGi = Record<string, WEProdStdRow[]>;
-
-const TEMPLATE_URL = "/template.xlsx";
-
-export type ExportRowHeightOptions = {
-  headerHpt?: number;
-  bodyHpt?: number;
-};
-
-export type ExportWidthOptionsTranspose = {
+type ExportWidthOptionsTranspose = {
   colWchByIndex: Record<number, number>;
 };
+
+const TEMPLATE_URL = "/template.xlsx";
 
 export function exportToXlsxStyledTranspose<T extends Record<string, unknown>>(
   data: T[],

@@ -15,8 +15,8 @@ export type MenuItem = {
   id: string;
   label: string;
   icon?: ReactNode;
-  to?: string; // 라우트 경로
-  children?: MenuItem[]; // 하위 메뉴
+  to?: string;
+  children?: MenuItem[];
 };
 
 export const MENU: MenuItem[] = [

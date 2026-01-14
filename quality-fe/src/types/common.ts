@@ -1,4 +1,5 @@
 import type { GridColDef, GridRowId } from "@mui/x-data-grid";
+import { WEProdStdRow } from "../utils/InspDataTrans/prcsSubInspTrans";
 
 export type RowSelectionModelV8 = {
   type: "include" | "exclude";
@@ -18,7 +19,37 @@ export type ExcelOptions = {
   };
 };
 
+export type TransposeExcelOptions = {
+  widthOptions?: {
+    colWchByIndex: Record<number, number>;
+  };
+  heightOptions?: {
+    headerHpt?: number;
+    bodyHpt?: number;
+  };
+};
+
+export interface ExportHeaderOptions {
+  title?: string;
+  inspectDateText?: string;
+  inspectorNameText?: string;
+  showApprovalLine?: boolean;
+}
+
+export interface ExportWidthOptions {
+  approvalWch?: [number, number, number, number];
+  colWchByField?: Record<string, number>;
+  colWchByIndex?: Record<number, number>;
+}
+
+export interface ExportRowHeightOptions {
+  headerHpt?: number;
+  bodyHpt?: number;
+}
+
 export type InspectionType = "mtr" | "prcs" | "final" | "initFinal" | "other";
+
+export type WEProdStdByHoGi = Record<string, WEProdStdRow[]>;
 
 export type WithId = { id: string | number };
 export type WithInspector = { inspector?: unknown };
