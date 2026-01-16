@@ -1,8 +1,10 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { lazy } from "react";
 import { AlertProvider } from "./context/AlertContextProvider";
 
 // ---- Lazy import
+const Login = lazy(() => import("./pages/Login"));
+
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const DashboardHome = lazy(() => import("./pages/DashboardHome"));
 const Insp = lazy(() => import("./pages/Insp"));
@@ -49,7 +51,8 @@ export default function App() {
             </Route>
           </Route>
 
-          <Route path="/" element={<Navigate to="/quality" replace />} />
+          {/* <Route path="/" element={<Navigate to="/quality" replace />} /> */}
+          <Route path="/" element={<Login />} />
           <Route path="*" element={<div>Not Found</div>} />
         </Routes>
       </AlertProvider>
