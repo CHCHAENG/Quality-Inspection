@@ -43,6 +43,13 @@ app.use((req, res, next) => {
 
 // 프로시저 매핑 테이블
 const routes = [
+  // 로그인
+  {
+    path: "/api/login",
+    proc: "TR00001",
+    keys: ["i_USRID", "i_PSWD"],
+  },
+
   // 수입검사 원자재
   {
     path: "/api/mtr",

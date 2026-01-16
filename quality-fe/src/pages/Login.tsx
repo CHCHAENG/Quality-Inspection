@@ -7,21 +7,22 @@ import {
   Typography,
   Stack,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { login } from "../api/api";
 
 const logo = "/logo.jpg";
 
-type LoginPageProps = {
-  onLogin?: (payload: { id: string; password: string }) => void | Promise<void>;
-  title?: string;
-};
-
 export default function Login({
-  onLogin,
   title = "장안 품질검사 성적서",
-}: LoginPageProps) {
+}: {
+  title?: string;
+}) {
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const navigate = useNavigate();
 
   const canSubmit = useMemo(
     () => id.trim().length > 0 && password.trim().length > 0 && !loading,
@@ -30,9 +31,21 @@ export default function Login({
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
+
+    setLoading(true);
+    setError(null);
+
     try {
-      setLoading(true);
-      await onLogin?.({ id: id.trim(), password });
+      const res = await login(`${id};${password};`);
+
+      if (res?.ok === false) {
+        setError(res.detail || "로그인에 실패했습니다.");
+        return;
+      }
+
+      navigate("/quality"); // 메인 페이지로 이동
+    } catch (err: unknown) {
+      setError("로그인 중 오류가 발생했습니다." || err);
     } finally {
       setLoading(false);
     }
@@ -41,152 +54,110 @@ export default function Login({
   return (
     <Box
       sx={{
+        height: "100dvh",
+        width: "100%",
         bgcolor: "#fff",
         display: "flex",
-        flexDirection: "column",
+        justifyContent: "center",
         alignItems: "center",
-        pt: { xs: 10, md: 14 },
-        px: 2,
         overflow: "hidden",
       }}
     >
-      {/* 로고 */}
-      <Box
-        component="img"
-        src={logo}
-        alt="logo"
-        sx={{
-          height: { xs: 36, md: 44 },
-          mb: { xs: 6, md: 7 },
-          userSelect: "none",
-        }}
-      />
-
-      {/* 로그인 카드 */}
-      <Paper
-        elevation={0}
-        sx={{
-          width: "100%",
-          maxWidth: 620,
-          borderRadius: 4,
-          border: "1px solid rgba(0,0,0,0.08)",
-          boxShadow: "0 8px 24px rgba(15,23,42,0.06)",
-          px: { xs: 3, md: 6 },
-          py: { xs: 4, md: 5 },
-        }}
-      >
-        <Typography
+      <Box sx={{ width: "100%" }}>
+        <Box
+          component="img"
+          src={logo}
+          alt="logo"
           sx={{
-            textAlign: "center",
-            fontWeight: 700,
-            fontSize: { xs: 20, md: 28 },
+            display: "block",
+            height: { xs: 36, md: 44 },
             mb: { xs: 4, md: 5 },
+            mx: "auto",
+          }}
+        />
+
+        <Paper
+          elevation={0}
+          sx={{
+            maxWidth: 620,
+            mx: "auto",
+            borderRadius: 4,
+            border: "1px solid rgba(0,0,0,0.08)",
+            boxShadow: "0 8px 24px rgba(15,23,42,0.06)",
+            backgroundColor: "#f4f6f8",
+            px: { xs: 3, md: 6 },
+            py: { xs: 4, md: 5 },
           }}
         >
-          {title}
-        </Typography>
-
-        <Box sx={{ maxWidth: 560, mx: "auto" }}>
-          {/* ID Row */}
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            alignItems="center"
-            spacing={2}
-            sx={{ mb: 2 }}
+          <Typography
+            sx={{
+              textAlign: "center",
+              fontWeight: 700,
+              fontSize: { xs: 20, md: 28 },
+              mb: { xs: 3, md: 4 },
+            }}
           >
-            {/* 라벨 - 카드 왼쪽 시작선 */}
-            <Box sx={{ width: 120 }}>
-              <Typography
-                sx={{
-                  fontWeight: 600,
-                  color: "#334155",
-                  textAlign: "left",
-                  lineHeight: "46px",
-                }}
-              >
-                ID
-              </Typography>
-            </Box>
+            {title}
+          </Typography>
 
-            {/* 입력칸 */}
-            <Box sx={{ flex: 1 }}>
+          <Box sx={{ maxWidth: 560, mx: "auto" }}>
+            {/* ID */}
+            <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+              <Box sx={{ width: 120 }}>
+                <Typography sx={{ lineHeight: "46px", fontWeight: 600 }}>
+                  ID
+                </Typography>
+              </Box>
               <TextField
                 fullWidth
                 value={id}
                 onChange={(e) => setId(e.target.value)}
-                autoComplete="username"
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    height: 46,
-                    bgcolor: "#fff",
-                  },
-                }}
               />
-            </Box>
-          </Stack>
+            </Stack>
 
-          {/* Password Row */}
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            alignItems="center"
-            spacing={2}
-            sx={{ mb: 3 }}
-          >
-            {/* 라벨 - 카드 왼쪽 시작선 */}
-            <Box sx={{ width: 120 }}>
-              <Typography
-                sx={{
-                  fontWeight: 600,
-                  color: "#334155",
-                  textAlign: "left",
-                  lineHeight: "46px",
-                }}
-              >
-                Password
-              </Typography>
-            </Box>
-
-            {/* 입력칸 */}
-            <Box sx={{ flex: 1 }}>
+            {/* Password */}
+            <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+              <Box sx={{ width: 120 }}>
+                <Typography sx={{ lineHeight: "46px", fontWeight: 600 }}>
+                  Password
+                </Typography>
+              </Box>
               <TextField
                 fullWidth
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleSubmit();
                 }}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    height: 46,
-                    bgcolor: "#fff",
-                  },
-                }}
               />
-            </Box>
-          </Stack>
+            </Stack>
 
-          {/* 버튼 (그대로 유지) */}
-          <Button
-            fullWidth
-            size="large"
-            variant="contained"
-            disabled={!canSubmit}
-            onClick={handleSubmit}
-            sx={{
-              height: 46,
-              fontWeight: 700,
-              borderRadius: 1,
-              textTransform: "none",
-              bgcolor: "#324a6d",
-              "&:hover": { bgcolor: "#2b3f5d" },
-            }}
-          >
-            {loading ? "로그인 중..." : "로그인"}
-          </Button>
-        </Box>
-      </Paper>
+            {/* ❌ 에러 메시지 */}
+            {error && (
+              <Typography
+                sx={{ color: "error.main", mb: 2, textAlign: "center" }}
+              >
+                {error}
+              </Typography>
+            )}
+
+            <Button
+              fullWidth
+              variant="contained"
+              disabled={!canSubmit}
+              onClick={handleSubmit}
+              sx={{
+                height: 46,
+                fontWeight: 700,
+                bgcolor: "#324a6d",
+              }}
+            >
+              {loading ? "로그인 중..." : "로그인"}
+            </Button>
+          </Box>
+        </Paper>
+      </Box>
     </Box>
   );
 }

@@ -1,5 +1,11 @@
 import axios from "axios";
 
+// 로그인
+export async function login(sendData: string) {
+  const res = await axios.post("/api/login", { sendData });
+  return res.data;
+}
+
 // 수입검사 (연선, PVC, SCR)
 export async function mtrInsp(sendData: string) {
   const res = await axios.post("/api/mtr", { sendData });
