@@ -33,6 +33,7 @@ export default function App() {
     <BrowserRouter>
       <AlertProvider>
         <Routes>
+          <Route path="/" element={<Login />} />
           <Route path="/quality" element={<Dashboard />}>
             <Route index element={<DashboardHome />} />
             <Route path="mtr-insp" element={<Insp />}>
@@ -51,8 +52,6 @@ export default function App() {
             </Route>
           </Route>
 
-          {/* <Route path="/" element={<Navigate to="/quality" replace />} /> */}
-          <Route path="/" element={<Login />} />
           <Route path="*" element={<div>Not Found</div>} />
         </Routes>
       </AlertProvider>

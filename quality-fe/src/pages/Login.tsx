@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Button,
@@ -9,18 +9,16 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { login } from "../api/api";
+import axios from "axios";
 
 const logo = "/logo.jpg";
 
-export default function Login({
-  title = "장안 품질검사 성적서",
-}: {
-  title?: string;
-}) {
+export default function Login() {
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const chkLogin = window.sessionStorage.getItem("user");
 
   const navigate = useNavigate();
 
@@ -39,17 +37,26 @@ export default function Login({
       const res = await login(`${id};${password};`);
 
       if (res?.ok === false) {
-        setError(res.detail || "로그인에 실패했습니다.");
         return;
       }
 
-      navigate("/quality"); // 메인 페이지로 이동
+      if (!chkLogin) {
+        window.sessionStorage.setItem("user", res[0].USRNM);
+      }
+
+      navigate("/quality");
     } catch (err: unknown) {
-      setError("로그인 중 오류가 발생했습니다." || err);
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data.detail || "로그인 중 오류가 발생했습니다.");
+      }
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    window.sessionStorage.removeItem("user");
+  }, []);
 
   return (
     <Box
@@ -79,12 +86,12 @@ export default function Login({
         <Paper
           elevation={0}
           sx={{
-            maxWidth: 620,
+            maxWidth: 560,
             mx: "auto",
             borderRadius: 4,
             border: "1px solid rgba(0,0,0,0.08)",
-            boxShadow: "0 8px 24px rgba(15,23,42,0.06)",
-            backgroundColor: "#f4f6f8",
+            boxShadow: "0 8px 16px rgba(15,23,42,0.06)",
+            backgroundColor: "#f7f9fb",
             px: { xs: 3, md: 6 },
             py: { xs: 4, md: 5 },
           }}
@@ -92,15 +99,15 @@ export default function Login({
           <Typography
             sx={{
               textAlign: "center",
-              fontWeight: 700,
-              fontSize: { xs: 20, md: 28 },
-              mb: { xs: 3, md: 4 },
+              fontWeight: 600,
+              fontSize: { xs: 0, md: 24 },
+              mb: { xs: 3, md: 6 },
             }}
           >
-            {title}
+            장안 품질검사 성적서
           </Typography>
 
-          <Box sx={{ maxWidth: 560, mx: "auto" }}>
+          <Box sx={{ maxWidth: 560, mx: 3 }}>
             {/* ID */}
             <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
               <Box sx={{ width: 120 }}>
@@ -116,7 +123,7 @@ export default function Login({
             </Stack>
 
             {/* Password */}
-            <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+            <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
               <Box sx={{ width: 120 }}>
                 <Typography sx={{ lineHeight: "46px", fontWeight: 600 }}>
                   Password
@@ -133,7 +140,6 @@ export default function Login({
               />
             </Stack>
 
-            {/* ❌ 에러 메시지 */}
             {error && (
               <Typography
                 sx={{ color: "error.main", mb: 2, textAlign: "center" }}
@@ -153,7 +159,7 @@ export default function Login({
                 bgcolor: "#324a6d",
               }}
             >
-              {loading ? "로그인 중..." : "로그인"}
+              <Typography>로그인</Typography>
             </Button>
           </Box>
         </Paper>
