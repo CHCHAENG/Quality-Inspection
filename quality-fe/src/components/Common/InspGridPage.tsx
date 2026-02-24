@@ -46,6 +46,7 @@ import {
   normalizeHeader,
   sortRowsByModel,
 } from "../../utils/Common/inspGrid";
+import { logSearch } from "../../api/api";
 
 dayjs.locale("ko");
 dayjs.extend(minMax);
@@ -253,6 +254,7 @@ export function InspGridPage<
     setLoading(true);
 
     try {
+      await recordSearchCount();
       const data = await fetcher(sendData);
       if (reqSeq.current !== mySeq) return;
 
@@ -273,6 +275,17 @@ export function InspGridPage<
       setSelectedInspectors([]);
     } finally {
       if (reqSeq.current === mySeq) setLoading(false);
+    }
+  }
+
+  // 조회 로그 카운트 통신
+  async function recordSearchCount() {
+    try {
+      const result = await logSearch(`${dayjs().format("YYYY-MM-DD")};0;`);
+
+      console.log("조회", result);
+    } catch (e) {
+      console.error("조회 카운트 실패:", e);
     }
   }
 

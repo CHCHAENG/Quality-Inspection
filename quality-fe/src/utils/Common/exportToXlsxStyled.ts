@@ -19,7 +19,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
   onFinished?: (success: boolean) => void,
   headerOptions?: ExportHeaderOptions,
   widthOptions?: ExportWidthOptions,
-  heightOptions?: ExportRowHeightOptions
+  heightOptions?: ExportRowHeightOptions,
 ) {
   // 1) 헤더 텍스트 배열 (DataGrid 헤더)
   let headers = columns.map((c) => c.headerName ?? String(c.field));
@@ -486,7 +486,7 @@ export function exportToXlsxStyled<T extends Record<string, unknown>>(
 
       XLSX.writeFile(
         wb,
-        filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`
+        filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`,
       );
       onFinished?.(true);
     } catch (e) {

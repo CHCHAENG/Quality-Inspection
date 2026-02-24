@@ -52,3 +52,8 @@ export async function logLogin(sendData: string) {
   const res = await axios.post("/api/log/login", { sendData });
   return res.data;
 }
+
+export async function logSearch(sendData: string) {
+  const res = await axios.post("/api/log/search", { sendData });
+  return res.data;
+}

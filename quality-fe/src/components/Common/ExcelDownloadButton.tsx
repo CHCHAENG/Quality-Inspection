@@ -10,6 +10,8 @@ import {
   TransposeExcelOptions,
   WEProdStdByHoGi,
 } from "../../types/common";
+import { logSearch } from "../../api/api";
+import dayjs from "dayjs";
 
 type ExcelDownloadButtonProps<T extends Record<string, unknown>> = {
   data: T[];
@@ -22,11 +24,11 @@ type ExcelDownloadButtonProps<T extends Record<string, unknown>> = {
   onBeforeDownload?: () => boolean | void;
   transposeSource?: WEProdStdByHoGi;
   excelOptions?: ExcelOptions;
-  excelOptions_trnas?: TransposeExcelOptions;
+  excelOptions_trans?: TransposeExcelOptions;
 };
 
 export function ExcelDownloadButton<T extends Record<string, unknown>>(
-  props: ExcelDownloadButtonProps<T>
+  props: ExcelDownloadButtonProps<T>,
 ) {
   const {
     data,
@@ -39,10 +41,21 @@ export function ExcelDownloadButton<T extends Record<string, unknown>>(
     onBeforeDownload,
     transposeSource,
     excelOptions,
-    excelOptions_trnas,
+    excelOptions_trans,
   } = props;
 
   const { showAlert } = useAlert();
+
+  // 다운로드 로그 카운트 통신
+  async function recordDownloadCount() {
+    try {
+      const result = await logSearch(`${dayjs().format("YYYY-MM-DD")};1;`);
+
+      console.log("다운로드", result);
+    } catch (e) {
+      console.error("조회 카운트 실패:", e);
+    }
+  }
 
   const handleClick = () => {
     if (!data || data.length === 0) {
@@ -59,8 +72,9 @@ export function ExcelDownloadButton<T extends Record<string, unknown>>(
       if (result === false) return;
     }
 
-    const callback = (success: boolean) => {
+    const callback = async (success: boolean) => {
       if (success) {
+        await recordDownloadCount();
         showAlert({
           message: "엑셀 파일이 정상적으로 저장되었습니다.",
           severity: "success",
@@ -82,8 +96,8 @@ export function ExcelDownloadButton<T extends Record<string, unknown>>(
           callback,
           headerOptions,
           transposeSource,
-          excelOptions_trnas?.widthOptions,
-          excelOptions_trnas?.heightOptions
+          excelOptions_trans?.widthOptions,
+          excelOptions_trans?.heightOptions,
         );
         return;
       }
@@ -94,7 +108,7 @@ export function ExcelDownloadButton<T extends Record<string, unknown>>(
           columns,
           filename,
           headerOptions,
-          callback
+          callback,
         );
         return;
       }
@@ -107,7 +121,7 @@ export function ExcelDownloadButton<T extends Record<string, unknown>>(
         callback,
         headerOptions,
         excelOptions?.widthOptions,
-        excelOptions?.heightOptions
+        excelOptions?.heightOptions,
       );
     } catch (e) {
       console.error(e);

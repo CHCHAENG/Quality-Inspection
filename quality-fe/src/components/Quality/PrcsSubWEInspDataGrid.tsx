@@ -54,7 +54,7 @@ dayjs.extend(minMax);
 
 function buildDecimalScaleMapFromRows(
   columns: GridColDef[],
-  rows: Record<string, unknown>[]
+  rows: Record<string, unknown>[],
 ): Record<string, number> {
   const map: Record<string, number> = {};
 
@@ -79,7 +79,7 @@ function buildDecimalScaleMapFromRows(
 
 function formatRowsForExcelDecimal(
   rows: Record<string, unknown>[],
-  scaleMap: Record<string, number>
+  scaleMap: Record<string, number>,
 ): Record<string, unknown>[] {
   const fields = Object.keys(scaleMap);
   if (fields.length === 0) return rows;
@@ -139,7 +139,7 @@ export default function PrcsSubWEInspDataGrid() {
       ids: new Set(),
     });
   const [startDate, setStartDate] = useState<Dayjs | null>(
-    dayjs().startOf("month")
+    dayjs().startOf("month"),
   );
   const [endDate, setEndDate] = useState<Dayjs | null>(dayjs());
   const [loading, setLoading] = useState(false);
@@ -176,18 +176,18 @@ export default function PrcsSubWEInspDataGrid() {
   // -------------------- rows 변환 --------------------
   const rows = useMemo<FrontRow_WE[]>(
     () => transformServerData_WE(rawServerData),
-    [rawServerData]
+    [rawServerData],
   );
 
   // -------------------- 선택 행 계산 --------------------
   const selectedRows = useMemo(() => {
     if (rowSelectionModel.type === "include") {
       return rows.filter((r) =>
-        rowSelectionModel.ids.has(r.inspLot as GridRowId)
+        rowSelectionModel.ids.has(r.inspLot as GridRowId),
       );
     }
     return rows.filter(
-      (r) => !rowSelectionModel.ids.has(r.inspLot as GridRowId)
+      (r) => !rowSelectionModel.ids.has(r.inspLot as GridRowId),
     );
   }, [rows, rowSelectionModel]);
 
@@ -237,7 +237,7 @@ export default function PrcsSubWEInspDataGrid() {
           inspector: r ? String(r.inspector ?? "").trim() : "",
         };
       }),
-    [hoGiMap]
+    [hoGiMap],
   );
 
   // -------------------- 컬럼 (헬퍼에서 가져오기) --------------------
@@ -245,7 +245,7 @@ export default function PrcsSubWEInspDataGrid() {
     const base = getPrcsSubWEMainColumns();
     return withDecimalFormatter(
       base,
-      rows as unknown as Record<string, unknown>[]
+      rows as unknown as Record<string, unknown>[],
     );
   }, [rows]);
 
@@ -253,21 +253,21 @@ export default function PrcsSubWEInspDataGrid() {
     const base = getPrcsSubWEHoGiColumns();
     return withDecimalFormatter(
       base,
-      hoGiSummaryRows as unknown as Record<string, unknown>[]
+      hoGiSummaryRows as unknown as Record<string, unknown>[],
     );
   }, [hoGiSummaryRows]);
 
   const hoGiExcelScaleMap = useMemo(() => {
     return buildDecimalScaleMapFromRows(
       hoGiColumns,
-      hoGiSummaryRows as unknown as Record<string, unknown>[]
+      hoGiSummaryRows as unknown as Record<string, unknown>[],
     );
   }, [hoGiColumns, hoGiSummaryRows]);
 
   const formattedHoGiSummaryRows = useMemo(() => {
     return formatRowsForExcelDecimal(
       hoGiSummaryRows as unknown as Record<string, unknown>[],
-      hoGiExcelScaleMap
+      hoGiExcelScaleMap,
     ) as unknown as typeof hoGiSummaryRows;
   }, [hoGiSummaryRows, hoGiExcelScaleMap]);
 
@@ -569,7 +569,7 @@ export default function PrcsSubWEInspDataGrid() {
                 showApprovalLine: true,
               }}
               transposeSource={weProdStdByHoGi}
-              excelOptions_trnas={{
+              excelOptions_trans={{
                 widthOptions: {
                   colWchByIndex: {
                     0: 19.1,

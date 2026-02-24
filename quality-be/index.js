@@ -110,7 +110,7 @@ const routes = [
   {
     path: "/api/log/search",
     proc: "TR59002",
-    keys: ["i_DATE"],
+    keys: ["i_DATE", "i_TYPE"],
   },
 ];
 
