@@ -8,8 +8,9 @@ import {
   Stack,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { login } from "../api/api";
+import { login, logLogin } from "../api/api";
 import axios from "axios";
+import dayjs from "dayjs";
 
 const logo = "/logo.jpg";
 
@@ -24,7 +25,7 @@ export default function Login() {
 
   const canSubmit = useMemo(
     () => id.trim().length > 0 && password.trim().length > 0 && !loading,
-    [id, password, loading]
+    [id, password, loading],
   );
 
   const handleSubmit = async () => {
@@ -42,6 +43,25 @@ export default function Login() {
 
       if (!chkLogin) {
         window.sessionStorage.setItem("user", res[0].USRNM);
+
+        try {
+          const result = await logLogin(
+            `${dayjs().format("YYYY-MM-DD")};${dayjs().format("YYYY-MM-DD HH:mm:ss")};`,
+          );
+
+          const stidx = result?.[0]?.STIDX;
+
+          if (stidx != null) {
+            sessionStorage.setItem("stidx", String(stidx)); // 세션스토리지 저장
+          }
+        } catch (err: unknown) {
+          if (axios.isAxiosError(err)) {
+            setError(
+              err.response?.data.detail ||
+                "로그인 로그 기록중 오류가 발생했습니다.",
+            );
+          }
+        }
       }
 
       navigate("/quality");

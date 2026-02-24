@@ -54,7 +54,7 @@ export function InspGridPage<
   Kind extends string,
   ServerRow,
   FrontRow extends WithId & WithInspector,
-  ExcelRow extends WithId & WithInspector
+  ExcelRow extends WithId & WithInspector,
 >(props: InspGridPageConfig<Kind, ServerRow, FrontRow, ExcelRow>) {
   const {
     kindFromPath,
@@ -86,7 +86,7 @@ export function InspGridPage<
   const [previewSortModel, setPreviewSortModel] = useState<GridSortModel>([]);
 
   const [startDate, setStartDate] = useState<Dayjs | null>(
-    dayjs().startOf("month")
+    dayjs().startOf("month"),
   );
   const [endDate, setEndDate] = useState<Dayjs | null>(dayjs());
   const [loading, setLoading] = useState(false);
@@ -99,14 +99,14 @@ export function InspGridPage<
   // -------------------- 기준값 --------------------
   const effectiveKind = useMemo(
     () => kindFromPath(pathname),
-    [kindFromPath, pathname]
+    [kindFromPath, pathname],
   );
   const inspectionType = props.inspectionType ?? "other";
 
   // -------------------- rows 변환 --------------------
   const rows = useMemo<FrontRow[]>(
     () => transformRows(rawServerData, effectiveKind),
-    [rawServerData, effectiveKind, transformRows]
+    [rawServerData, effectiveKind, transformRows],
   );
 
   // -------------------- 컬럼  --------------------
@@ -114,7 +114,7 @@ export function InspGridPage<
     const base = getColumns(effectiveKind);
     return withDecimalFormatter(
       base,
-      rows as unknown as Record<string, unknown>[]
+      rows as unknown as Record<string, unknown>[],
     );
   }, [getColumns, effectiveKind, rows]);
 
@@ -122,7 +122,7 @@ export function InspGridPage<
     const base = getSelectedColumns(effectiveKind);
     return withDecimalFormatter(
       base,
-      rows as unknown as Record<string, unknown>[]
+      rows as unknown as Record<string, unknown>[],
     );
   }, [getSelectedColumns, effectiveKind, rows]);
 
@@ -138,7 +138,7 @@ export function InspGridPage<
       : (baseSelected as unknown as ExcelRow[]);
 
     return afterKind.map((r, idx) =>
-      toExcelRow ? toExcelRow(r, idx + 1) : { ...r, no: idx + 1 }
+      toExcelRow ? toExcelRow(r, idx + 1) : { ...r, no: idx + 1 },
     );
   }, [rows, rowSelectionModel, effectiveKind, mapSelectedBase, toExcelRow]);
 
@@ -188,7 +188,7 @@ export function InspGridPage<
     if (effectiveKind === "pvc" || effectiveKind === "scr") {
       const lotCol = selectedColumns.find((c) => {
         const h = normalizeHeader(
-          typeof c.headerName === "string" ? c.headerName : c.field
+          typeof c.headerName === "string" ? c.headerName : c.field,
         );
         return h === "LOTNO";
       });
@@ -199,7 +199,7 @@ export function InspGridPage<
         base = base.map((r) => ({
           ...r,
           [lotField]: keepRight15(
-            (r as Record<string, string | number | null | undefined>)[lotField]
+            (r as Record<string, string | number | null | undefined>)[lotField],
           ),
         }));
       }
@@ -218,27 +218,27 @@ export function InspGridPage<
     return sortRowsByModel(
       selectedRowsForExcelBase,
       previewSortModel,
-      selectedColumns
+      selectedColumns,
     );
   }, [selectedRowsForExcelBase, previewSortModel, selectedColumns]);
 
   const selectedRowsForExcel = useMemo(() => {
     return selectedRowsForExcelSorted.map((r, idx) =>
-      toExcelRow ? toExcelRow(r, idx + 1) : { ...r, no: idx + 1 }
+      toExcelRow ? toExcelRow(r, idx + 1) : { ...r, no: idx + 1 },
     );
   }, [selectedRowsForExcelSorted, toExcelRow]);
 
   const selectedRowsForExcelFormatted = useMemo(() => {
     return formatRowsForExcel(
       selectedRowsForExcel as unknown as Record<string, unknown>[],
-      selectedColumns
+      selectedColumns,
     );
   }, [selectedRowsForExcel, selectedColumns]);
 
   // -------------------- 엑셀 옵션--------------------
   const excelOptionsMemo = useMemo(
     () => excelOptions(inspectionType, effectiveKind),
-    [inspectionType, effectiveKind]
+    [inspectionType, effectiveKind],
   );
 
   // -------------------- 조회 버튼 --------------------

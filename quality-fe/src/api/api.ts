@@ -47,3 +47,8 @@ export async function initFinalinsp(sendData: string) {
   const res = await axios.post("/api/initFinalSub", { sendData });
   return res.data;
 }
+
+export async function logLogin(sendData: string) {
+  const res = await axios.post("/api/log/login", { sendData });
+  return res.data;
+}

@@ -98,6 +98,20 @@ const routes = [
     proc: "TR52122",
     keys: ["i_SDATE", "i_EDATE", "i_ITM_GRP", "i_LANG", "i_STR"],
   },
+
+  // 사용자 로그인 기록
+  {
+    path: "/api/log/login",
+    proc: "TR59003",
+    keys: ["i_DATE", "i_START_TS"],
+  },
+
+  // 사용자 조회 카운트
+  {
+    path: "/api/log/search",
+    proc: "TR59002",
+    keys: ["i_DATE"],
+  },
 ];
 
 // =====================================================
