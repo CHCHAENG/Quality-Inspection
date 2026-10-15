@@ -110,6 +110,11 @@ function buildSendData2(s: string, e: string) {
   return `${s};${e};28;0;WX-01-01:1!WX-02-01:1!WX-03-01:1!WX-04-01:1!WX-05-01:1!WX-06-01:1!WX-06-01:2!WX-07-01:1!WX-08-01:1!WX-09-01:1!WX-09-01:2!WX-09-01:3!WX-09-01:4!WX-10-01:1!WX-10-01:2!WX-10-01:3!WX-10-01:4!WX-11-01:1!WX-12-01:1!WX-13-01:1!WX-14-01:1!;`;
 }
 
+function buildSendData3(s: string, e: string) {
+  // ITM_GRP=3F (압출-고전압선)
+  return `${s};${e};3F;0;WHBS-01-01:1!WHBS-02-01:1!WHBS-06-01:1!WHBS-06-01:2!WHBS-07-01:1!WHBS-08-01:1!WHBS-08-01:2!WHBS-08-01:3!WHBS-08-01:4!WHBS-09-01:1!WHBS-09-01:2!WHBS-09-01:3!WHBS-09-01:4!WHBS-10-01:1!WHBS-11-01:1!WHBS-12-01:1!WHBS-13-01:1!WHBS-14-01:1!;`;
+}
+
 function buildSendDataProd(item: string) {
   return `${item};0;`;
 }
@@ -389,6 +394,7 @@ export default function PrcsSubWEInspDataGrid() {
 
     const sendData1 = buildSendData(s, e); // 일반선
     const sendData2 = buildSendData2(s, e); // 조사선
+    const sendData3 = buildSendData3(s, e); // 고전압선
 
     const mySeq = reqSeq.current;
 
@@ -400,8 +406,15 @@ export default function PrcsSubWEInspDataGrid() {
       const data2 = await prcsSubWE(sendData2);
       if (reqSeq.current !== mySeq) return;
 
+      const data3 = await prcsSubWE(sendData3);
+      if (reqSeq.current !== mySeq) return;
+
       // 두 결과 합쳐서 상태에 반영
-      const merged: ServerRow[] = [...(data1 ?? []), ...(data2 ?? [])];
+      const merged: ServerRow[] = [
+        ...(data1 ?? []),
+        ...(data2 ?? []),
+        ...(data3 ?? []),
+      ];
 
       setRawServerData(merged);
       setRowSelectionModel({ type: "include", ids: new Set() });

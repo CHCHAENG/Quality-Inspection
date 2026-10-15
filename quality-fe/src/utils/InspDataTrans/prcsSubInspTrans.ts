@@ -206,6 +206,36 @@ const WX_FIELD_KEYS = {
   pitch: "WX-14-01-1",
 };
 
+const WHBS_FIELD_KEYS = {
+  appearance: "WHBS-01-01-1",
+  color: "WHBS-02-01-1",
+  // label: "WE-03-01-1",
+  // packing: "WE-04-01-1",
+  // printing: "WE-05-01-1",
+
+  insulationOD: ["WHBS-06-01-1", "WHBS-06-01-2"] as const,
+  souterDiameter: "WHBS-07-01-1",
+  eccentricity: "WHBS-10-01-1",
+
+  conductorDiameters: [
+    "WHBS-08-01-1",
+    "WHBS-08-01-2",
+    "WHBS-08-01-3",
+    "WHBS-08-01-4",
+  ] as const,
+  insulationThickness: [
+    "WHBS-09-01-1",
+    "WHBS-09-01-2",
+    "WHBS-09-01-3",
+    "WHBS-09-01-4",
+  ] as const,
+
+  tensile: "WHBS-13-01-1",
+  elongation: "WHBS-14-01-1",
+  subStrandCnt: "WHBS-11-01-1",
+  pitch: "WHBS-12-01-1",
+} as const;
+
 const WE_PROD_STD_KEYS = {
   inspName:
     "CASE WHEN $i_LANG = '0' THEN B.INSPNM ELSE IFNULL(B.INSPNM_L, B.INSPNM) END",
@@ -215,7 +245,7 @@ const WE_PROD_STD_KEYS = {
 export function normalizeServerRow(
   s: ServerRow,
   idx: number,
-  kind?: ItemKind
+  kind?: ItemKind,
 ): FrontRow {
   // 공통(좌측)
   const barcode = toStringClean(s["MAX(A.BRCD)"]);
@@ -223,7 +253,7 @@ export function normalizeServerRow(
   const itemCode = toStringClean(s["MAX(A.ITMCD)"]);
   const itemName = toStringClean(s["MAX(C.ITMNM)"]);
   const processName = toStringClean(
-    s["MAX(CASE WHEN '0' = '0' THEN H.MCHNM ELSE H.MCHNM_L END)"]
+    s["MAX(CASE WHEN '0' = '0' THEN H.MCHNM ELSE H.MCHNM_L END)"],
   );
   const actualDate = (() => {
     const f = s["FDATE"];
@@ -236,7 +266,7 @@ export function normalizeServerRow(
   const decision = toStringClean(s["MAX(D.RST)"]);
   const inspector = toStringClean(s["MAX(F.USRNM)"]);
   const inspectedAt = toStringClean(
-    s["DATE_FORMAT(MAX(A.REGDT),'%Y-%m-%d %H:%i')"]
+    s["DATE_FORMAT(MAX(A.REGDT),'%Y-%m-%d %H:%i')"],
   );
   const remark = toStringClean(s["MAX(D.RMK)"]);
 
@@ -264,7 +294,7 @@ export function normalizeServerRow(
     const twistDirection = toStringClean(s[ST_FIELD_KEYS.twistDirection]);
     const outerDiameter = toNumber(s[ST_FIELD_KEYS.outerDiameter]);
     const [c1, c2, c3, c4] = ST_FIELD_KEYS.conductorDiameters.map((k) =>
-      toNumber(s[k])
+      toNumber(s[k]),
     );
     return {
       ...base,
@@ -284,7 +314,7 @@ export function normalizeServerRow(
   const appearance = toStringClean(s[DR_FIELD_KEYS.appearance]);
   const strandCount = toNumber(s[DR_FIELD_KEYS.strandCount]);
   const [d1, d2, d3, d4] = DR_FIELD_KEYS.singleDiameters.map((k) =>
-    toNumber(s[k])
+    toNumber(s[k]),
   );
 
   return {
@@ -308,7 +338,7 @@ export function normalizeServerRow_WE(s: ServerRow, idx: number): FrontRow_WE {
   const itemCode = toStringClean(s["MAX(A.ITMCD)"]);
   const itemName = toStringClean(s["MAX(C.ITMNM)"]);
   const processName_we = toStringClean(
-    s["MAX(CASE WHEN  '0'  = '0' THEN H.MCHNM ELSE H.MCHNM_L END)"]
+    s["MAX(CASE WHEN  '0'  = '0' THEN H.MCHNM ELSE H.MCHNM_L END)"],
   );
   const roundTime = toStringClean(s["ROUNDDT"]);
   const inspector = toStringClean(s["MAX(F.USRNM)"]);
@@ -330,28 +360,29 @@ export function normalizeServerRow_WE(s: ServerRow, idx: number): FrontRow_WE {
     remark,
   };
 
-  // ---- WE / WX 행 구분 ----
-  const isWX =
-    s[WX_FIELD_KEYS.appearance] !== undefined &&
-    s[WX_FIELD_KEYS.appearance] !== null;
+  // ---- WE / WX / WHBS 행 구분 ----
+  const hasValue = (key: string) => s[key] !== undefined && s[key] !== null;
 
-  const F = isWX ? WX_FIELD_KEYS : WE_FIELD_KEYS;
+  const isWHBS = hasValue(WHBS_FIELD_KEYS.appearance);
+  const isWX = hasValue(WX_FIELD_KEYS.appearance);
+
+  const F = isWHBS ? WHBS_FIELD_KEYS : isWX ? WX_FIELD_KEYS : WE_FIELD_KEYS;
 
   // ---- 압출(WE / WX 공통 로직) ----
   const appearance = toStringClean(s[F.appearance]);
   const color = toStringClean(s[F.color]);
-  const label = toStringClean(s[F.label]);
-  const packing = toStringClean(s[F.packing]);
-  const printing = toStringClean(s[F.printing]);
+  const label = "label" in F ? toStringClean(s[F.label]) : "";
+  const packing = "packing" in F ? toStringClean(s[F.packing]) : "";
+  const printing = "printing" in F ? toStringClean(s[F.printing]) : "";
 
   const [insulationOD1, insulationOD2] = F.insulationOD.map((k) =>
-    toNumber(s[k])
+    toNumber(s[k]),
   );
   const souterDiameter = toNumber(s[F.souterDiameter]);
   const eccentricity = toNumber(s[F.eccentricity]);
 
   const [cond1, cond2, cond3, cond4] = F.conductorDiameters.map((k) =>
-    toNumber(s[k])
+    toNumber(s[k]),
   );
   const [insulThk1, insulThk2, insulThk3, insulThk4] =
     F.insulationThickness.map((k) => toNumber(s[k]));
@@ -404,7 +435,7 @@ export function normalizeWEProdStdRow(s: ServerRow): WEProdStdRow {
 // ===== 배열 변환 =====
 export function transformServerData(
   arr: ServerRow[],
-  kind: ItemKind
+  kind: ItemKind,
 ): FrontRow[] {
   if (!Array.isArray(arr)) return [];
   return arr.map((row, i) => normalizeServerRow(row, i, kind));
