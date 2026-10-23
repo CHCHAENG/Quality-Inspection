@@ -392,37 +392,71 @@ export default function PrcsSubWEInspDataGrid() {
     const s = dayjs.min(startDate, endDate).format("YYYY-MM-DD");
     const e = dayjs.max(startDate, endDate).format("YYYY-MM-DD");
 
-    const sendData1 = buildSendData(s, e); // 일반선
-    const sendData2 = buildSendData2(s, e); // 조사선
-    const sendData3 = buildSendData3(s, e); // 고전압선
+    const sendData1 = buildSendData(s, e);
+    const sendData2 = buildSendData2(s, e);
+    const sendData3 = buildSendData3(s, e);
 
-    const mySeq = reqSeq.current;
+    const mySeq = ++reqSeq.current;
 
     setLoading(true);
+
     try {
-      const data1 = await prcsSubWE(sendData1);
+      // API별로 개별 호출하여 오류 격리
+      const results = await Promise.allSettled([
+        prcsSubWE(sendData1),
+        prcsSubWE(sendData2),
+        prcsSubWE(sendData3),
+      ]);
+
+      // 이전 조회 요청의 결과라면 무시
       if (reqSeq.current !== mySeq) return;
 
-      const data2 = await prcsSubWE(sendData2);
-      if (reqSeq.current !== mySeq) return;
+      // 각 API의 결과를 배열로 정규화
+      const data1: ServerRow[] =
+        results[0].status === "fulfilled" && Array.isArray(results[0].value)
+          ? results[0].value
+          : [];
 
-      const data3 = await prcsSubWE(sendData3);
-      if (reqSeq.current !== mySeq) return;
+      const data2: ServerRow[] =
+        results[1].status === "fulfilled" && Array.isArray(results[1].value)
+          ? results[1].value
+          : [];
 
-      // 두 결과 합쳐서 상태에 반영
-      const merged: ServerRow[] = [
-        ...(data1 ?? []),
-        ...(data2 ?? []),
-        ...(data3 ?? []),
-      ];
+      const data3: ServerRow[] =
+        results[2].status === "fulfilled" && Array.isArray(results[2].value)
+          ? results[2].value
+          : [];
 
+      // 결과 합치기
+      const merged: ServerRow[] = [...data1, ...data2, ...data3];
+
+      // 일부 API 실패 여부 확인
+      const failedIndexes = results
+        .map((result, index) =>
+          result.status === "rejected" ? index + 1 : null,
+        )
+        .filter((index) => index !== null);
+
+      if (failedIndexes.length > 0) {
+        console.error("조회 실패 API:", failedIndexes);
+      }
+
+      // 조회 결과 반영
       setRawServerData(merged);
-      setRowSelectionModel({ type: "include", ids: new Set() });
-      setPaginationModel((prev) => ({ ...prev, page: 0 }));
-      setSelectedInspectors([]);
 
-      // 조회 다시 할 때 호기 선택/데이터 초기화
+      setRowSelectionModel({
+        type: "include",
+        ids: new Set(),
+      });
+
+      setPaginationModel((prev) => ({
+        ...prev,
+        page: 0,
+      }));
+
+      setSelectedInspectors([]);
       setSelectedHoGi("");
+
       setHoGiMap({
         "압출 02 호기": undefined,
         "압출 03 호기": undefined,
@@ -449,20 +483,10 @@ export default function PrcsSubWEInspDataGrid() {
         message: msg || "조회 중 오류가 발생했습니다.",
         severity: "error",
       });
-
-      setRawServerData([]);
-      setSelectedInspectors([]);
-
-      setWeProdStdByHoGi({
-        "압출 02 호기": [],
-        "압출 03 호기": [],
-        "압출 04 호기": [],
-        "압출 05 호기": [],
-        "조사 04 호기": [],
-        "조사 05 호기": [],
-      });
     } finally {
-      if (reqSeq.current === mySeq) setLoading(false);
+      if (reqSeq.current === mySeq) {
+        setLoading(false);
+      }
     }
   }
 
